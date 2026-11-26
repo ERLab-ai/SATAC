@@ -1,27 +1,3 @@
-# SATAC — السعودية عبر الزمن، عبر القارات
+# SATAC — P0 contract review candidate
 
-**Saudi Arabia: Across Time, Across Continents**
-
-منصة معرفية حضارية مكانية وزمنية، عربية أولًا، تنطلق من جغرافية المملكة المعاصرة لدراسة تاريخ الأرض والإنسان وعلاقات المجتمعات والحضارات عبر القارات، وفق الأدلة المتاحة.
-
-## حالة المشروع
-
-- المرحلة: تأسيس P0 والتحضير لنواة P1؛ لم تُغلق أي منهما بعد.
-- الإصدار المرجعي السابق: Geology v0.13 (نموذج استكشافي، غير مستورد إلى هذا المستودع).
-- المعمارية المستهدفة المقترحة: React/TypeScript + MapLibre، FastAPI، PostgreSQL/PostGIS؛ modular monolith.
-- SATAC رمز تطوير داخلي؛ لا يمثل اعتمادًا حكوميًا أو علامة تجارية محققة.
-
-## مبادئ العمل
-
-- المكان والزمن والكيان والادعاء والدليل أجزاء من قاعدة معرفة واحدة.
-- نطاق زمني مفتوح، مع دعم BCE والتواريخ التقريبية والعميقة والمجهولة.
-- فصل الحدود المرجعية المعاصرة عن الكيانات والسيادة التاريخية.
-- لا نشر لادعاءات غير مراجعة، ولا استيراد أو توزيع لأصول مجهولة الحقوق.
-- الوكلاء يقترحون مسودات فقط؛ المنتج الأساسي يعمل دون LLM.
-
-## البدء
-
-- [خطة الانتقال P0/P1](docs/inception/transition-plan.md)
-- [تعليمات الوكلاء والمساهمين](AGENTS.md)
-
-لا يتضمن المستودع حتى الآن تطبيقًا قابلًا للتشغيل أو بيانات معتمدة. تراخيص الشيفرة والبيانات ستحدد منفصلة بعد المراجعة؛ لا يفترض أن إتاحة المستودع للعامة تمنح ترخيص إعادة الاستخدام.
+Independent foundation track, not a P1 release. See [domain contracts](docs/inception/domain-contract.md), [proposed ADRs](docs/adr/ADR-001-to-009.md), [legacy inventory](docs/inception/legacy-inventory.md), and [predicate registry](ontology/predicates.json). Run the dependency-free reference checks using `python -m unittest discover -s tests -v` (Python 3.13.5 tested). The legacy app remains in its own branch. Owner review is required before closing P0 or beginning production P1.
