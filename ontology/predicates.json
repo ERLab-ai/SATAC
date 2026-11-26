@@ -1,21 +1,185 @@
 {
   "status": "proposed",
-  "entity_types": ["Place", "Person", "Community", "Polity", "Event", "Route", "Institution", "Work", "Manuscript", "Artifact", "Concept"],
-  "epistemic_status": ["well_supported", "plausible", "disputed", "uncertain", "unsupported"],
-  "editorial_status": ["draft", "review_required", "approved", "rejected", "superseded", "withdrawn"],
+  "entity_types": [
+    "Place",
+    "Person",
+    "Community",
+    "Polity",
+    "Event",
+    "Route",
+    "Institution",
+    "Work",
+    "Manuscript",
+    "Artifact",
+    "Concept"
+  ],
+  "epistemic_status": [
+    "well_supported",
+    "plausible",
+    "disputed",
+    "uncertain",
+    "unsupported"
+  ],
   "predicates": {
-    "LOCATED_IN": {"domain": ["Place", "Institution", "Artifact", "Manuscript", "Event"], "range": ["Place"]},
-    "BORN_IN": {"domain": ["Person"], "range": ["Place"]},
-    "LIVED_IN": {"domain": ["Person", "Community"], "range": ["Place"]},
-    "TRAVELED_TO": {"domain": ["Person", "Community"], "range": ["Place"]},
-    "TRADED_WITH": {"domain": ["Place", "Community", "Polity", "Institution", "Person"], "range": ["Place", "Community", "Polity", "Institution", "Person"]},
-    "GOVERNED_BY": {"domain": ["Place", "Community", "Polity", "Institution"], "range": ["Polity", "Person", "Institution"]},
-    "AUTHORED": {"domain": ["Person", "Community", "Institution"], "range": ["Work"]},
-    "FOUNDED": {"domain": ["Person", "Community", "Polity", "Institution"], "range": ["Place", "Polity", "Institution"]},
-    "STUDIED_UNDER": {"domain": ["Person"], "range": ["Person"]},
-    "PARTICIPATED_IN": {"domain": ["Person", "Community", "Polity", "Institution"], "range": ["Event"]},
-    "CONNECTED_TO": {"domain": ["*"], "range": ["*"]},
-    "INFLUENCED": {"domain": ["*"], "range": ["*"], "requires_justification": true},
-    "ATTESTED_BY": {"domain": ["*"], "range": ["Artifact", "Manuscript", "Work"], "note": "SourceVersion evidence remains a separate record"}
-  }
+    "LOCATED_IN": {
+      "domain": [
+        "Place",
+        "Institution",
+        "Artifact",
+        "Manuscript",
+        "Event"
+      ],
+      "range": [
+        "Place"
+      ]
+    },
+    "BORN_IN": {
+      "domain": [
+        "Person"
+      ],
+      "range": [
+        "Place"
+      ]
+    },
+    "LIVED_IN": {
+      "domain": [
+        "Person",
+        "Community"
+      ],
+      "range": [
+        "Place"
+      ]
+    },
+    "TRAVELED_TO": {
+      "domain": [
+        "Person",
+        "Community"
+      ],
+      "range": [
+        "Place"
+      ]
+    },
+    "TRADED_WITH": {
+      "domain": [
+        "Place",
+        "Community",
+        "Polity",
+        "Institution",
+        "Person"
+      ],
+      "range": [
+        "Place",
+        "Community",
+        "Polity",
+        "Institution",
+        "Person"
+      ]
+    },
+    "GOVERNED_BY": {
+      "domain": [
+        "Place",
+        "Community",
+        "Polity",
+        "Institution"
+      ],
+      "range": [
+        "Polity",
+        "Person",
+        "Institution"
+      ]
+    },
+    "AUTHORED": {
+      "domain": [
+        "Person",
+        "Community",
+        "Institution"
+      ],
+      "range": [
+        "Work"
+      ]
+    },
+    "FOUNDED": {
+      "domain": [
+        "Person",
+        "Community",
+        "Polity",
+        "Institution"
+      ],
+      "range": [
+        "Place",
+        "Polity",
+        "Institution"
+      ]
+    },
+    "STUDIED_UNDER": {
+      "domain": [
+        "Person"
+      ],
+      "range": [
+        "Person"
+      ]
+    },
+    "PARTICIPATED_IN": {
+      "domain": [
+        "Person",
+        "Community",
+        "Polity",
+        "Institution"
+      ],
+      "range": [
+        "Event"
+      ]
+    },
+    "CONNECTED_TO": {
+      "domain": [
+        "*"
+      ],
+      "range": [
+        "*"
+      ]
+    },
+    "INFLUENCED": {
+      "domain": [
+        "*"
+      ],
+      "range": [
+        "*"
+      ],
+      "requires_justification": true
+    },
+    "ATTESTED_BY": {
+      "domain": [
+        "*"
+      ],
+      "range": [
+        "Artifact",
+        "Manuscript",
+        "Work"
+      ],
+      "note": "SourceVersion evidence remains a separate record"
+    }
+  },
+  "publication_status": [
+    "draft",
+    "published",
+    "withheld",
+    "withdrawn"
+  ],
+  "verification_status": [
+    "unreviewed",
+    "review_required",
+    "verified",
+    "disputed",
+    "known_incorrect"
+  ],
+  "source_status": [
+    "missing",
+    "incomplete",
+    "available"
+  ],
+  "correction_status": [
+    "none",
+    "pending",
+    "corrected"
+  ]
 }
