@@ -1,0 +1,54 @@
+BADR_388E237N_S	بدر	38.80098	23.72676	Jazirat al-Arab	towns
+BISHA_426E199N_S	بيشة	42.62594	19.93935	Jazirat al-Arab	waystations
+DHUHULAYFA_395E244N_S	ذو الحليفة	39.56501	24.40558	Jazirat al-Arab	villages
+DHUKHUSHUB_392E247N_S	ذو خشب	39.29172	24.72896	Jazirat al-Arab	waystations
+FAYD_425E270N_S	فيد	42.50815	27.06977	Badiyat al-Arab	towns
+HAJAR_499E247N_R	الهجر	49.94102	24.72896	Jazirat al-Arab	regions
+JUDDA_391E214N_S	جدة	39.1779	21.46201	Jazirat al-Arab	towns
+JURASH_426E186N_S	جرش	42.69682	18.63711	Jazirat al-Arab	towns
+KHAYBAR_392E257N_S	خيبر	39.26821	25.78667	Jazirat al-Arab	towns
+MADINA_396E244N_S	المدينة	39.60908	24.47782	Jazirat al-Arab	towns
+MADINBANUSULAYM_408E235N_O	معدن بنو سليم	40.8227	23.53832	Jazirat al-Arab	sites
+MADINNAQIRA_415E255N_S	معدن النقرة	41.52796	25.5536	Jazirat al-Arab	waystations
+MAKKA_398E213N_S	مكة	39.83612	21.39132	Jazirat al-Arab	metropoles
+NAJRAN_442E175N_S	نجران	44.2995	17.58603	Jazirat al-Arab	towns
+QARYATAYN_439E260N_S	القريتين	43.92995	26.08634	Badiyat al-Arab	waystations
+QATIF_499E265N_S	القطيف	49.96159	26.53966	Jazirat al-Arab	towns
+RABADHA_413E246N_S	ربذة	41.30169	24.66756	Jazirat al-Arab	waystations
+TABUK_365E283N_S	تبوك	36.5062	28.37114	Badiyat al-Arab	towns
+TAIF_404E212N_S	الطائف	40.40566	21.21629	Jazirat al-Arab	towns
+TAYMA_385E275N_S	تيماء	38.52	27.58081	Badiyat al-Arab	towns
+THALABIYYA_431E282N_S	الثعلبية	43.16528	28.29472	Badiyat al-Arab	waystations
+TURABA_416E212N_S	تربة	41.6403	21.25283	Jazirat al-Arab	villages
+UQAYR_502E255N_S	العقير	50.22312	25.5589	Jazirat al-Arab	towns
+USFAN_394E218N_S	عسفان	39.46144	21.88079	Jazirat al-Arab	waystations
+WADIQURA_382E256N_W	وادي القرى	38.29849	25.67549	Jazirat al-Arab	waters
+YABRIN_489E232N_R	يبرين	48.95073	23.29563	Jazirat al-Arab	regions
+YAMAMA_467E240N_R	اليمامة	46.73506	24.08674	Jazirat al-Arab	regions
+YANBU_381E241N_S	ينبع	38.12512	24.1082	Jazirat al-Arab	towns
+ZUBALA_435E294N_S	زبالة	43.5639	29.40521	Badiyat al-Arab	waystations
+ADAN_450E127N_S	عدن	45.03942	12.79365	Yemen	towns
+AYLA_349E295N_S	أيلة	34.94527	29.57226	Sham	towns
+BAGHDAD_443E333N_S	بغداد	44.35693	33.35932	Iraq	metropoles
+BASRA_477E304N_S	البصرة	47.71735	30.40147	Iraq	capitals
+BILBAYS_315E304N_S	بلبيس	31.57097	30.41776	Egypt	capitals
+BUKHARA_644E398N_S	بخارة	64.46489	39.85224	Transoxiana	capitals
+DAYBUL_676E244N_S	الديبل	67.69101	24.43756	Sind	towns
+FUSTAT_312E300N_S	فسطاط	31.24964	30.04325	Egypt	metropoles
+HALAB_371E361N_S	حلب	37.17518	36.19828	Sham	capitals
+HIMS_367E347N_S	حمص	36.72425	34.73793	Sham	capitals
+ISKANDARIYYA_299E311N_S	الإسكندرية	29.90981	31.1949	Egypt	capitals
+KUFA_443E320N_S	الكوفة	44.39355	32.03808	Iraq	capitals
+MANSURA_688E258N_S	المنصورة	68.87697	25.8651	Sind	capitals
+MULTAN_714E301N_S	المولتان	71.40071	30.17568	Sind	towns
+NAYSABUR_587E361N_S	نيسابور	58.79841	36.12138	Khurasan	metropoles
+QAYRAWAN_101E357N_S	القيروان	10.14137	35.70049	Maghrib	capitals
+QULZUM_325E300N_S	القلزم	32.55684	30.02822	Egypt	towns
+RAQQA_390E359N_S	الرقة	39.05128	35.9493	Aqur	capitals
+SAMARQAND_670E396N_S	سمرقند	67.03225	39.67905	Transoxiana	metropoles
+SANA_442E153N_S	صنعاء	44.20186	15.37373	Yemen	capitals
+SIRAF_523E276N_S	سيراف	52.34306	27.69666	Faris	capitals
+SUHAR_566E243N_S	صحار	56.69086	24.35205	Jazirat al-Arab	capitals
+TARSUS_349E369N_S	طرسوس	34.95529	36.90807	Sham	towns
+TUNIS_101E367N_S	تونس	10.17736	36.77071	Maghrib	towns
+ZABID_433E142N_S	زبيد	43.32654	14.20796	Yemen	capitals

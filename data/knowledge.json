@@ -1,0 +1,311 @@
+{
+  "release": "genesis-0.1-research-preview",
+  "editorial_status": "review_required",
+  "sources": [
+    {
+      "id": "U1293",
+      "title": "الحِجر — مركز التراث العالمي",
+      "url": "https://whc.unesco.org/en/list/1293",
+      "publisher": "UNESCO World Heritage Centre",
+      "rights": "إحالة وصياغة موجزة أصلية؛ لا إعادة توزيع للنص أو الصور"
+    },
+    {
+      "id": "U326",
+      "title": "البتراء — مركز التراث العالمي",
+      "url": "https://whc.unesco.org/en/list/326",
+      "publisher": "UNESCO World Heritage Centre",
+      "rights": "إحالة وصياغة موجزة أصلية"
+    },
+    {
+      "id": "U1361",
+      "title": "جدة التاريخية — مركز التراث العالمي",
+      "url": "https://whc.unesco.org/en/list/1361",
+      "publisher": "UNESCO World Heritage Centre",
+      "rights": "إحالة وصياغة موجزة أصلية"
+    },
+    {
+      "id": "U1329",
+      "title": "حي الطريف — مركز التراث العالمي",
+      "url": "https://whc.unesco.org/en/list/1329",
+      "publisher": "UNESCO World Heritage Centre",
+      "rights": "إحالة وصياغة موجزة أصلية"
+    },
+    {
+      "id": "U1472",
+      "title": "الفنون الصخرية في حائل — مركز التراث العالمي",
+      "url": "https://whc.unesco.org/en/list/1472/",
+      "publisher": "UNESCO World Heritage Centre",
+      "rights": "إحالة وصياغة موجزة أصلية"
+    }
+  ],
+  "entities": [
+    {
+      "id": "hail",
+      "name": "منطقة حائل",
+      "en": "Hail region",
+      "kind": "place",
+      "lon": 41.7,
+      "lat": 27.5,
+      "precision": "مركز إقليمي تقريبي؛ ليس موقع النقوش",
+      "local": true
+    },
+    {
+      "id": "hegra",
+      "name": "الحِجر",
+      "en": "Hegra / Al-Hijr",
+      "kind": "place",
+      "lon": 37.9,
+      "lat": 26.8,
+      "precision": "موضع عام تقريبي",
+      "local": true
+    },
+    {
+      "id": "petra",
+      "name": "البتراء",
+      "en": "Petra",
+      "kind": "place",
+      "lon": 35.45,
+      "lat": 30.33,
+      "precision": "موضع عام تقريبي",
+      "local": false
+    },
+    {
+      "id": "jeddah",
+      "name": "جدة التاريخية",
+      "en": "Historic Jeddah",
+      "kind": "place",
+      "lon": 39.2,
+      "lat": 21.5,
+      "precision": "موضع المدينة التقريبي",
+      "local": true
+    },
+    {
+      "id": "makkah",
+      "name": "مكة المكرمة",
+      "en": "Makkah / Mecca",
+      "kind": "place",
+      "lon": 39.83,
+      "lat": 21.42,
+      "precision": "موضع المدينة التقريبي",
+      "local": true
+    },
+    {
+      "id": "diriyah",
+      "name": "الدرعية — الطريف",
+      "en": "Diriyah / At-Turaif",
+      "kind": "place",
+      "lon": 46.57,
+      "lat": 24.73,
+      "precision": "موضع المدينة التقريبي",
+      "local": true
+    },
+    {
+      "id": "indianocean",
+      "name": "المحيط الهندي",
+      "en": "Indian Ocean",
+      "kind": "region",
+      "lon": 69,
+      "lat": 5,
+      "precision": "علامة تسمية إقليمية؛ لا تمثل حدودًا",
+      "local": false
+    },
+    {
+      "id": "africa",
+      "name": "أفريقيا",
+      "en": "Africa",
+      "kind": "region",
+      "lon": 19,
+      "lat": 4,
+      "precision": "علامة تسمية قارية؛ لا تمثل منشأً محددًا",
+      "local": false
+    },
+    {
+      "id": "india",
+      "name": "الهند",
+      "en": "India",
+      "kind": "region",
+      "lon": 79,
+      "lat": 21,
+      "precision": "علامة تسمية إقليمية",
+      "local": false
+    },
+    {
+      "id": "java",
+      "name": "جاوة",
+      "en": "Java",
+      "kind": "region",
+      "lon": 110,
+      "lat": -7.5,
+      "precision": "علامة تسمية إقليمية",
+      "local": false
+    },
+    {
+      "id": "europe",
+      "name": "أوروبا",
+      "en": "Europe",
+      "kind": "region",
+      "lon": 15,
+      "lat": 49,
+      "precision": "علامة تسمية قارية",
+      "local": false
+    }
+  ],
+  "claims": [
+    {
+      "id": "C01",
+      "subject": "hail",
+      "object": null,
+      "type": "archaeology",
+      "text": "تدل الرسوم والنقوش الصخرية في منطقة حائل على تاريخ بشري يقارب عشرة آلاف سنة، وتوثق تغيرات البيئة المحلية.",
+      "start": null,
+      "end": null,
+      "date": "نحو عشرة آلاف سنة من التاريخ البشري؛ لا تاريخ بداية دقيق في هذا السجل",
+      "source": "U1472",
+      "locator": "Outstanding Universal Value — Brief synthesis",
+      "status": "well_supported"
+    },
+    {
+      "id": "C02",
+      "subject": "hegra",
+      "object": null,
+      "type": "archaeology",
+      "text": "تعود واجهات المقابر الأثرية المزخرفة في الحِجر إلى القرن الأول قبل الميلاد والقرن الأول الميلادي.",
+      "start": -99,
+      "end": 100,
+      "date": "القرنان الأول ق.م والأول م (ترقيم داخلي فلكي)",
+      "source": "U1293",
+      "locator": "Description, paragraph 1",
+      "status": "well_supported"
+    },
+    {
+      "id": "C03",
+      "subject": "hegra",
+      "object": "petra",
+      "type": "culture",
+      "text": "الحِجر والبتراء موقعان مرتبطان بالتراث النبطي؛ لا يثبت هذا الرابط مسار قافلة بعينه أو حدودًا سياسية.",
+      "start": null,
+      "end": null,
+      "date": "العصر النبطي؛ نطاق العلاقة الدقيق غير محدد هنا",
+      "source": "U1293",
+      "locator": "Description, paragraph 1",
+      "additional": "U326",
+      "status": "well_supported"
+    },
+    {
+      "id": "C04",
+      "subject": "petra",
+      "object": null,
+      "type": "archaeology",
+      "text": "كانت البتراء مركزًا للقوافل النبطية عند تقاطع طرق تربط الجزيرة العربية بمصر وبلاد الشام.",
+      "start": null,
+      "end": null,
+      "date": "العصر النبطي؛ لا سنة محددة في هذا السجل",
+      "source": "U326",
+      "locator": "Description",
+      "status": "well_supported"
+    },
+    {
+      "id": "C05",
+      "subject": "jeddah",
+      "object": "makkah",
+      "type": "pilgrimage",
+      "text": "ارتبطت جدة التاريخية بالحج بوصفها ميناء وصول للحجاج القادمين بحرًا إلى مكة.",
+      "start": null,
+      "end": null,
+      "date": "على مدى قرون؛ دون افتراض استمرار غير منقطع",
+      "source": "U1361",
+      "locator": "Outstanding Universal Value — Criterion (vi)",
+      "status": "well_supported"
+    },
+    {
+      "id": "C06",
+      "subject": "jeddah",
+      "object": "indianocean",
+      "type": "trade",
+      "text": "تعكس عمارة جدة التاريخية تبادل الخبرات والمواد وتقنيات البناء على طرق المحيط الهندي والبحر الأحمر.",
+      "start": 1501,
+      "end": null,
+      "date": "القرن السادس عشر إلى أوائل القرن العشرين؛ نهاية رقمية غير مثبتة",
+      "source": "U1361",
+      "locator": "Outstanding Universal Value — Criterion (ii)",
+      "status": "approximate",
+      "search_window": [
+        1501,
+        1950
+      ]
+    },
+    {
+      "id": "C07",
+      "subject": "africa",
+      "object": "jeddah",
+      "type": "pilgrimage",
+      "text": "ارتبط الحج بقدوم بضائع من أفريقيا إلى جدة وبيعها فيها، ضمن التبادل الذي أسهم في تشكيل المدينة.",
+      "start": null,
+      "end": null,
+      "date": "تاريخي؛ غير مؤرخ رقميًا في هذا السجل",
+      "source": "U1361",
+      "locator": "Outstanding Universal Value — Criterion (vi)",
+      "status": "well_supported"
+    },
+    {
+      "id": "C08",
+      "subject": "java",
+      "object": "jeddah",
+      "type": "knowledge",
+      "text": "يشير وصف اليونسكو إلى نقاشات دينية في جدة مع علماء من جاوة، ضمن شبكات الحج والمعرفة.",
+      "start": null,
+      "end": null,
+      "date": "تاريخي؛ دون سنة محددة",
+      "source": "U1361",
+      "locator": "Outstanding Universal Value — Criterion (vi)",
+      "status": "well_supported"
+    },
+    {
+      "id": "C09",
+      "subject": "india",
+      "object": "jeddah",
+      "type": "knowledge",
+      "text": "يشير وصف اليونسكو إلى نقاشات دينية في جدة مع علماء من الهند، ضمن شبكات الحج والمعرفة.",
+      "start": null,
+      "end": null,
+      "date": "تاريخي؛ دون سنة محددة",
+      "source": "U1361",
+      "locator": "Outstanding Universal Value — Criterion (vi)",
+      "status": "well_supported"
+    },
+    {
+      "id": "C10",
+      "subject": "diriyah",
+      "object": null,
+      "type": "politics",
+      "text": "ازداد دور الطريف السياسي والديني في القرن الثامن عشر وأوائل القرن التاسع عشر؛ وكان مركزًا لحكم آل سعود.",
+      "start": 1701,
+      "end": null,
+      "date": "القرن الثامن عشر وأوائل التاسع عشر؛ نهاية غير محددة رقميًا",
+      "source": "U1329",
+      "locator": "Outstanding Universal Value — Brief synthesis",
+      "status": "approximate",
+      "search_window": [
+        1701,
+        1850
+      ]
+    },
+    {
+      "id": "C11",
+      "subject": "jeddah",
+      "object": "europe",
+      "type": "trade",
+      "text": "ازدهرت تجارة جدة البحرية في سياق فتح قناة السويس عام 1869 وتطور الملاحة البخارية التي ربطت أوروبا بالهند وآسيا؛ الرابط سياقي وليس إثباتًا لرحلة مباشرة.",
+      "start": 1869,
+      "end": null,
+      "date": "بعد 1869؛ نهاية غير محددة في هذا السجل",
+      "source": "U1361",
+      "locator": "Outstanding Universal Value — Criterion (iv)",
+      "status": "approximate",
+      "search_window": [
+        1869,
+        1900
+      ]
+    }
+  ]
+}

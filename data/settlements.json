@@ -1,0 +1,2933 @@
+{
+  "source": "https://github.com/homaily/Saudi-Arabia-Regions-Cities-and-Districts/blob/master/json/cities.json",
+  "source_blob_sha": "63fb90f701f855e4afa30d7f4bbf9b18ebff2055",
+  "source_file_sha256": null,
+  "license": "GPL-2.0 (repository license; review before public redistribution)",
+  "coverage": "regional-sample",
+  "regions": [
+    "",
+    "الرياض",
+    "مكة المكرمة",
+    "المدينة المنورة",
+    "القصيم",
+    "الشرقية",
+    "عسير",
+    "تبوك",
+    "حائل",
+    "الحدود الشمالية",
+    "جازان",
+    "نجران",
+    "الباحة",
+    "الجوف"
+  ],
+  "records": [
+    {
+      "id": 1,
+      "region": 7,
+      "name": "تبوك",
+      "en": "Tabuk",
+      "lon": 36.5339,
+      "lat": 28.4146,
+      "rank": 0
+    },
+    {
+      "id": 3,
+      "region": 1,
+      "name": "الرياض",
+      "en": "Riyadh",
+      "lon": 46.7333,
+      "lat": 24.7,
+      "rank": 0
+    },
+    {
+      "id": 6,
+      "region": 2,
+      "name": "مكة المكرمة",
+      "en": "Makkah",
+      "lon": 39.8435,
+      "lat": 21.4272,
+      "rank": 0
+    },
+    {
+      "id": 10,
+      "region": 8,
+      "name": "حائل",
+      "en": "Hail",
+      "lon": 41.6973,
+      "lat": 27.5305,
+      "rank": 0
+    },
+    {
+      "id": 11,
+      "region": 4,
+      "name": "بريدة",
+      "en": "Buraidah",
+      "lon": 43.9744,
+      "lat": 26.3303,
+      "rank": 0
+    },
+    {
+      "id": 13,
+      "region": 5,
+      "name": "الدمام",
+      "en": "Dammam",
+      "lon": 50.1092,
+      "lat": 26.442,
+      "rank": 0
+    },
+    {
+      "id": 14,
+      "region": 3,
+      "name": "المدينة المنورة",
+      "en": "Madinah",
+      "lon": 39.6078,
+      "lat": 24.4706,
+      "rank": 0
+    },
+    {
+      "id": 15,
+      "region": 6,
+      "name": "ابها",
+      "en": "Abha",
+      "lon": 42.5,
+      "lat": 18.2167,
+      "rank": 0
+    },
+    {
+      "id": 17,
+      "region": 10,
+      "name": "جازان",
+      "en": "Jazan",
+      "lon": 42.5536,
+      "lat": 16.8967,
+      "rank": 0
+    },
+    {
+      "id": 1542,
+      "region": 12,
+      "name": "الباحة",
+      "en": "Bahah",
+      "lon": 41.4631,
+      "lat": 20.007,
+      "rank": 0
+    },
+    {
+      "id": 2213,
+      "region": 9,
+      "name": "عرعر",
+      "en": "Arar",
+      "lon": 41.0133,
+      "lat": 30.9721,
+      "rank": 0
+    },
+    {
+      "id": 2237,
+      "region": 13,
+      "name": "سكاكا",
+      "en": "Sakaka",
+      "lon": 40.2142,
+      "lat": 29.9728,
+      "rank": 0
+    },
+    {
+      "id": 3417,
+      "region": 11,
+      "name": "نجران",
+      "en": "Najran",
+      "lon": 44.2664,
+      "lat": 17.5409,
+      "rank": 0
+    },
+    {
+      "id": 5,
+      "region": 2,
+      "name": "الطائف",
+      "en": "At Taif",
+      "lon": 40.4167,
+      "lat": 21.2685,
+      "rank": 1
+    },
+    {
+      "id": 12,
+      "region": 5,
+      "name": "الهفوف",
+      "en": "Al Hafuf",
+      "lon": 49.6044,
+      "lat": 25.3666,
+      "rank": 1
+    },
+    {
+      "id": 18,
+      "region": 2,
+      "name": "جدة",
+      "en": "Jeddah",
+      "lon": 39.1809,
+      "lat": 21.4882,
+      "rank": 1
+    },
+    {
+      "id": 24,
+      "region": 1,
+      "name": "المجمعة",
+      "en": "Al Majma'ah",
+      "lon": 45.339,
+      "lat": 25.9074,
+      "rank": 1
+    },
+    {
+      "id": 31,
+      "region": 5,
+      "name": "الخبر",
+      "en": "Al Khobar",
+      "lon": 50.2107,
+      "lat": 26.3109,
+      "rank": 1
+    },
+    {
+      "id": 36,
+      "region": 7,
+      "name": "حقل",
+      "en": "Haql",
+      "lon": 34.9486,
+      "lat": 29.301,
+      "rank": 1
+    },
+    {
+      "id": 47,
+      "region": 5,
+      "name": "حفر الباطن",
+      "en": "Hafar Al Batin",
+      "lon": 45.9805,
+      "lat": 28.4375,
+      "rank": 1
+    },
+    {
+      "id": 62,
+      "region": 6,
+      "name": "خميس مشيط",
+      "en": "Khamis Mushayt",
+      "lon": 42.7298,
+      "lat": 18.3061,
+      "rank": 1
+    },
+    {
+      "id": 67,
+      "region": 5,
+      "name": "القطيف",
+      "en": "Al Qatif",
+      "lon": 50.0012,
+      "lat": 26.5639,
+      "rank": 1
+    },
+    {
+      "id": 74,
+      "region": 7,
+      "name": "تيماء",
+      "en": "Tayma'",
+      "lon": 38.5506,
+      "lat": 27.635,
+      "rank": 1
+    },
+    {
+      "id": 80,
+      "region": 4,
+      "name": "عنيزة",
+      "en": "Unayzah",
+      "lon": 43.9877,
+      "lat": 26.0916,
+      "rank": 1
+    },
+    {
+      "id": 89,
+      "region": 5,
+      "name": "قرية العليا",
+      "en": "Qaryat Al 'Ulya",
+      "lon": 47.7004,
+      "lat": 27.563,
+      "rank": 1
+    },
+    {
+      "id": 113,
+      "region": 5,
+      "name": "الجبيل",
+      "en": "Al Jubail",
+      "lon": 49.6705,
+      "lat": 26.9992,
+      "rank": 1
+    },
+    {
+      "id": 115,
+      "region": 5,
+      "name": "النعيرية",
+      "en": "An Nu'ayriyah",
+      "lon": 48.4774,
+      "lat": 27.4757,
+      "rank": 1
+    },
+    {
+      "id": 199,
+      "region": 3,
+      "name": "العلا",
+      "en": "Al Ula",
+      "lon": 37.9099,
+      "lat": 26.6348,
+      "rank": 1
+    },
+    {
+      "id": 227,
+      "region": 5,
+      "name": "الظهران",
+      "en": "Dhahran",
+      "lon": 50.1226,
+      "lat": 26.3036,
+      "rank": 1
+    },
+    {
+      "id": 233,
+      "region": 7,
+      "name": "الوجه",
+      "en": "Al Wajh",
+      "lon": 36.473,
+      "lat": 26.2402,
+      "rank": 1
+    },
+    {
+      "id": 243,
+      "region": 5,
+      "name": "بقيق",
+      "en": "Buqayq",
+      "lon": 49.6841,
+      "lat": 25.9447,
+      "rank": 1
+    },
+    {
+      "id": 270,
+      "region": 1,
+      "name": "الزلفي",
+      "en": "Az Zulfi",
+      "lon": 44.8058,
+      "lat": 26.2971,
+      "rank": 1
+    },
+    {
+      "id": 288,
+      "region": 3,
+      "name": "خيبر",
+      "en": "Khaybar",
+      "lon": 39.2788,
+      "lat": 25.7184,
+      "rank": 1
+    },
+    {
+      "id": 306,
+      "region": 1,
+      "name": "الغاط",
+      "en": "Al Ghat",
+      "lon": 44.9504,
+      "lat": 26.0407,
+      "rank": 1
+    },
+    {
+      "id": 377,
+      "region": 2,
+      "name": "رابغ",
+      "en": "Rabigh",
+      "lon": 39.0345,
+      "lat": 22.7937,
+      "rank": 1
+    },
+    {
+      "id": 418,
+      "region": 1,
+      "name": "عفيف",
+      "en": "Afif",
+      "lon": 42.9214,
+      "lat": 23.9095,
+      "rank": 1
+    },
+    {
+      "id": 443,
+      "region": 1,
+      "name": "ثادق",
+      "en": "Thadiq",
+      "lon": 45.8618,
+      "lat": 25.2971,
+      "rank": 1
+    },
+    {
+      "id": 454,
+      "region": 5,
+      "name": "سيهات",
+      "en": "Sayhat",
+      "lon": 50.0468,
+      "lat": 26.4834,
+      "rank": 1
+    },
+    {
+      "id": 483,
+      "region": 3,
+      "name": "ينبع",
+      "en": "Yanbu",
+      "lon": 38.0634,
+      "lat": 24.0939,
+      "rank": 1
+    },
+    {
+      "id": 500,
+      "region": 1,
+      "name": "شقراء",
+      "en": "Shaqra'",
+      "lon": 45.2551,
+      "lat": 25.2415,
+      "rank": 1
+    },
+    {
+      "id": 669,
+      "region": 1,
+      "name": "الدوادمي",
+      "en": "Ad Duwadimi",
+      "lon": 44.3811,
+      "lat": 24.5013,
+      "rank": 1
+    },
+    {
+      "id": 795,
+      "region": 1,
+      "name": "حريملاء",
+      "en": "Huraymila",
+      "lon": 46.1284,
+      "lat": 25.1323,
+      "rank": 1
+    },
+    {
+      "id": 828,
+      "region": 1,
+      "name": "الدرعية",
+      "en": "Ad Dir'iyah",
+      "lon": 46.5806,
+      "lat": 24.741,
+      "rank": 1
+    },
+    {
+      "id": 839,
+      "region": 1,
+      "name": "ضرما",
+      "en": "Duruma",
+      "lon": 46.1318,
+      "lat": 24.6041,
+      "rank": 1
+    },
+    {
+      "id": 880,
+      "region": 1,
+      "name": "القويعية",
+      "en": "Al Quway'iyah",
+      "lon": 45.2657,
+      "lat": 24.0507,
+      "rank": 1
+    },
+    {
+      "id": 990,
+      "region": 1,
+      "name": "المزاحمية",
+      "en": "Al Muzahimiyah",
+      "lon": 46.2766,
+      "lat": 24.462,
+      "rank": 1
+    },
+    {
+      "id": 1053,
+      "region": 3,
+      "name": "بدر",
+      "en": "Badr",
+      "lon": 38.795,
+      "lat": 23.783,
+      "rank": 1
+    },
+    {
+      "id": 1061,
+      "region": 1,
+      "name": "الخرج",
+      "en": "Al Kharj",
+      "lon": 47.327,
+      "lat": 24.1587,
+      "rank": 1
+    },
+    {
+      "id": 1073,
+      "region": 1,
+      "name": "الدلم",
+      "en": "Ad Dilam",
+      "lon": 47.2194,
+      "lat": 23.9938,
+      "rank": 1
+    },
+    {
+      "id": 1228,
+      "region": 8,
+      "name": "الشنان",
+      "en": "Ash Shinan",
+      "lon": 42.4416,
+      "lat": 27.1807,
+      "rank": 1
+    },
+    {
+      "id": 1248,
+      "region": 2,
+      "name": "الخرمة",
+      "en": "Al Khurmah",
+      "lon": 42.034,
+      "lat": 21.9137,
+      "rank": 1
+    },
+    {
+      "id": 1351,
+      "region": 1,
+      "name": "وادي الدواسر",
+      "en": "Wadi Ad Dawasir",
+      "lon": 44.783,
+      "lat": 20.4697,
+      "rank": 1
+    },
+    {
+      "id": 1361,
+      "region": 1,
+      "name": "السليل",
+      "en": "As Sulayyil",
+      "lon": 45.5756,
+      "lat": 20.4735,
+      "rank": 1
+    },
+    {
+      "id": 1390,
+      "region": 2,
+      "name": "الليث",
+      "en": "Al Lith",
+      "lon": 40.2722,
+      "lat": 20.1527,
+      "rank": 1
+    },
+    {
+      "id": 1514,
+      "region": 6,
+      "name": "بيشة",
+      "en": "Bishah",
+      "lon": 42.6065,
+      "lat": 20.0074,
+      "rank": 1
+    },
+    {
+      "id": 1531,
+      "region": 12,
+      "name": "بلجرشي",
+      "en": "Biljurashi",
+      "lon": 41.5625,
+      "lat": 19.8411,
+      "rank": 1
+    },
+    {
+      "id": 1625,
+      "region": 2,
+      "name": "القنفذة",
+      "en": "Al Qunfidhah",
+      "lon": 41.0906,
+      "lat": 19.1272,
+      "rank": 1
+    },
+    {
+      "id": 1801,
+      "region": 6,
+      "name": "محايل",
+      "en": "Muhayil",
+      "lon": 42.0432,
+      "lat": 18.5443,
+      "rank": 1
+    },
+    {
+      "id": 1999,
+      "region": 4,
+      "name": "عيون الجواء",
+      "en": "Uyun Al Jawa'",
+      "lon": 43.6293,
+      "lat": 26.4997,
+      "rank": 1
+    },
+    {
+      "id": 2167,
+      "region": 5,
+      "name": "صفوى",
+      "en": "Safwa",
+      "lon": 49.9616,
+      "lat": 26.6634,
+      "rank": 1
+    },
+    {
+      "id": 2208,
+      "region": 9,
+      "name": "طريف",
+      "en": "Turaif",
+      "lon": 38.6575,
+      "lat": 31.6819,
+      "rank": 1
+    },
+    {
+      "id": 2226,
+      "region": 13,
+      "name": "القريات",
+      "en": "Al Qurayyat",
+      "lon": 37.3397,
+      "lat": 31.3513,
+      "rank": 1
+    },
+    {
+      "id": 2240,
+      "region": 13,
+      "name": "طبرجل",
+      "en": "Tubarjal",
+      "lon": 38.2218,
+      "lat": 30.501,
+      "rank": 1
+    },
+    {
+      "id": 2256,
+      "region": 9,
+      "name": "رفحاء",
+      "en": "Rafha'",
+      "lon": 43.499,
+      "lat": 29.6372,
+      "rank": 1
+    },
+    {
+      "id": 2268,
+      "region": 13,
+      "name": "دومة الجندل",
+      "en": "Dawmat Al Jandal",
+      "lon": 39.8657,
+      "lat": 29.8179,
+      "rank": 1
+    },
+    {
+      "id": 2370,
+      "region": 8,
+      "name": "بقعاء",
+      "en": "Baq'a",
+      "lon": 42.4092,
+      "lat": 27.9102,
+      "rank": 1
+    },
+    {
+      "id": 2421,
+      "region": 4,
+      "name": "الرس",
+      "en": "Ar Rass",
+      "lon": 43.5075,
+      "lat": 25.8703,
+      "rank": 1
+    },
+    {
+      "id": 2448,
+      "region": 4,
+      "name": "المذنب",
+      "en": "Al Midhnab",
+      "lon": 44.2222,
+      "lat": 25.8607,
+      "rank": 1
+    },
+    {
+      "id": 2464,
+      "region": 5,
+      "name": "الخفجي",
+      "en": "Al Khafji",
+      "lon": 48.4903,
+      "lat": 28.4398,
+      "rank": 1
+    },
+    {
+      "id": 2467,
+      "region": 4,
+      "name": "رياض الخبراء",
+      "en": "Riyad Al Khabra",
+      "lon": 43.539,
+      "lat": 26.0388,
+      "rank": 1
+    },
+    {
+      "id": 2481,
+      "region": 4,
+      "name": "البدائع",
+      "en": "Al Badai'",
+      "lon": 43.7257,
+      "lat": 25.9984,
+      "rank": 1
+    },
+    {
+      "id": 2519,
+      "region": 6,
+      "name": "النماص",
+      "en": "An Namas",
+      "lon": 42.1368,
+      "lat": 19.1217,
+      "rank": 1
+    },
+    {
+      "id": 2522,
+      "region": 11,
+      "name": "يدمة",
+      "en": "Yadamah",
+      "lon": 44.2733,
+      "lat": 18.5282,
+      "rank": 1
+    },
+    {
+      "id": 2602,
+      "region": 8,
+      "name": "سميراء",
+      "en": "Simira'",
+      "lon": 42.1294,
+      "lat": 26.4994,
+      "rank": 1
+    },
+    {
+      "id": 2630,
+      "region": 4,
+      "name": "البكيرية",
+      "en": "Al Bukayriyah",
+      "lon": 43.6573,
+      "lat": 26.1489,
+      "rank": 1
+    },
+    {
+      "id": 2642,
+      "region": 5,
+      "name": "العقير",
+      "en": "Al Uqayr",
+      "lon": 50.2176,
+      "lat": 25.6492,
+      "rank": 1
+    },
+    {
+      "id": 2715,
+      "region": 8,
+      "name": "الغزالة",
+      "en": "Al Ghazalah",
+      "lon": 41.3173,
+      "lat": 26.7944,
+      "rank": 1
+    },
+    {
+      "id": 2748,
+      "region": 5,
+      "name": "المبرز",
+      "en": "Al Mubarraz",
+      "lon": 49.5865,
+      "lat": 25.4061,
+      "rank": 1
+    },
+    {
+      "id": 2777,
+      "region": 4,
+      "name": "الشماسية",
+      "en": "Ash Shimasiyah",
+      "lon": 44.2551,
+      "lat": 26.3259,
+      "rank": 1
+    },
+    {
+      "id": 2800,
+      "region": 2,
+      "name": "رنية",
+      "en": "Ranyah",
+      "lon": 42.8422,
+      "lat": 21.2493,
+      "rank": 1
+    },
+    {
+      "id": 2819,
+      "region": 12,
+      "name": "العقيق",
+      "en": "Al Aqiq",
+      "lon": 41.6631,
+      "lat": 20.2744,
+      "rank": 1
+    },
+    {
+      "id": 2835,
+      "region": 12,
+      "name": "المندق",
+      "en": "Al Mandaq",
+      "lon": 41.2922,
+      "lat": 20.1645,
+      "rank": 1
+    },
+    {
+      "id": 3158,
+      "region": 1,
+      "name": "الحريق",
+      "en": "Al Hariq",
+      "lon": 46.5167,
+      "lat": 23.6167,
+      "rank": 1
+    },
+    {
+      "id": 3161,
+      "region": 1,
+      "name": "حوطة بني تميم",
+      "en": "Hawtat Bani Tamim",
+      "lon": 46.8643,
+      "lat": 23.4976,
+      "rank": 1
+    },
+    {
+      "id": 3220,
+      "region": 12,
+      "name": "قلوة",
+      "en": "Qilwah",
+      "lon": 41.2394,
+      "lat": 19.948,
+      "rank": 1
+    },
+    {
+      "id": 3236,
+      "region": 12,
+      "name": "المخواة",
+      "en": "Al Mukhwah",
+      "lon": 41.4385,
+      "lat": 19.7865,
+      "rank": 1
+    },
+    {
+      "id": 3273,
+      "region": 6,
+      "name": "تنومة",
+      "en": "Tanumah",
+      "lon": 42.1661,
+      "lat": 18.9636,
+      "rank": 1
+    },
+    {
+      "id": 3328,
+      "region": 6,
+      "name": "سراة عبيدة",
+      "en": "Sarat Abidah",
+      "lon": 43.1446,
+      "lat": 18.0842,
+      "rank": 1
+    },
+    {
+      "id": 3347,
+      "region": 11,
+      "name": "شرورة",
+      "en": "Sharurah",
+      "lon": 47.1886,
+      "lat": 17.4998,
+      "rank": 1
+    },
+    {
+      "id": 3381,
+      "region": 6,
+      "name": "ظهران الجنوب",
+      "en": "Dhahran Al Janub",
+      "lon": 43.5099,
+      "lat": 17.6698,
+      "rank": 1
+    },
+    {
+      "id": 3396,
+      "region": 11,
+      "name": "حبونا",
+      "en": "Hubuna",
+      "lon": 44.0128,
+      "lat": 17.8407,
+      "rank": 1
+    },
+    {
+      "id": 3402,
+      "region": 10,
+      "name": "الدرب",
+      "en": "Ad Darb",
+      "lon": 42.2827,
+      "lat": 17.7414,
+      "rank": 1
+    },
+    {
+      "id": 3446,
+      "region": 10,
+      "name": "فيفاء",
+      "en": "Fayfa",
+      "lon": 43.1054,
+      "lat": 17.2568,
+      "rank": 1
+    },
+    {
+      "id": 3455,
+      "region": 10,
+      "name": "العيدابي",
+      "en": "Al 'Aydabi",
+      "lon": 42.9446,
+      "lat": 17.2355,
+      "rank": 1
+    },
+    {
+      "id": 3479,
+      "region": 10,
+      "name": "صبيا",
+      "en": "Sabya",
+      "lon": 42.6325,
+      "lat": 17.1478,
+      "rank": 1
+    },
+    {
+      "id": 3542,
+      "region": 10,
+      "name": "صامطة",
+      "en": "Samtah",
+      "lon": 42.9408,
+      "lat": 16.6052,
+      "rank": 1
+    },
+    {
+      "id": 3571,
+      "region": 10,
+      "name": "فرسان",
+      "en": "Farasan",
+      "lon": 42.1269,
+      "lat": 16.7091,
+      "rank": 1
+    },
+    {
+      "id": 2,
+      "region": 7,
+      "name": "نعمي",
+      "en": "Na'mi",
+      "lon": 35.7493,
+      "lat": 28.3051,
+      "rank": 2
+    },
+    {
+      "id": 20,
+      "region": 7,
+      "name": "الفوهة",
+      "en": "Al Fawhah",
+      "lon": 36.2144,
+      "lat": 28.2717,
+      "rank": 2
+    },
+    {
+      "id": 29,
+      "region": 7,
+      "name": "الهوجاء",
+      "en": "Al Hawja'",
+      "lon": 38.5697,
+      "lat": 28.9849,
+      "rank": 2
+    },
+    {
+      "id": 38,
+      "region": 7,
+      "name": "الزيتة",
+      "en": "Az Zaytah",
+      "lon": 35.517,
+      "lat": 28.872,
+      "rank": 2
+    },
+    {
+      "id": 55,
+      "region": 5,
+      "name": "القيصومة",
+      "en": "Al Qaysumah",
+      "lon": 46.1294,
+      "lat": 28.322,
+      "rank": 2
+    },
+    {
+      "id": 69,
+      "region": 7,
+      "name": "السنانيات",
+      "en": "As Sananiyat",
+      "lon": 38.6815,
+      "lat": 27.349,
+      "rank": 2
+    },
+    {
+      "id": 76,
+      "region": 3,
+      "name": "عردة",
+      "en": "'Ardah",
+      "lon": 38.3707,
+      "lat": 26.9827,
+      "rank": 2
+    },
+    {
+      "id": 78,
+      "region": 7,
+      "name": "بئر فجر",
+      "en": "Bi'r Fajr",
+      "lon": 37.8692,
+      "lat": 28.8212,
+      "rank": 2
+    },
+    {
+      "id": 83,
+      "region": 5,
+      "name": "رغوة",
+      "en": "Raghwah",
+      "lon": 48.2041,
+      "lat": 28.4988,
+      "rank": 2
+    },
+    {
+      "id": 96,
+      "region": 5,
+      "name": "الحيرا",
+      "en": "Al Hayra",
+      "lon": 46.6358,
+      "lat": 27.7007,
+      "rank": 2
+    },
+    {
+      "id": 111,
+      "region": 5,
+      "name": "النقيرة",
+      "en": "An Nuqayrah",
+      "lon": 48.2629,
+      "lat": 27.8685,
+      "rank": 2
+    },
+    {
+      "id": 124,
+      "region": 5,
+      "name": "ثاج",
+      "en": "Thaj",
+      "lon": 48.7199,
+      "lat": 26.8754,
+      "rank": 2
+    },
+    {
+      "id": 137,
+      "region": 5,
+      "name": "منيفة",
+      "en": "Munifah",
+      "lon": 48.99,
+      "lat": 27.6152,
+      "rank": 2
+    },
+    {
+      "id": 175,
+      "region": 1,
+      "name": "الشعب",
+      "en": "Ash Shi'b",
+      "lon": 45.9036,
+      "lat": 25.9189,
+      "rank": 2
+    },
+    {
+      "id": 211,
+      "region": 3,
+      "name": "قصيب ابو سيال",
+      "en": "Qusayb Abu Siyal",
+      "lon": 37.9268,
+      "lat": 26.3372,
+      "rank": 2
+    },
+    {
+      "id": 212,
+      "region": 7,
+      "name": "ابو اراكة",
+      "en": "Abu Arakah",
+      "lon": 37.1859,
+      "lat": 27.1046,
+      "rank": 2
+    },
+    {
+      "id": 229,
+      "region": 7,
+      "name": "حرم",
+      "en": "Haram",
+      "lon": 36.3625,
+      "lat": 26.4727,
+      "rank": 2
+    },
+    {
+      "id": 237,
+      "region": 7,
+      "name": "ابا القزاز",
+      "en": "Aba Al Qizaz",
+      "lon": 36.6863,
+      "lat": 26.7739,
+      "rank": 2
+    },
+    {
+      "id": 252,
+      "region": 5,
+      "name": "الجابرية",
+      "en": "Al Jabiriyah",
+      "lon": 49.4646,
+      "lat": 26.0213,
+      "rank": 2
+    },
+    {
+      "id": 280,
+      "region": 3,
+      "name": "غمرة",
+      "en": "Ghamrah",
+      "lon": 39.3899,
+      "lat": 25.9749,
+      "rank": 2
+    },
+    {
+      "id": 307,
+      "region": 1,
+      "name": "مليح",
+      "en": "Mulayh",
+      "lon": 44.9211,
+      "lat": 26.1449,
+      "rank": 2
+    },
+    {
+      "id": 310,
+      "region": 7,
+      "name": "القرص",
+      "en": "Al Qars",
+      "lon": 37.2644,
+      "lat": 25.1334,
+      "rank": 2
+    },
+    {
+      "id": 317,
+      "region": 7,
+      "name": "المهدرة",
+      "en": "Al Mahadrah",
+      "lon": 37.5952,
+      "lat": 25.0256,
+      "rank": 2
+    },
+    {
+      "id": 325,
+      "region": 7,
+      "name": "الحرة",
+      "en": "Al Harrah",
+      "lon": 37.2401,
+      "lat": 25.2479,
+      "rank": 2
+    },
+    {
+      "id": 354,
+      "region": 3,
+      "name": "السليمية",
+      "en": "As Sulaymiyah",
+      "lon": 40.2978,
+      "lat": 23.4603,
+      "rank": 2
+    },
+    {
+      "id": 373,
+      "region": 3,
+      "name": "راين",
+      "en": "Rayin",
+      "lon": 39.7152,
+      "lat": 23.0823,
+      "rank": 2
+    },
+    {
+      "id": 409,
+      "region": 1,
+      "name": "البطين",
+      "en": "Al Butayn",
+      "lon": 43.3609,
+      "lat": 24.2288,
+      "rank": 2
+    },
+    {
+      "id": 435,
+      "region": 8,
+      "name": "أوبيرة",
+      "en": "Ubayrah",
+      "lon": 41.6153,
+      "lat": 27.7033,
+      "rank": 2
+    },
+    {
+      "id": 448,
+      "region": 1,
+      "name": "الصفرات",
+      "en": "As Sufarat",
+      "lon": 46.0321,
+      "lat": 25.323,
+      "rank": 2
+    },
+    {
+      "id": 469,
+      "region": 3,
+      "name": "الفقعلي",
+      "en": "Al Fuq'ali",
+      "lon": 38.4062,
+      "lat": 24.6754,
+      "rank": 2
+    },
+    {
+      "id": 487,
+      "region": 3,
+      "name": "ينبع النخل",
+      "en": "Yanbu An Nakhil",
+      "lon": 38.4499,
+      "lat": 24.381,
+      "rank": 2
+    },
+    {
+      "id": 528,
+      "region": 1,
+      "name": "بيضاء نثيل",
+      "en": "Bayda' Nathil",
+      "lon": 45.0681,
+      "lat": 23.8348,
+      "rank": 2
+    },
+    {
+      "id": 557,
+      "region": 2,
+      "name": "الوهط",
+      "en": "Al Wahat",
+      "lon": 40.3484,
+      "lat": 21.1968,
+      "rank": 2
+    },
+    {
+      "id": 594,
+      "region": 1,
+      "name": "مزارع الروضة",
+      "en": "Mazari' Ar Rawdah",
+      "lon": 43.2646,
+      "lat": 24.7893,
+      "rank": 2
+    },
+    {
+      "id": 636,
+      "region": 1,
+      "name": "الريشية",
+      "en": "Ar Rishiyah",
+      "lon": 43.4976,
+      "lat": 24.1958,
+      "rank": 2
+    },
+    {
+      "id": 675,
+      "region": 1,
+      "name": "العوشزية",
+      "en": "Al Awshaziyah",
+      "lon": 43.1889,
+      "lat": 24.8605,
+      "rank": 2
+    },
+    {
+      "id": 714,
+      "region": 1,
+      "name": "عواضة",
+      "en": "'Awwadah",
+      "lon": 43.6261,
+      "lat": 24.5788,
+      "rank": 2
+    },
+    {
+      "id": 752,
+      "region": 1,
+      "name": "الظلماوي",
+      "en": "Adh Dhalmawi",
+      "lon": 43.576,
+      "lat": 24.6504,
+      "rank": 2
+    },
+    {
+      "id": 771,
+      "region": 3,
+      "name": "الحجرية",
+      "en": "Al Hijriyah",
+      "lon": 40.2809,
+      "lat": 23.8237,
+      "rank": 2
+    },
+    {
+      "id": 789,
+      "region": 3,
+      "name": "قصيرة",
+      "en": "Qusayrah",
+      "lon": 41.3936,
+      "lat": 25.3362,
+      "rank": 2
+    },
+    {
+      "id": 825,
+      "region": 1,
+      "name": "حويتة",
+      "en": "Huwaytah",
+      "lon": 45.2641,
+      "lat": 24.6084,
+      "rank": 2
+    },
+    {
+      "id": 864,
+      "region": 1,
+      "name": "القرنة",
+      "en": "Al Qarnah",
+      "lon": 45.0711,
+      "lat": 24.3116,
+      "rank": 2
+    },
+    {
+      "id": 926,
+      "region": 4,
+      "name": "مزارع الصقيريات",
+      "en": "Mazari' As Suqayriyat",
+      "lon": 43.6005,
+      "lat": 26.8972,
+      "rank": 2
+    },
+    {
+      "id": 940,
+      "region": 13,
+      "name": "المريشدية",
+      "en": "Al Murayshdiyah",
+      "lon": 37.3888,
+      "lat": 29.9719,
+      "rank": 2
+    },
+    {
+      "id": 951,
+      "region": 4,
+      "name": "القوارة",
+      "en": "Al Quwarah",
+      "lon": 43.4739,
+      "lat": 26.7805,
+      "rank": 2
+    },
+    {
+      "id": 961,
+      "region": 1,
+      "name": "خبراء الثوير",
+      "en": "Khabra Ath Thawir",
+      "lon": 45.5338,
+      "lat": 23.6597,
+      "rank": 2
+    },
+    {
+      "id": 999,
+      "region": 1,
+      "name": "النظيم",
+      "en": "An Nadhim",
+      "lon": 46.1871,
+      "lat": 24.146,
+      "rank": 2
+    },
+    {
+      "id": 1020,
+      "region": 3,
+      "name": "أم البرك",
+      "en": "Umm Al Birak",
+      "lon": 39.2238,
+      "lat": 23.4238,
+      "rank": 2
+    },
+    {
+      "id": 1037,
+      "region": 3,
+      "name": "خرص",
+      "en": "Khuruss",
+      "lon": 38.946,
+      "lat": 24.1176,
+      "rank": 2
+    },
+    {
+      "id": 1055,
+      "region": 3,
+      "name": "الواسطة",
+      "en": "Al Wasithah",
+      "lon": 38.8999,
+      "lat": 23.8802,
+      "rank": 2
+    },
+    {
+      "id": 1101,
+      "region": 3,
+      "name": "الصالحية",
+      "en": "As Salhiyah",
+      "lon": 41.9622,
+      "lat": 24.3318,
+      "rank": 2
+    },
+    {
+      "id": 1108,
+      "region": 2,
+      "name": "القوز",
+      "en": "Al Qawz",
+      "lon": 39.3738,
+      "lat": 22.0084,
+      "rank": 2
+    },
+    {
+      "id": 1142,
+      "region": 2,
+      "name": "السليم",
+      "en": "As Sulaym",
+      "lon": 39.6361,
+      "lat": 22.591,
+      "rank": 2
+    },
+    {
+      "id": 1178,
+      "region": 2,
+      "name": "الركح",
+      "en": "Ar Rakh",
+      "lon": 41.5215,
+      "lat": 18.8445,
+      "rank": 2
+    },
+    {
+      "id": 1223,
+      "region": 8,
+      "name": "الخيط",
+      "en": "Al Khayt",
+      "lon": 42.0011,
+      "lat": 27.1441,
+      "rank": 2
+    },
+    {
+      "id": 1244,
+      "region": 2,
+      "name": "الظليم",
+      "en": "Ad Dhalim",
+      "lon": 42.1621,
+      "lat": 22.0876,
+      "rank": 2
+    },
+    {
+      "id": 1327,
+      "region": 2,
+      "name": "البناية",
+      "en": "Al Binayah",
+      "lon": 40.02,
+      "lat": 21.9331,
+      "rank": 2
+    },
+    {
+      "id": 1349,
+      "region": 1,
+      "name": "المصارير",
+      "en": "Al Masarir",
+      "lon": 45.1449,
+      "lat": 20.4051,
+      "rank": 2
+    },
+    {
+      "id": 1368,
+      "region": 12,
+      "name": "الحدبة",
+      "en": "Al Hadabah",
+      "lon": 41.1477,
+      "lat": 20.2394,
+      "rank": 2
+    },
+    {
+      "id": 1384,
+      "region": 2,
+      "name": "أم الشوك",
+      "en": "Umm Ash Shawk",
+      "lon": 40.6251,
+      "lat": 19.8793,
+      "rank": 2
+    },
+    {
+      "id": 1421,
+      "region": 2,
+      "name": "الصالف",
+      "en": "As Salif",
+      "lon": 40.7738,
+      "lat": 20.6478,
+      "rank": 2
+    },
+    {
+      "id": 1427,
+      "region": 12,
+      "name": "الجرين",
+      "en": "Al Jarin",
+      "lon": 40.9242,
+      "lat": 20.1015,
+      "rank": 2
+    },
+    {
+      "id": 1437,
+      "region": 6,
+      "name": "الجازع",
+      "en": "Al Jazi'",
+      "lon": 43.3304,
+      "lat": 19.0978,
+      "rank": 2
+    },
+    {
+      "id": 1462,
+      "region": 12,
+      "name": "وادي بطحان",
+      "en": "Wadi Bathan",
+      "lon": 41.4071,
+      "lat": 20.2247,
+      "rank": 2
+    },
+    {
+      "id": 1516,
+      "region": 6,
+      "name": "الرقيطاء",
+      "en": "Ar Ruqaita'",
+      "lon": 42.6884,
+      "lat": 20.163,
+      "rank": 2
+    },
+    {
+      "id": 1520,
+      "region": 12,
+      "name": "الهضبة",
+      "en": "Al Hadabah",
+      "lon": 41.5846,
+      "lat": 19.8927,
+      "rank": 2
+    },
+    {
+      "id": 1528,
+      "region": 12,
+      "name": "دارالسوق",
+      "en": "Dar As Suq",
+      "lon": 41.7651,
+      "lat": 19.7833,
+      "rank": 2
+    },
+    {
+      "id": 1537,
+      "region": 12,
+      "name": "خيرة",
+      "en": "Khirah",
+      "lon": 41.4199,
+      "lat": 20.0776,
+      "rank": 2
+    },
+    {
+      "id": 1546,
+      "region": 12,
+      "name": "بيضان",
+      "en": "Baydan",
+      "lon": 41.4096,
+      "lat": 20.0243,
+      "rank": 2
+    },
+    {
+      "id": 1597,
+      "region": 2,
+      "name": "الزعاترة",
+      "en": "Az Za'atirah",
+      "lon": 41.2276,
+      "lat": 19.2849,
+      "rank": 2
+    },
+    {
+      "id": 1637,
+      "region": 2,
+      "name": "سبت شمران",
+      "en": "Sabt Shumran",
+      "lon": 41.7938,
+      "lat": 19.4654,
+      "rank": 2
+    },
+    {
+      "id": 1675,
+      "region": 6,
+      "name": "فرسان",
+      "en": "Farasan",
+      "lon": 43.2341,
+      "lat": 18.826,
+      "rank": 2
+    },
+    {
+      "id": 1739,
+      "region": 6,
+      "name": "المغمر",
+      "en": "Al Maghmar",
+      "lon": 42.206,
+      "lat": 18.5993,
+      "rank": 2
+    },
+    {
+      "id": 1818,
+      "region": 6,
+      "name": "الحصون",
+      "en": "Al Husun",
+      "lon": 42.163,
+      "lat": 18.185,
+      "rank": 2
+    },
+    {
+      "id": 1893,
+      "region": 2,
+      "name": "الحفيرة",
+      "en": "Al Hufayrah",
+      "lon": 42.5237,
+      "lat": 22.872,
+      "rank": 2
+    },
+    {
+      "id": 1901,
+      "region": 12,
+      "name": "الحوية",
+      "en": "Al Hawiyah",
+      "lon": 41.2326,
+      "lat": 20.287,
+      "rank": 2
+    },
+    {
+      "id": 1931,
+      "region": 7,
+      "name": "قلعة الاذنم",
+      "en": "Qal'at Al Adhnum",
+      "lon": 36.0145,
+      "lat": 27.0426,
+      "rank": 2
+    },
+    {
+      "id": 1938,
+      "region": 7,
+      "name": "هداج",
+      "en": "Haddaj",
+      "lon": 36.3109,
+      "lat": 27.1532,
+      "rank": 2
+    },
+    {
+      "id": 1946,
+      "region": 7,
+      "name": "رواقا",
+      "en": "Ruwaqa",
+      "lon": 36.1518,
+      "lat": 27.732,
+      "rank": 2
+    },
+    {
+      "id": 1954,
+      "region": 7,
+      "name": "شغب",
+      "en": "Shaghab",
+      "lon": 36.3269,
+      "lat": 27.2229,
+      "rank": 2
+    },
+    {
+      "id": 1970,
+      "region": 8,
+      "name": "عقلة ابن كليب",
+      "en": "Uqlat Ibn Kulayb",
+      "lon": 42.082,
+      "lat": 26.7606,
+      "rank": 2
+    },
+    {
+      "id": 1989,
+      "region": 4,
+      "name": "خصيبة",
+      "en": "Khusayyibah",
+      "lon": 44.1508,
+      "lat": 26.8929,
+      "rank": 2
+    },
+    {
+      "id": 2003,
+      "region": 5,
+      "name": "الشهارين",
+      "en": "Ash Shaharin",
+      "lon": 49.6486,
+      "lat": 25.3843,
+      "rank": 2
+    },
+    {
+      "id": 2018,
+      "region": 5,
+      "name": "الجرن",
+      "en": "Al Jarn",
+      "lon": 49.6146,
+      "lat": 25.53,
+      "rank": 2
+    },
+    {
+      "id": 2033,
+      "region": 5,
+      "name": "المرضف",
+      "en": "Al Muraddaf",
+      "lon": 48.9661,
+      "lat": 23.3051,
+      "rank": 2
+    },
+    {
+      "id": 2047,
+      "region": 2,
+      "name": "حلباء",
+      "en": "Halaba",
+      "lon": 40.9626,
+      "lat": 20.5576,
+      "rank": 2
+    },
+    {
+      "id": 2081,
+      "region": 2,
+      "name": "المجرد",
+      "en": "Al Majrad",
+      "lon": 40.9177,
+      "lat": 20.6602,
+      "rank": 2
+    },
+    {
+      "id": 2115,
+      "region": 2,
+      "name": "الحلقة",
+      "en": "Al Halqah",
+      "lon": 40.6367,
+      "lat": 20.9054,
+      "rank": 2
+    },
+    {
+      "id": 2150,
+      "region": 2,
+      "name": "العرقين",
+      "en": "Al 'Irqayn",
+      "lon": 41.7456,
+      "lat": 21.3324,
+      "rank": 2
+    },
+    {
+      "id": 2168,
+      "region": 5,
+      "name": "حزم ام الساهك",
+      "en": "Hazam Umm As Sahik",
+      "lon": 49.9144,
+      "lat": 26.6433,
+      "rank": 2
+    },
+    {
+      "id": 2209,
+      "region": 9,
+      "name": "الجراني",
+      "en": "Al Jirani",
+      "lon": 38.2748,
+      "lat": 31.8107,
+      "rank": 2
+    },
+    {
+      "id": 2212,
+      "region": 9,
+      "name": "قاع الحنو",
+      "en": "Qa' Al Hinu",
+      "lon": 38.43,
+      "lat": 30.9995,
+      "rank": 2
+    },
+    {
+      "id": 2215,
+      "region": 9,
+      "name": "العويقلية",
+      "en": "Al 'Uwayqiliyah",
+      "lon": 42.2398,
+      "lat": 30.3878,
+      "rank": 2
+    },
+    {
+      "id": 2216,
+      "region": 9,
+      "name": "أبا الرواث",
+      "en": "Aba Ar Rawath",
+      "lon": 42.0082,
+      "lat": 30.4831,
+      "rank": 2
+    },
+    {
+      "id": 2218,
+      "region": 9,
+      "name": "أم خنصر",
+      "en": "Umm Khunsur",
+      "lon": 41.6268,
+      "lat": 30.6974,
+      "rank": 2
+    },
+    {
+      "id": 2220,
+      "region": 9,
+      "name": "الدويد",
+      "en": "Ad Duwayd",
+      "lon": 42.292,
+      "lat": 30.2281,
+      "rank": 2
+    },
+    {
+      "id": 2221,
+      "region": 9,
+      "name": "جديدة عرعر",
+      "en": "Jadidat 'Ar'ar",
+      "lon": 41.4439,
+      "lat": 31.3521,
+      "rank": 2
+    },
+    {
+      "id": 2222,
+      "region": 13,
+      "name": "كاف",
+      "en": "Kaf",
+      "lon": 37.5006,
+      "lat": 31.3942,
+      "rank": 2
+    },
+    {
+      "id": 2224,
+      "region": 13,
+      "name": "إثرة",
+      "en": "Ithrah",
+      "lon": 37.6153,
+      "lat": 31.3876,
+      "rank": 2
+    },
+    {
+      "id": 2227,
+      "region": 13,
+      "name": "عين الحواسي",
+      "en": "'Ayn Al Hawasi",
+      "lon": 37.605,
+      "lat": 31.3728,
+      "rank": 2
+    },
+    {
+      "id": 2229,
+      "region": 13,
+      "name": "العيساوية",
+      "en": "Al Isawiyah",
+      "lon": 37.9712,
+      "lat": 30.7312,
+      "rank": 2
+    },
+    {
+      "id": 2232,
+      "region": 13,
+      "name": "الشقيق",
+      "en": "Ash Shaqiq",
+      "lon": 40.1681,
+      "lat": 29.8442,
+      "rank": 2
+    },
+    {
+      "id": 2234,
+      "region": 13,
+      "name": "صوير",
+      "en": "Suwayr",
+      "lon": 40.3698,
+      "lat": 30.1415,
+      "rank": 2
+    },
+    {
+      "id": 2238,
+      "region": 13,
+      "name": "اللقايط",
+      "en": "Al Laqayit",
+      "lon": 40.2423,
+      "lat": 29.9946,
+      "rank": 2
+    },
+    {
+      "id": 2243,
+      "region": 13,
+      "name": "الثنية",
+      "en": "Ath Thaniyah",
+      "lon": 38.1785,
+      "lat": 29.7587,
+      "rank": 2
+    },
+    {
+      "id": 2245,
+      "region": 13,
+      "name": "المرير",
+      "en": "Al Murayr",
+      "lon": 39.9016,
+      "lat": 30.0525,
+      "rank": 2
+    },
+    {
+      "id": 2247,
+      "region": 13,
+      "name": "النبك ابو قصر",
+      "en": "An Nabk Abu Qasr",
+      "lon": 38.6943,
+      "lat": 30.3004,
+      "rank": 2
+    },
+    {
+      "id": 2250,
+      "region": 13,
+      "name": "خوعاء",
+      "en": "Khaw'a'",
+      "lon": 40.437,
+      "lat": 29.8115,
+      "rank": 2
+    },
+    {
+      "id": 2255,
+      "region": 9,
+      "name": "إبن سوقي",
+      "en": "Ibn Suqi",
+      "lon": 43.3719,
+      "lat": 29.7763,
+      "rank": 2
+    },
+    {
+      "id": 2257,
+      "region": 9,
+      "name": "نصاب",
+      "en": "Nisab",
+      "lon": 44.7857,
+      "lat": 29.19,
+      "rank": 2
+    },
+    {
+      "id": 2258,
+      "region": 5,
+      "name": "سماح",
+      "en": "Samah",
+      "lon": 45.557,
+      "lat": 28.9376,
+      "rank": 2
+    },
+    {
+      "id": 2259,
+      "region": 9,
+      "name": "لوقة",
+      "en": "Lawqah",
+      "lon": 42.7439,
+      "lat": 29.8356,
+      "rank": 2
+    },
+    {
+      "id": 2262,
+      "region": 9,
+      "name": "روضة هباس",
+      "en": "Rawdat Habbas",
+      "lon": 44.3133,
+      "lat": 29.1576,
+      "rank": 2
+    },
+    {
+      "id": 2264,
+      "region": 9,
+      "name": "إبن شريم",
+      "en": "Ibn Shuraym",
+      "lon": 43.4281,
+      "lat": 29.934,
+      "rank": 2
+    },
+    {
+      "id": 2265,
+      "region": 9,
+      "name": "الشعبة",
+      "en": "Ash Shu'abah",
+      "lon": 44.7319,
+      "lat": 28.8928,
+      "rank": 2
+    },
+    {
+      "id": 2267,
+      "region": 9,
+      "name": "المركوز",
+      "en": "Al Markuz",
+      "lon": 42.6398,
+      "lat": 30.1683,
+      "rank": 2
+    },
+    {
+      "id": 2271,
+      "region": 13,
+      "name": "صفان",
+      "en": "Safan",
+      "lon": 39.7,
+      "lat": 29.6729,
+      "rank": 2
+    },
+    {
+      "id": 2273,
+      "region": 13,
+      "name": "ابو عجرم",
+      "en": "Abu 'Ajram",
+      "lon": 39.3282,
+      "lat": 29.8762,
+      "rank": 2
+    },
+    {
+      "id": 2286,
+      "region": 8,
+      "name": "الفرحانية",
+      "en": "Al Farhaniyah",
+      "lon": 40.9462,
+      "lat": 27.2993,
+      "rank": 2
+    },
+    {
+      "id": 2306,
+      "region": 8,
+      "name": "رينبة",
+      "en": "Raynibah",
+      "lon": 41.5184,
+      "lat": 27.2832,
+      "rank": 2
+    },
+    {
+      "id": 2326,
+      "region": 8,
+      "name": "حويان",
+      "en": "Huwayyan",
+      "lon": 41.2126,
+      "lat": 27.0385,
+      "rank": 2
+    },
+    {
+      "id": 2349,
+      "region": 8,
+      "name": "الخطة",
+      "en": "Al Khuttah",
+      "lon": 41.7346,
+      "lat": 28.0003,
+      "rank": 2
+    },
+    {
+      "id": 2369,
+      "region": 8,
+      "name": "السويفلة",
+      "en": "As Suwayfilah",
+      "lon": 41.7635,
+      "lat": 27.5884,
+      "rank": 2
+    },
+    {
+      "id": 2381,
+      "region": 7,
+      "name": "العمود",
+      "en": "Al 'Amud",
+      "lon": 35.8362,
+      "lat": 27.2172,
+      "rank": 2
+    },
+    {
+      "id": 2399,
+      "region": 4,
+      "name": "ضليع رشيد",
+      "en": "Dulay' Rashid",
+      "lon": 42.8407,
+      "lat": 25.4977,
+      "rank": 2
+    },
+    {
+      "id": 2423,
+      "region": 4,
+      "name": "الشورقية",
+      "en": "Ash Shawraqiyah",
+      "lon": 44.2083,
+      "lat": 25.8283,
+      "rank": 2
+    },
+    {
+      "id": 2446,
+      "region": 4,
+      "name": "النعايم",
+      "en": "An Na'ayim",
+      "lon": 43.9606,
+      "lat": 25.6093,
+      "rank": 2
+    },
+    {
+      "id": 2471,
+      "region": 4,
+      "name": "الشبيبة",
+      "en": "Ash Shibibiyah",
+      "lon": 43.7868,
+      "lat": 26.0609,
+      "rank": 2
+    },
+    {
+      "id": 2495,
+      "region": 4,
+      "name": "الضبة",
+      "en": "Ad Dabbah",
+      "lon": 44.137,
+      "lat": 25.9946,
+      "rank": 2
+    },
+    {
+      "id": 2520,
+      "region": 11,
+      "name": "حمراء نثيل / ابو شداد",
+      "en": "Hamrah Nithil (Abu Shadad)",
+      "lon": 46.5067,
+      "lat": 18.4959,
+      "rank": 2
+    },
+    {
+      "id": 2523,
+      "region": 11,
+      "name": "ابا الرخم",
+      "en": "Aba Ar Rakham",
+      "lon": 44.2262,
+      "lat": 18.3179,
+      "rank": 2
+    },
+    {
+      "id": 2527,
+      "region": 6,
+      "name": "أم خيسة",
+      "en": "Umm Khisah",
+      "lon": 42.6216,
+      "lat": 18.8063,
+      "rank": 2
+    },
+    {
+      "id": 2537,
+      "region": 8,
+      "name": "النيصية",
+      "en": "An Nisiyah",
+      "lon": 41.6949,
+      "lat": 27.6291,
+      "rank": 2
+    },
+    {
+      "id": 2557,
+      "region": 8,
+      "name": "الحليفة العليا",
+      "en": "Al Hulayfah Al 'Ulya",
+      "lon": 40.7334,
+      "lat": 25.9468,
+      "rank": 2
+    },
+    {
+      "id": 2577,
+      "region": 8,
+      "name": "وسيطاء الحفن",
+      "en": "Wusayta' Al Hafan",
+      "lon": 41.7271,
+      "lat": 26.7148,
+      "rank": 2
+    },
+    {
+      "id": 2589,
+      "region": 4,
+      "name": "الصلبية",
+      "en": "As Sulubiyah",
+      "lon": 42.7967,
+      "lat": 26.7571,
+      "rank": 2
+    },
+    {
+      "id": 2606,
+      "region": 8,
+      "name": "وسيط",
+      "en": "Wusayt",
+      "lon": 41.9183,
+      "lat": 26.2061,
+      "rank": 2
+    },
+    {
+      "id": 2631,
+      "region": 4,
+      "name": "الفويلق",
+      "en": "Al Fuwayliq",
+      "lon": 43.2734,
+      "lat": 26.4538,
+      "rank": 2
+    },
+    {
+      "id": 2647,
+      "region": 5,
+      "name": "الوزية",
+      "en": "Al Wizyah",
+      "lon": 49.5632,
+      "lat": 25.4887,
+      "rank": 2
+    },
+    {
+      "id": 2689,
+      "region": 8,
+      "name": "شعيلا المصع",
+      "en": "Shuayla Al Masae",
+      "lon": 40.4871,
+      "lat": 26.5652,
+      "rank": 2
+    },
+    {
+      "id": 2709,
+      "region": 8,
+      "name": "الوسيطي",
+      "en": "Al Wusayti",
+      "lon": 40.639,
+      "lat": 26.4474,
+      "rank": 2
+    },
+    {
+      "id": 2729,
+      "region": 8,
+      "name": "مرغان",
+      "en": "Marghan",
+      "lon": 41.0423,
+      "lat": 26.0177,
+      "rank": 2
+    },
+    {
+      "id": 2743,
+      "region": 5,
+      "name": "المركز",
+      "en": "Al Markaz",
+      "lon": 49.7321,
+      "lat": 25.3891,
+      "rank": 2
+    },
+    {
+      "id": 2758,
+      "region": 5,
+      "name": "متالع / ام تالع",
+      "en": "Matali' / Umm Tali'",
+      "lon": 48.8639,
+      "lat": 25.9807,
+      "rank": 2
+    },
+    {
+      "id": 2782,
+      "region": 7,
+      "name": "الخشة",
+      "en": "Al Khashah",
+      "lon": 36.5259,
+      "lat": 29.5259,
+      "rank": 2
+    },
+    {
+      "id": 2786,
+      "region": 4,
+      "name": "ساق",
+      "en": "Saq",
+      "lon": 43.3041,
+      "lat": 26.2752,
+      "rank": 2
+    },
+    {
+      "id": 2794,
+      "region": 2,
+      "name": "الجمدة",
+      "en": "Al Jimdah",
+      "lon": 42.7128,
+      "lat": 21.1663,
+      "rank": 2
+    },
+    {
+      "id": 2813,
+      "region": 12,
+      "name": "الثودة",
+      "en": "Ath Thudah",
+      "lon": 41.9969,
+      "lat": 20.4551,
+      "rank": 2
+    },
+    {
+      "id": 2823,
+      "region": 12,
+      "name": "جرب",
+      "en": "Jarab",
+      "lon": 41.9555,
+      "lat": 20.4563,
+      "rank": 2
+    },
+    {
+      "id": 2831,
+      "region": 12,
+      "name": "عمضان",
+      "en": "'Amdan",
+      "lon": 41.248,
+      "lat": 20.1795,
+      "rank": 2
+    },
+    {
+      "id": 2839,
+      "region": 12,
+      "name": "دوس",
+      "en": "Daws",
+      "lon": 41.2314,
+      "lat": 20.2057,
+      "rank": 2
+    },
+    {
+      "id": 2859,
+      "region": 4,
+      "name": "قصر البطاح",
+      "en": "Qasr Al Battah",
+      "lon": 43.3434,
+      "lat": 25.8438,
+      "rank": 2
+    },
+    {
+      "id": 2872,
+      "region": 11,
+      "name": "زور العقارب",
+      "en": "Zur Al 'Aqarib",
+      "lon": 44.0744,
+      "lat": 17.987,
+      "rank": 2
+    },
+    {
+      "id": 2875,
+      "region": 11,
+      "name": "العضبات",
+      "en": "Al 'Adabat",
+      "lon": 44.0844,
+      "lat": 18.1577,
+      "rank": 2
+    },
+    {
+      "id": 2878,
+      "region": 11,
+      "name": "حمى",
+      "en": "Hima",
+      "lon": 44.4543,
+      "lat": 18.2437,
+      "rank": 2
+    },
+    {
+      "id": 2920,
+      "region": 6,
+      "name": "الهرير الغربي",
+      "en": "Al Hurayr Al Gharbi",
+      "lon": 42.7452,
+      "lat": 18.2736,
+      "rank": 2
+    },
+    {
+      "id": 2985,
+      "region": 6,
+      "name": "القرن",
+      "en": "Al Qarn",
+      "lon": 43.1148,
+      "lat": 18.0874,
+      "rank": 2
+    },
+    {
+      "id": 2996,
+      "region": 4,
+      "name": "امباري",
+      "en": "Embary",
+      "lon": 42.2344,
+      "lat": 26.0596,
+      "rank": 2
+    },
+    {
+      "id": 3020,
+      "region": 4,
+      "name": "الروضة",
+      "en": "Ar Rawdah",
+      "lon": 42.701,
+      "lat": 25.5325,
+      "rank": 2
+    },
+    {
+      "id": 3053,
+      "region": 3,
+      "name": "مفرحات",
+      "en": "Mufarrihat",
+      "lon": 39.4547,
+      "lat": 24.3757,
+      "rank": 2
+    },
+    {
+      "id": 3070,
+      "region": 3,
+      "name": "أويدك",
+      "en": "Uwaydik",
+      "lon": 39.3459,
+      "lat": 24.0697,
+      "rank": 2
+    },
+    {
+      "id": 3087,
+      "region": 3,
+      "name": "العيزاء",
+      "en": "Al 'Ayza",
+      "lon": 39.5502,
+      "lat": 23.7981,
+      "rank": 2
+    },
+    {
+      "id": 3106,
+      "region": 3,
+      "name": "الرصيعة",
+      "en": "Ar Rasi'ah",
+      "lon": 39.8155,
+      "lat": 24.6997,
+      "rank": 2
+    },
+    {
+      "id": 3122,
+      "region": 4,
+      "name": "الرفائع",
+      "en": "Ar Rafai'",
+      "lon": 42.8586,
+      "lat": 24.8081,
+      "rank": 2
+    },
+    {
+      "id": 3149,
+      "region": 4,
+      "name": "السليسية",
+      "en": "As Sulaysiyah",
+      "lon": 42.9565,
+      "lat": 24.9461,
+      "rank": 2
+    },
+    {
+      "id": 3174,
+      "region": 1,
+      "name": "ليلى",
+      "en": "Layla",
+      "lon": 46.7317,
+      "lat": 22.2864,
+      "rank": 2
+    },
+    {
+      "id": 3205,
+      "region": 12,
+      "name": "النجيل",
+      "en": "An Najil",
+      "lon": 41.1269,
+      "lat": 20.0698,
+      "rank": 2
+    },
+    {
+      "id": 3213,
+      "region": 12,
+      "name": "فرعة العطاردة",
+      "en": "Fara't Al 'Atardah",
+      "lon": 41.287,
+      "lat": 19.7628,
+      "rank": 2
+    },
+    {
+      "id": 3221,
+      "region": 12,
+      "name": "الشعراء",
+      "en": "Ash Sha'ra'",
+      "lon": 41.1867,
+      "lat": 20.0666,
+      "rank": 2
+    },
+    {
+      "id": 3233,
+      "region": 12,
+      "name": "الرهوة",
+      "en": "Ar Rahwah",
+      "lon": 41.5067,
+      "lat": 19.5792,
+      "rank": 2
+    },
+    {
+      "id": 3302,
+      "region": 6,
+      "name": "الغلقة",
+      "en": "Al Ghiliqah",
+      "lon": 43.1182,
+      "lat": 18.1449,
+      "rank": 2
+    },
+    {
+      "id": 3318,
+      "region": 10,
+      "name": "الشعاقة",
+      "en": "Ash Sha'aqah",
+      "lon": 43.1953,
+      "lat": 17.4901,
+      "rank": 2
+    },
+    {
+      "id": 3336,
+      "region": 11,
+      "name": "خد قيس",
+      "en": "Khad Qays",
+      "lon": 43.7121,
+      "lat": 17.8988,
+      "rank": 2
+    },
+    {
+      "id": 3339,
+      "region": 11,
+      "name": "الظاهرة",
+      "en": "Adh Dhahirah",
+      "lon": 43.758,
+      "lat": 17.584,
+      "rank": 2
+    },
+    {
+      "id": 3342,
+      "region": 11,
+      "name": "بدر الجنوب",
+      "en": "Badr Al Janub",
+      "lon": 43.7335,
+      "lat": 17.885,
+      "rank": 2
+    },
+    {
+      "id": 3345,
+      "region": 11,
+      "name": "الخانق",
+      "en": "Al Khaniq",
+      "lon": 43.7614,
+      "lat": 17.7246,
+      "rank": 2
+    },
+    {
+      "id": 3348,
+      "region": 11,
+      "name": "شقة الكناور",
+      "en": "Shiqqat Al Kanawir",
+      "lon": 46.1929,
+      "lat": 17.3997,
+      "rank": 2
+    },
+    {
+      "id": 3383,
+      "region": 6,
+      "name": "الحرجة",
+      "en": "Al Harajah",
+      "lon": 43.3706,
+      "lat": 17.9283,
+      "rank": 2
+    },
+    {
+      "id": 3388,
+      "region": 11,
+      "name": "الهويمل",
+      "en": "Al Huwaymil",
+      "lon": 45.8017,
+      "lat": 17.4032,
+      "rank": 2
+    },
+    {
+      "id": 3391,
+      "region": 11,
+      "name": "قابل منيف",
+      "en": "Qabil Minif",
+      "lon": 44.0144,
+      "lat": 17.8527,
+      "rank": 2
+    },
+    {
+      "id": 3394,
+      "region": 11,
+      "name": "الدواس",
+      "en": "Ad Dawas",
+      "lon": 44.1702,
+      "lat": 17.8865,
+      "rank": 2
+    },
+    {
+      "id": 3397,
+      "region": 11,
+      "name": "الحصينية",
+      "en": "Al Husayniyah",
+      "lon": 44.4439,
+      "lat": 17.8158,
+      "rank": 2
+    },
+    {
+      "id": 3414,
+      "region": 11,
+      "name": "دوح",
+      "en": "Dawwah",
+      "lon": 43.9396,
+      "lat": 17.6784,
+      "rank": 2
+    },
+    {
+      "id": 3418,
+      "region": 11,
+      "name": "بئر عسكر",
+      "en": "Bi'r 'Askar",
+      "lon": 44.0429,
+      "lat": 17.5754,
+      "rank": 2
+    },
+    {
+      "id": 3421,
+      "region": 11,
+      "name": "رجلاء",
+      "en": "Rijla'",
+      "lon": 44.2231,
+      "lat": 17.503,
+      "rank": 2
+    },
+    {
+      "id": 3424,
+      "region": 11,
+      "name": "البرك",
+      "en": "Al Birk",
+      "lon": 44.3206,
+      "lat": 17.5627,
+      "rank": 2
+    },
+    {
+      "id": 3432,
+      "region": 10,
+      "name": "السهية",
+      "en": "As Suhayyah",
+      "lon": 43.2219,
+      "lat": 17.283,
+      "rank": 2
+    },
+    {
+      "id": 3453,
+      "region": 10,
+      "name": "الهياج",
+      "en": "Al Hiyaj",
+      "lon": 42.9013,
+      "lat": 17.4169,
+      "rank": 2
+    },
+    {
+      "id": 3474,
+      "region": 10,
+      "name": "العريش",
+      "en": "Al 'Arish",
+      "lon": 42.724,
+      "lat": 17.1404,
+      "rank": 2
+    },
+    {
+      "id": 3495,
+      "region": 10,
+      "name": "الحمي",
+      "en": "Al Hima",
+      "lon": 42.8752,
+      "lat": 17.1514,
+      "rank": 2
+    },
+    {
+      "id": 3516,
+      "region": 10,
+      "name": "السيبة",
+      "en": "As Syabah",
+      "lon": 43.0827,
+      "lat": 17.1131,
+      "rank": 2
+    },
+    {
+      "id": 3537,
+      "region": 10,
+      "name": "وعلان",
+      "en": "Wa'lan",
+      "lon": 43.0486,
+      "lat": 16.5543,
+      "rank": 2
+    },
+    {
+      "id": 3559,
+      "region": 10,
+      "name": "الركوبة",
+      "en": "Ar Rukubah",
+      "lon": 42.972,
+      "lat": 16.6198,
+      "rank": 2
+    },
+    {
+      "id": 3583,
+      "region": 5,
+      "name": "راس ام قصبة",
+      "en": "Ras Umm Qusbah",
+      "lon": 48.4714,
+      "lat": 28.5089,
+      "rank": 2
+    },
+    {
+      "id": 3593,
+      "region": 10,
+      "name": "المسكية",
+      "en": "Al Maskiyah",
+      "lon": 43.1678,
+      "lat": 17.0066,
+      "rank": 2
+    },
+    {
+      "id": 3617,
+      "region": 10,
+      "name": "المضاية",
+      "en": "Al Madayah",
+      "lon": 42.7339,
+      "lat": 16.77,
+      "rank": 2
+    },
+    {
+      "id": 3638,
+      "region": 10,
+      "name": "السر",
+      "en": "As Sirr",
+      "lon": 42.8966,
+      "lat": 16.7359,
+      "rank": 2
+    },
+    {
+      "id": 3659,
+      "region": 10,
+      "name": "الحنيني",
+      "en": "Al Hanini",
+      "lon": 42.8179,
+      "lat": 16.59,
+      "rank": 2
+    },
+    {
+      "id": 3666,
+      "region": 2,
+      "name": "مدينة الملك عبدالله الاقتصادية",
+      "en": "King Abdullah Economic City",
+      "lon": 39.1312,
+      "lat": 22.4608,
+      "rank": 2
+    },
+    {
+      "id": 3704,
+      "region": 3,
+      "name": "منطقة الصناعات الخفيفة",
+      "en": "Light Industrial Zone",
+      "lon": 38.2623,
+      "lat": 24.0048,
+      "rank": 2
+    },
+    {
+      "id": 4092,
+      "region": 1,
+      "name": "الصالحية",
+      "en": "As Salhiyah",
+      "lon": 43.5913,
+      "lat": 24.5004,
+      "rank": 2
+    },
+    {
+      "id": 10833,
+      "region": 4,
+      "name": "الخريشاء",
+      "en": "Al Khuraysha",
+      "lon": 42.827,
+      "lat": 25.5851,
+      "rank": 2
+    },
+    {
+      "id": 11061,
+      "region": 5,
+      "name": "معرج السوبان",
+      "en": "Ma’raj Al Suban",
+      "lon": 47.0228,
+      "lat": 27.9758,
+      "rank": 2
+    },
+    {
+      "id": 11334,
+      "region": 6,
+      "name": "ذنب القائمة",
+      "en": "Dhanab Al Qaimah",
+      "lon": 42.428,
+      "lat": 18.1793,
+      "rank": 2
+    },
+    {
+      "id": 12716,
+      "region": 6,
+      "name": "الطوف",
+      "en": "Al Tawf",
+      "lon": 42.0382,
+      "lat": 19.352,
+      "rank": 2
+    },
+    {
+      "id": 13660,
+      "region": 6,
+      "name": "المليحة",
+      "en": "Al Milayhah",
+      "lon": 41.6568,
+      "lat": 18.7085,
+      "rank": 2
+    },
+    {
+      "id": 14219,
+      "region": 6,
+      "name": "جزعة المشط",
+      "en": "Jazat Al Masht",
+      "lon": 42.2753,
+      "lat": 18.3194,
+      "rank": 2
+    },
+    {
+      "id": 14440,
+      "region": 6,
+      "name": "جنب نجد",
+      "en": "Janb Najd",
+      "lon": 42.1813,
+      "lat": 18.2795,
+      "rank": 2
+    },
+    {
+      "id": 14560,
+      "region": 6,
+      "name": "أريمن",
+      "en": "Aryaman",
+      "lon": 42.3212,
+      "lat": 18.1482,
+      "rank": 2
+    },
+    {
+      "id": 14647,
+      "region": 6,
+      "name": "جلة المشمطة",
+      "en": "Jallat Al Mashmatah",
+      "lon": 42.3207,
+      "lat": 18.2138,
+      "rank": 2
+    },
+    {
+      "id": 17459,
+      "region": 8,
+      "name": "ام رقتين",
+      "en": "Umm Raqtain",
+      "lon": 42.0906,
+      "lat": 27.9019,
+      "rank": 2
+    },
+    {
+      "id": 17608,
+      "region": 8,
+      "name": "النظيم واللجاوي",
+      "en": "An Nadhim And Lajawi",
+      "lon": 40.3778,
+      "lat": 27.6459,
+      "rank": 2
+    },
+    {
+      "id": 17744,
+      "region": 8,
+      "name": "الطنيب",
+      "en": "Al Tuneib",
+      "lon": 40.7139,
+      "lat": 26.7313,
+      "rank": 2
+    },
+    {
+      "id": 17862,
+      "region": 9,
+      "name": "الشاظي مناحي بن بكر",
+      "en": "Al Shadhi Manahi Ibn Bakr",
+      "lon": 40.6445,
+      "lat": 31.2119,
+      "rank": 2
+    },
+    {
+      "id": 17863,
+      "region": 9,
+      "name": "الديدب",
+      "en": "Al Didab",
+      "lon": 41.2731,
+      "lat": 30.8318,
+      "rank": 2
+    },
+    {
+      "id": 17880,
+      "region": 9,
+      "name": "العجرمية",
+      "en": "Al Ajramiyyah",
+      "lon": 43.0812,
+      "lat": 29.9559,
+      "rank": 2
+    },
+    {
+      "id": 17933,
+      "region": 10,
+      "name": "ابو الكرش",
+      "en": "Abu Alkarsh",
+      "lon": 42.56,
+      "lat": 17.0679,
+      "rank": 2
+    },
+    {
+      "id": 17996,
+      "region": 10,
+      "name": "الزينيه",
+      "en": "Al Ziniyah",
+      "lon": 42.5518,
+      "lat": 17.2188,
+      "rank": 2
+    },
+    {
+      "id": 18018,
+      "region": 10,
+      "name": "حله مروعي بن شامي",
+      "en": "Halah Maruei Bin Shamy",
+      "lon": 42.5701,
+      "lat": 17.1634,
+      "rank": 2
+    },
+    {
+      "id": 18048,
+      "region": 10,
+      "name": "الشعافه",
+      "en": "Al Shaeafah",
+      "lon": 42.4293,
+      "lat": 17.2688,
+      "rank": 2
+    },
+    {
+      "id": 18071,
+      "region": 10,
+      "name": "جريبه",
+      "en": "Jaribuh",
+      "lon": 42.5559,
+      "lat": 17.1115,
+      "rank": 2
+    },
+    {
+      "id": 18436,
+      "region": 10,
+      "name": "الواسط",
+      "en": "Al Wasit",
+      "lon": 42.8586,
+      "lat": 16.5435,
+      "rank": 2
+    },
+    {
+      "id": 21978,
+      "region": 12,
+      "name": "المرباة",
+      "en": "Al Marbah",
+      "lon": 41.6731,
+      "lat": 19.8434,
+      "rank": 2
+    },
+    {
+      "id": 22785,
+      "region": 12,
+      "name": "ال سلمان",
+      "en": "Al Salman",
+      "lon": 41.3767,
+      "lat": 20.1559,
+      "rank": 2
+    },
+    {
+      "id": 23385,
+      "region": 13,
+      "name": "ابورواث",
+      "en": "Aburawas",
+      "lon": 41.2132,
+      "lat": 29.7504,
+      "rank": 2
+    },
+    {
+      "id": 23388,
+      "region": 13,
+      "name": "الحرة",
+      "en": "Al Harrah",
+      "lon": 39.5341,
+      "lat": 30.9481,
+      "rank": 2
+    }
+  ],
+  "rejected": 0
+}

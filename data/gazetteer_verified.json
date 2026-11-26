@@ -1,0 +1,488 @@
+[
+  {
+    "id": "BADR_388E237N_S",
+    "name": "بدر",
+    "lon": 38.80098,
+    "lat": 23.72676,
+    "region": "Jazirat al-Arab",
+    "kind": "towns",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "BISHA_426E199N_S",
+    "name": "بيشة",
+    "lon": 42.62594,
+    "lat": 19.93935,
+    "region": "Jazirat al-Arab",
+    "kind": "waystations",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "DHUHULAYFA_395E244N_S",
+    "name": "ذو الحليفة",
+    "lon": 39.56501,
+    "lat": 24.40558,
+    "region": "Jazirat al-Arab",
+    "kind": "villages",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "DHUKHUSHUB_392E247N_S",
+    "name": "ذو خشب",
+    "lon": 39.29172,
+    "lat": 24.72896,
+    "region": "Jazirat al-Arab",
+    "kind": "waystations",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "FAYD_425E270N_S",
+    "name": "فيد",
+    "lon": 42.50815,
+    "lat": 27.06977,
+    "region": "Badiyat al-Arab",
+    "kind": "towns",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "HAJAR_499E247N_R",
+    "name": "الهجر",
+    "lon": 49.94102,
+    "lat": 24.72896,
+    "region": "Jazirat al-Arab",
+    "kind": "regions",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "JUDDA_391E214N_S",
+    "name": "جدة",
+    "lon": 39.1779,
+    "lat": 21.46201,
+    "region": "Jazirat al-Arab",
+    "kind": "towns",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "JURASH_426E186N_S",
+    "name": "جرش",
+    "lon": 42.69682,
+    "lat": 18.63711,
+    "region": "Jazirat al-Arab",
+    "kind": "towns",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "KHAYBAR_392E257N_S",
+    "name": "خيبر",
+    "lon": 39.26821,
+    "lat": 25.78667,
+    "region": "Jazirat al-Arab",
+    "kind": "towns",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "MADINA_396E244N_S",
+    "name": "المدينة",
+    "lon": 39.60908,
+    "lat": 24.47782,
+    "region": "Jazirat al-Arab",
+    "kind": "towns",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "MADINBANUSULAYM_408E235N_O",
+    "name": "معدن بنو سليم",
+    "lon": 40.8227,
+    "lat": 23.53832,
+    "region": "Jazirat al-Arab",
+    "kind": "sites",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "MADINNAQIRA_415E255N_S",
+    "name": "معدن النقرة",
+    "lon": 41.52796,
+    "lat": 25.5536,
+    "region": "Jazirat al-Arab",
+    "kind": "waystations",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "MAKKA_398E213N_S",
+    "name": "مكة",
+    "lon": 39.83612,
+    "lat": 21.39132,
+    "region": "Jazirat al-Arab",
+    "kind": "metropoles",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "NAJRAN_442E175N_S",
+    "name": "نجران",
+    "lon": 44.2995,
+    "lat": 17.58603,
+    "region": "Jazirat al-Arab",
+    "kind": "towns",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "QARYATAYN_439E260N_S",
+    "name": "القريتين",
+    "lon": 43.92995,
+    "lat": 26.08634,
+    "region": "Badiyat al-Arab",
+    "kind": "waystations",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "QATIF_499E265N_S",
+    "name": "القطيف",
+    "lon": 49.96159,
+    "lat": 26.53966,
+    "region": "Jazirat al-Arab",
+    "kind": "towns",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "RABADHA_413E246N_S",
+    "name": "ربذة",
+    "lon": 41.30169,
+    "lat": 24.66756,
+    "region": "Jazirat al-Arab",
+    "kind": "waystations",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "TABUK_365E283N_S",
+    "name": "تبوك",
+    "lon": 36.5062,
+    "lat": 28.37114,
+    "region": "Badiyat al-Arab",
+    "kind": "towns",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "TAIF_404E212N_S",
+    "name": "الطائف",
+    "lon": 40.40566,
+    "lat": 21.21629,
+    "region": "Jazirat al-Arab",
+    "kind": "towns",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "TAYMA_385E275N_S",
+    "name": "تيماء",
+    "lon": 38.52,
+    "lat": 27.58081,
+    "region": "Badiyat al-Arab",
+    "kind": "towns",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "THALABIYYA_431E282N_S",
+    "name": "الثعلبية",
+    "lon": 43.16528,
+    "lat": 28.29472,
+    "region": "Badiyat al-Arab",
+    "kind": "waystations",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "TURABA_416E212N_S",
+    "name": "تربة",
+    "lon": 41.6403,
+    "lat": 21.25283,
+    "region": "Jazirat al-Arab",
+    "kind": "villages",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "UQAYR_502E255N_S",
+    "name": "العقير",
+    "lon": 50.22312,
+    "lat": 25.5589,
+    "region": "Jazirat al-Arab",
+    "kind": "towns",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "USFAN_394E218N_S",
+    "name": "عسفان",
+    "lon": 39.46144,
+    "lat": 21.88079,
+    "region": "Jazirat al-Arab",
+    "kind": "waystations",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "WADIQURA_382E256N_W",
+    "name": "وادي القرى",
+    "lon": 38.29849,
+    "lat": 25.67549,
+    "region": "Jazirat al-Arab",
+    "kind": "waters",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "YABRIN_489E232N_R",
+    "name": "يبرين",
+    "lon": 48.95073,
+    "lat": 23.29563,
+    "region": "Jazirat al-Arab",
+    "kind": "regions",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "YAMAMA_467E240N_R",
+    "name": "اليمامة",
+    "lon": 46.73506,
+    "lat": 24.08674,
+    "region": "Jazirat al-Arab",
+    "kind": "regions",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "YANBU_381E241N_S",
+    "name": "ينبع",
+    "lon": 38.12512,
+    "lat": 24.1082,
+    "region": "Jazirat al-Arab",
+    "kind": "towns",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "ZUBALA_435E294N_S",
+    "name": "زبالة",
+    "lon": 43.5639,
+    "lat": 29.40521,
+    "region": "Badiyat al-Arab",
+    "kind": "waystations",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "ADAN_450E127N_S",
+    "name": "عدن",
+    "lon": 45.03942,
+    "lat": 12.79365,
+    "region": "Yemen",
+    "kind": "towns",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "AYLA_349E295N_S",
+    "name": "أيلة",
+    "lon": 34.94527,
+    "lat": 29.57226,
+    "region": "Sham",
+    "kind": "towns",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "BAGHDAD_443E333N_S",
+    "name": "بغداد",
+    "lon": 44.35693,
+    "lat": 33.35932,
+    "region": "Iraq",
+    "kind": "metropoles",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "BASRA_477E304N_S",
+    "name": "البصرة",
+    "lon": 47.71735,
+    "lat": 30.40147,
+    "region": "Iraq",
+    "kind": "capitals",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "BILBAYS_315E304N_S",
+    "name": "بلبيس",
+    "lon": 31.57097,
+    "lat": 30.41776,
+    "region": "Egypt",
+    "kind": "capitals",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "BUKHARA_644E398N_S",
+    "name": "بخارة",
+    "lon": 64.46489,
+    "lat": 39.85224,
+    "region": "Transoxiana",
+    "kind": "capitals",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "DAYBUL_676E244N_S",
+    "name": "الديبل",
+    "lon": 67.69101,
+    "lat": 24.43756,
+    "region": "Sind",
+    "kind": "towns",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "FUSTAT_312E300N_S",
+    "name": "فسطاط",
+    "lon": 31.24964,
+    "lat": 30.04325,
+    "region": "Egypt",
+    "kind": "metropoles",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "HALAB_371E361N_S",
+    "name": "حلب",
+    "lon": 37.17518,
+    "lat": 36.19828,
+    "region": "Sham",
+    "kind": "capitals",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "HIMS_367E347N_S",
+    "name": "حمص",
+    "lon": 36.72425,
+    "lat": 34.73793,
+    "region": "Sham",
+    "kind": "capitals",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "ISKANDARIYYA_299E311N_S",
+    "name": "الإسكندرية",
+    "lon": 29.90981,
+    "lat": 31.1949,
+    "region": "Egypt",
+    "kind": "capitals",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "KUFA_443E320N_S",
+    "name": "الكوفة",
+    "lon": 44.39355,
+    "lat": 32.03808,
+    "region": "Iraq",
+    "kind": "capitals",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "MANSURA_688E258N_S",
+    "name": "المنصورة",
+    "lon": 68.87697,
+    "lat": 25.8651,
+    "region": "Sind",
+    "kind": "capitals",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "MULTAN_714E301N_S",
+    "name": "المولتان",
+    "lon": 71.40071,
+    "lat": 30.17568,
+    "region": "Sind",
+    "kind": "towns",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "NAYSABUR_587E361N_S",
+    "name": "نيسابور",
+    "lon": 58.79841,
+    "lat": 36.12138,
+    "region": "Khurasan",
+    "kind": "metropoles",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "QAYRAWAN_101E357N_S",
+    "name": "القيروان",
+    "lon": 10.14137,
+    "lat": 35.70049,
+    "region": "Maghrib",
+    "kind": "capitals",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "QULZUM_325E300N_S",
+    "name": "القلزم",
+    "lon": 32.55684,
+    "lat": 30.02822,
+    "region": "Egypt",
+    "kind": "towns",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "RAQQA_390E359N_S",
+    "name": "الرقة",
+    "lon": 39.05128,
+    "lat": 35.9493,
+    "region": "Aqur",
+    "kind": "capitals",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "SAMARQAND_670E396N_S",
+    "name": "سمرقند",
+    "lon": 67.03225,
+    "lat": 39.67905,
+    "region": "Transoxiana",
+    "kind": "metropoles",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "SANA_442E153N_S",
+    "name": "صنعاء",
+    "lon": 44.20186,
+    "lat": 15.37373,
+    "region": "Yemen",
+    "kind": "capitals",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "SIRAF_523E276N_S",
+    "name": "سيراف",
+    "lon": 52.34306,
+    "lat": 27.69666,
+    "region": "Faris",
+    "kind": "capitals",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "SUHAR_566E243N_S",
+    "name": "صحار",
+    "lon": 56.69086,
+    "lat": 24.35205,
+    "region": "Jazirat al-Arab",
+    "kind": "capitals",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "TARSUS_349E369N_S",
+    "name": "طرسوس",
+    "lon": 34.95529,
+    "lat": 36.90807,
+    "region": "Sham",
+    "kind": "towns",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "TUNIS_101E367N_S",
+    "name": "تونس",
+    "lon": 10.17736,
+    "lat": 36.77071,
+    "region": "Maghrib",
+    "kind": "towns",
+    "source_certainty": "certain"
+  },
+  {
+    "id": "ZABID_433E142N_S",
+    "name": "زبيد",
+    "lon": 43.32654,
+    "lat": 14.20796,
+    "region": "Yemen",
+    "kind": "capitals",
+    "source_certainty": "certain"
+  }
+]
