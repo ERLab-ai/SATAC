@@ -19,6 +19,8 @@ function App(){
  const [panel,setPanel]=useState<'search'|'detail'|null>(null);
  const [playing,setPlaying]=useState(false),[step,setStep]=useState('100');
  const [showLocations,setShowLocations]=useState(true);
+ const [physical,setPhysical]=useState<'relief'|'etopo'|'flat'>('relief');
+ const [geoLabels,setGeoLabels]=useState(true);
  const [allReleases,setAllReleases]=useState<Release[]>([]),[release,setRelease]=useState(''),[releaseError,setReleaseError]=useState('');
  const [year,setYear]=useState(''),[era,setEra]=useState('CE'),[certainty,setCertainty]=useState('any'),[time,setTime]=useState<TimeFilter>({}),[timeLabel,setTimeLabel]=useState(''),[timeError,setTimeError]=useState('');
  const [data,setData]=useState<Features>(emptyFeatures),[mapLoading,setMapLoading]=useState(false),[mapError,setMapError]=useState(''),[truncated,setTruncated]=useState(false);
@@ -77,14 +79,16 @@ function App(){
  <main><section className="toolbar" aria-label="أدوات البحث والإصدار">
  <label>الإصدار المعرفي<select aria-label="الإصدار المعرفي" value={release} onChange={e=>{setRelease(e.target.value);resetSelection();}}>{!release&&<option value="">تحميل الإصدارات</option>}{allReleases.map(r=><option key={r.release_id} value={r.release_id}>{r.is_current?'الإصدار الحالي':r.created_at.slice(0,10)} · {r.release_id.slice(0,8)}</option>)}</select></label>
  <form className="search" onSubmit={e=>{e.preventDefault();setAfter(undefined);setSubmitted(q.trim());setPanel('search');}}><label htmlFor="search">البحث عن موضع أو اسم</label><div className="search-row"><input id="search" value={q} onChange={e=>setQ(e.target.value)} placeholder="الحِجر، البتراء..." maxLength={120}/><button disabled={!release}>بحث</button></div></form>
+ <label>الخلفية<select aria-label="الخلفية الجغرافية" value={physical} onChange={e=>setPhysical(e.target.value as 'relief'|'etopo'|'flat')}><option value="relief">التضاريس</option><option value="etopo">الارتفاعات والأعماق</option><option value="flat">الخريطة المبسطة</option></select></label>
+ <label className="layer-toggle"><input type="checkbox" checked={geoLabels} onChange={e=>setGeoLabels(e.target.checked)}/> التسميات الجغرافية</label>
  <label className="layer-toggle"><input type="checkbox" checked={showLocations} onChange={e=>setShowLocations(e.target.checked)}/> المواضع</label>
  {releaseError&&<p role="alert">{releaseError}</p>}</section>
- <section className="main-map"><AtlasMap data={visibleData} selected={selected} onSelect={choose}/></section>
+ <section className="main-map"><AtlasMap data={visibleData} selected={selected} onSelect={choose} physical={physical} geoLabels={geoLabels} dated={!!time.as_of}/></section>
  <section className="map-status" aria-label="حالة الخريطة"><p role="status" data-testid="feature-count">{mapLoading?'جارٍ تحميل المعالم…':places.length+' مواضع'}</p>
  {mapError&&<p role="alert">{mapError}</p>}{truncated&&<p>عُرضت أول 2000 سجل؛ نتائج إضافية غير معروضة.</p>}{time.as_of&&<p>التأريخ: {timeLabel} · لا تظهر السجلات غير المؤرخة.</p>}
  {!mapLoading&&!mapError&&!places.length&&<p>لا توجد مواضع مطابقة.</p>}</section>
  <section className="timeline" aria-label="الشريط الزمني">
- <div className="time-heading"><strong>{timeLabel||'كل الأزمنة'}</strong><div className="time-navigation"><button aria-label="الزمن السابق" disabled={!time.as_of||mapLoading} onClick={()=>{setPlaying(false);moveTime(-BigInt(step));}}>←</button><button disabled={!time.as_of} aria-pressed={playing} onClick={()=>setPlaying(p=>!p)}>{playing?'إيقاف':'تشغيل'}</button><button aria-label="الزمن التالي" disabled={!time.as_of||mapLoading} onClick={()=>{setPlaying(false);moveTime(BigInt(step));}}>→</button><label>الخطوة<select value={step} onChange={e=>setStep(e.target.value)}><option value="1">سنة</option><option value="10">10 سنوات</option><option value="100">100 سنة</option><option value="1000">1000 سنة</option></select></label></div></div>
+ <div className="time-heading"><strong>{timeLabel||'كل الأزمنة'}</strong><div className="time-navigation"><button aria-label="الزمن السابق" disabled={!time.as_of||mapLoading} onClick={()=>{setPlaying(false);moveTime(-BigInt(step));}}>←</button><button disabled={!time.as_of} aria-pressed={playing} onClick={()=>setPlaying(p=>!p)}>{playing?'إيقاف':'تشغيل'}</button><button aria-label="الزمن التالي" disabled={!time.as_of||mapLoading} onClick={()=>{setPlaying(false);moveTime(BigInt(step));}}>→</button><label>الخطوة<select aria-label="الخطوة" value={step} onChange={e=>setStep(e.target.value)}><option value="1">سنة</option><option value="10">10 سنوات</option><option value="100">100 سنة</option><option value="1000">1000 سنة</option></select></label></div></div>
  <form className="time-form" onSubmit={applyTime}><label>السنة التاريخية<input aria-label="السنة التاريخية" inputMode="numeric" value={year} onChange={e=>setYear(e.target.value)} placeholder="مثال: 550"/></label>
  <label>التقويم<select aria-label="التقويم" value={era} onChange={e=>setEra(e.target.value)}><option value="CE">ميلادي</option><option value="BCE">قبل الميلاد</option></select></label>
  <label>التطابق<select value={certainty} onChange={e=>setCertainty(e.target.value)}><option value="any">مؤكد ومحتمل</option><option value="certain">مؤكد فقط</option><option value="possible">محتمل فقط</option></select></label>

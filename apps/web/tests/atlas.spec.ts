@@ -58,3 +58,28 @@ test('immersive shell, floating panels and timeline navigation',async({page})=>{
  await page.getByRole('button',{name:'كل الأزمنة'}).click();
  await expect(page.getByTestId('feature-count')).toHaveText('3 مواضع');
 });
+
+test('legacy physical layers and geographic references',async({page})=>{
+ const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+ const relief=page.waitForResponse(r=>r.url().includes('/physical/relief/')&&r.status()===200);
+ await page.goto('/');await relief;
+ await expect(page.getByTestId('map')).toHaveAttribute('data-ready','true',{timeout:20000});
+ await expect(page.locator('.geo-reference-label').first()).toBeVisible();
+ const etopo=page.waitForResponse(r=>r.url().includes('/physical/etopo/')&&r.status()===200);
+ await page.getByLabel('الخلفية الجغرافية').selectOption('etopo');await etopo;
+ await expect(page.getByText(/ألوان الارتفاعات والأعماق/)).toBeVisible();
+ await page.getByLabel('التسميات الجغرافية',{exact:true}).uncheck();
+ await expect(page.locator('.geo-reference-label')).toHaveCount(0);
+ await page.getByLabel('التسميات الجغرافية',{exact:true}).check();
+ await page.getByLabel('الخلفية الجغرافية').selectOption('flat');
+ await expect(page.getByText(/يابسة ومياه/)).toBeVisible();
+ await page.getByLabel('السنة التاريخية').fill('550');
+ await page.getByRole('button',{name:'تطبيق الزمن'}).click();
+ await expect(page.locator('.geo-reference-label.city')).toHaveCount(0);
+ await page.getByRole('button',{name:'كل الأزمنة'}).click();
+ await page.getByLabel('الخلفية الجغرافية').selectOption('relief');
+ await page.screenshot({path:'test-results/physical-desktop.png'});
+ await page.setViewportSize({width:390,height:844});
+ await page.screenshot({path:'test-results/physical-mobile.png'});
+ expect(errors).toEqual([]);
+});

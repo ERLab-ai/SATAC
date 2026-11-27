@@ -2,18 +2,22 @@ import {useEffect,useRef,useState} from 'react';
 import maplibregl,{type GeoJSONSource} from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type {Features} from './api';
-export default function AtlasMap({data,selected,onSelect}:{data:Features;selected:string|null;onSelect:(id:string)=>void}){
+type GeoLabel=[string,number,number,'water'|'land'|'city',number];
+export default function AtlasMap({data,selected,onSelect,physical,geoLabels,dated}:{data:Features;selected:string|null;onSelect:(id:string)=>void;physical:'relief'|'etopo'|'flat';geoLabels:boolean;dated:boolean}){
  const node=useRef<HTMLDivElement>(null),map=useRef<maplibregl.Map|null>(null),select=useRef(onSelect);
  select.current=onSelect;
- const [ready,setReady]=useState(false),[failed,setFailed]=useState(false);
+ const [ready,setReady]=useState(false),[failed,setFailed]=useState(false),[labels,setLabels]=useState<GeoLabel[]>([]);
+ useEffect(()=>{const c=new AbortController();fetch('/physical/labels.json',{signal:c.signal}).then(r=>{if(!r.ok)throw Error('labels');return r.json();}).then(setLabels).catch(()=>{if(!c.signal.aborted)setFailed(true);});return ()=>c.abort();},[]);
  useEffect(()=>{
  if(!node.current)return;
  let m:maplibregl.Map;
  try{m=new maplibregl.Map({container:node.current,center:[42,24],zoom:4,minZoom:1,maxZoom:14,renderWorldCopies:false,attributionControl:false,
- style:{version:8,sources:{land:{type:'geojson',data:'/land.geojson'},places:{type:'geojson',data:{type:'FeatureCollection',features:[]}}},
+ style:{version:8,sources:{land:{type:'geojson',data:'/land.geojson'},relief:{type:'raster',tiles:[location.origin+'/physical/relief/{z}/{x}/{y}.webp'],tileSize:512,maxzoom:2},etopo:{type:'raster',tiles:[location.origin+'/physical/etopo/{z}/{x}/{y}.webp'],tileSize:512,maxzoom:2},places:{type:'geojson',data:{type:'FeatureCollection',features:[]}}},
  layers:[
  {id:'water',type:'background',paint:{'background-color':'#193d50'}},
  {id:'land',type:'fill',source:'land',paint:{'fill-color':'#b9a77c','fill-outline-color':'#8b9d85'}},
+ {id:'relief',type:'raster',source:'relief',layout:{visibility:'visible'},paint:{'raster-opacity':1,'raster-fade-duration':0}},
+ {id:'etopo',type:'raster',source:'etopo',layout:{visibility:'none'},paint:{'raster-opacity':1,'raster-fade-duration':0}},
  {id:'areas',type:'fill',source:'places',filter:['==',['geometry-type'],'Polygon'],paint:{'fill-color':'#b17a3a','fill-opacity':0.35}},
  {id:'lines',type:'line',source:'places',filter:['==',['geometry-type'],'LineString'],paint:{'line-color':'#936629','line-width':3}},
  {id:'points',type:'circle',source:'places',filter:['==',['geometry-type'],'Point'],paint:{'circle-radius':7,'circle-color':'#346b61','circle-stroke-color':'#f0d4a1','circle-stroke-width':2}},
@@ -28,6 +32,31 @@ export default function AtlasMap({data,selected,onSelect}:{data:Features;selecte
  }
  return ()=>{m.remove();map.current=null;};
  },[]);
+ useEffect(()=>{
+ if(!ready||!map.current)return;
+ for(const id of ['relief','etopo'])map.current.setLayoutProperty(id,'visibility',id===physical?'visible':'none');
+ },[ready,physical]);
+ useEffect(()=>{
+ if(!ready||!map.current||!geoLabels)return;
+ const m=map.current;
+ let markers:maplibregl.Marker[]=[];
+ const draw=()=>{
+ markers.forEach(x=>x.remove());markers=[];
+ const zoom=m.getZoom(),bounds=m.getBounds(),rects:{x:number;y:number;w:number;h:number}[]=[];
+ for(const [name,lon,lat,kind,rank] of [...labels].sort((a,b)=>a[4]-b[4])){
+ if((kind==='city'&&dated)||zoom<[1,3,5,7][rank]||!bounds.contains([lon,lat]))continue;
+ const pt=m.project([lon,lat]),w=Math.max(40,name.length*8),h=18;
+ if(rects.some(r=>Math.abs(r.x-pt.x)<(r.w+w)/2+4&&Math.abs(r.y-pt.y)<h))continue;
+ if(data.features.some(f=>{if(f.geometry.type!=='Point')return false;const [x,y]=f.geometry.coordinates,p=m.project([x,y]);return Math.abs(p.x-pt.x)<w/2+45&&Math.abs(p.y-pt.y)<30;}))continue;
+ rects.push({x:pt.x,y:pt.y,w,h});
+ const el=document.createElement('span');el.className='geo-reference-label '+kind;el.textContent=name;
+ el.dataset.kind=kind;
+ markers.push(new maplibregl.Marker({element:el,anchor:'center'}).setLngLat([lon,lat]).addTo(m));
+ }
+ };
+ draw();m.on('moveend',draw);m.on('resize',draw);
+ return ()=>{m.off('moveend',draw);m.off('resize',draw);markers.forEach(x=>x.remove());};
+ },[ready,geoLabels,dated,labels,data]);
  useEffect(()=>{if(ready&&map.current)(map.current.getSource('places') as GeoJSONSource).setData(data);},[data,ready]);
  useEffect(()=>{
  if(!ready||!map.current)return;
@@ -51,5 +80,5 @@ export default function AtlasMap({data,selected,onSelect}:{data:Features;selecte
  return <section className="map-shell" aria-label="الخريطة الجغرافية"><div ref={node} className="map" data-testid="map" data-ready={ready?'true':'false'} dir="ltr"/>
  {failed&&<p className="map-message" role="alert">تعذر عرض جزء من الخريطة. يمكنك استخدام قائمة المواضع.</p>}
  <div className="map-views"><button onClick={()=>map.current?.jumpTo({center:[42,24],zoom:4})}>الجزيرة</button><button onClick={()=>map.current?.jumpTo({center:[0,20],zoom:1})}>العالم</button></div>
- <div className="map-caption">خلفية جغرافية معاصرة · لا تمثل حدودًا تاريخية</div></section>;
+ <div className="map-caption">خلفية جغرافية معاصرة · {physical==='relief'?'تظليل التضاريس':physical==='etopo'?'ألوان الارتفاعات والأعماق':'يابسة ومياه'} · لا تمثل حدودًا تاريخية</div></section>;
 }

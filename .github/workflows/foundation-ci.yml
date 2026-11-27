@@ -70,6 +70,11 @@ jobs:
       - name: Install web dependencies
         working-directory: apps/web
         run: npm install --no-audit --no-fund
+      - name: Rebuild verified legacy physical assets
+        run: |
+          python -m venv /tmp/satac-geography
+          /tmp/satac-geography/bin/pip install -r pipelines/legacy_geography/requirements.txt
+          /tmp/satac-geography/bin/python pipelines/prepare_web_geography.py
       - name: Build web atlas
         working-directory: apps/web
         run: npm run build
