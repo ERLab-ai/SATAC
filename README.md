@@ -5,3 +5,5 @@ Independent foundation track, not a P1 release. The owner-directed [knowledge pu
 Executable P0 reference: [publication and correction contract](docs/inception/publication-reference.md). Foundation CI runs the temporal and publication reference tests. Database candidate: [persistent knowledge core](docs/inception/database-candidate.md). [Public API candidate](docs/inception/api-candidate.md) — read-only, no production deployment.
 
 [Entity names and Arabic search candidate](docs/inception/entity-search-candidate.md): three-place legacy sample, stage-only importer and release-scoped search.
+
+[Web atlas candidate](docs/inception/web-atlas-candidate.md): Arabic React/MapLibre interface, read-only API, actual sample and browser integration.

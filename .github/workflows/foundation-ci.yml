@@ -64,3 +64,29 @@ jobs:
           SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
           SATAC_ADMIN_TEST_DSN: postgresql://satac:disposable-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
         run: python -m unittest discover -s apps/api/tests -p test_names.py -v
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Install web dependencies
+        working-directory: apps/web
+        run: npm install --no-audit --no-fund
+      - name: Build web atlas
+        working-directory: apps/web
+        run: npm run build
+      - name: Install browser
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+      - name: Browser integration against PostGIS
+        working-directory: apps/web
+        env:
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+        run: npm test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: web-build-and-lock
+          path: |
+            apps/web/dist
+            apps/web/package-lock.json
+            apps/web/test-results
+          if-no-files-found: warn

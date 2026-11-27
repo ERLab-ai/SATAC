@@ -1,0 +1,32 @@
+import {test,expect} from '@playwright/test';
+test('actual API atlas, Arabic search, details and dates',async({page})=>{
+ const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('/');
+ await expect(page.locator('html')).toHaveAttribute('dir','rtl');
+ await expect(page.getByTestId('feature-count')).toHaveText('3 مواضع');
+ await expect(page.getByTestId('map')).toHaveAttribute('data-ready','true',{timeout:20000});
+ await expect(page.locator('.maplibregl-canvas')).toBeVisible();
+ await page.getByLabel('البحث عن موضع أو اسم').fill('الحجر');
+ await page.getByRole('button',{name:'بحث',exact:true}).click();
+ const result=page.getByRole('region',{name:'نتائج البحث'}).getByRole('button',{name:/الحِجر/});
+ await expect(result).toBeVisible();await result.focus();await page.keyboard.press('Enter');
+ await expect(page.getByRole('complementary',{name:'تفاصيل الكيان'}).getByRole('heading',{name:'الحِجر',exact:true})).toBeVisible();
+ await expect(page.getByText('Hegra / Al-Hijr',{exact:true})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'المراجع المتاحة'})).toBeVisible();
+ await expect(page.getByText('موضع عام تقريبي',{exact:true}).first()).toBeVisible();
+ await page.getByLabel('السنة التاريخية').fill('550');
+ await page.getByRole('button',{name:'تطبيق الزمن'}).click();
+ await expect(page.getByTestId('feature-count')).toHaveText('0 مواضع');
+ await expect(page.getByText('لا توجد مواضع مطابقة.')).toBeVisible();
+ await page.getByRole('button',{name:'كل الأزمنة'}).click();
+ await expect(page.getByTestId('feature-count')).toHaveText('3 مواضع');
+ expect(errors).toEqual([]);
+});
+test('mobile layout and historical no-year-zero guard',async({page})=>{
+ await page.setViewportSize({width:390,height:844});await page.goto('/');
+ await expect(page.getByTestId('feature-count')).toHaveText('3 مواضع');
+ await page.getByLabel('السنة التاريخية').fill('0');
+ await page.getByRole('button',{name:'تطبيق الزمن'}).click();
+ await expect(page.getByText('لا توجد سنة صفر في التأريخ التاريخي.')).toBeVisible();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBeTruthy();
+});
