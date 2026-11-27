@@ -15,3 +15,5 @@ Executable P0 reference: [publication and correction contract](docs/inception/pu
 [Editorial network candidate](docs/inception/editorial-network-candidate.md): original 13 connections and 8 ordered journeys, release-scoped schematic map layers.
 
 [Directory candidate](docs/inception/directory-candidate.md): original 190 historical and 323 modern records, release-scoped reference directory.
+
+[Historical snapshots candidate](docs/inception/snapshots-candidate.md): original 27 approximate territories, four event markers, exact-year navigation and comparison.

@@ -218,6 +218,16 @@
       "languages": [
         "ar"
       ]
+    },
+    "HISTORICAL_SNAPSHOT": {
+      "domain": [
+        "Work"
+      ],
+      "range": [],
+      "literal_type": "historical_snapshot",
+      "languages": [
+        "ar"
+      ]
     }
   },
   "publication_status": [

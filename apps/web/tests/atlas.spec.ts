@@ -213,3 +213,29 @@ test('released route network and shortest source-weight path',async({page})=>{
  await page.getByRole('button',{name:'تطبيق الزمن'}).click();
  await expect(page.getByTestId('route-map-count')).toHaveCount(0);
 });
+
+test('exact historical snapshots, comparison and event markers',async({page})=>{
+ page.on('console',m=>{if(m.type()==='error')console.log(m.text());});
+ await page.goto('/');
+ await expect(page.getByTestId('map')).toHaveAttribute('data-ready','true',{timeout:20000});
+ await page.getByRole('button',{name:'النطاقات',exact:true}).click();
+ await page.getByLabel('اللقطة التاريخية').selectOption('-200');
+ await expect(page.getByLabel('السنة التاريخية')).toHaveValue('200');
+ await expect(page.getByLabel('التقويم')).toHaveValue('BCE');
+ await expect(page.getByTestId('territory-count')).toHaveText('4 نطاقات · 0 محطات');
+ await expect(page.locator('.territory-label')).toHaveCount(4);
+ await page.getByLabel('سنة المقارنة').selectOption('800');
+ await expect(page.getByTestId('comparison-count')).toContainText('3 نطاقات');
+ await page.getByRole('complementary',{name:'الجغرافيا السياسية'}).getByRole('button',{name:'مملكة الأنباط',exact:true}).click();
+ await expect(page.getByRole('link',{name:'Historical Basemaps — المصدر الأصلي'})).toBeVisible();
+ await page.screenshot({path:'test-results/territories-compare.png'});
+ await page.getByLabel('اللقطة التاريخية').selectOption('1727');
+ await expect(page.getByTestId('territory-count')).toHaveText('0 نطاقات · 1 محطات');
+ await expect(page.getByLabel('سنة المقارنة')).toBeDisabled();
+ await expect(page.locator('.territory-label')).toHaveCount(1);
+ await expect(page.getByTestId('territory-map-legend')).toContainText('موضع حدث لا حدود دولة');
+ await page.getByLabel('السنة التاريخية').fill('1728');
+ await page.getByRole('button',{name:'تطبيق الزمن'}).click();
+ await expect(page.locator('.territory-label')).toHaveCount(0);
+ await expect(page.getByTestId('territory-count')).toHaveText('0 نطاقات · 0 محطات');
+});

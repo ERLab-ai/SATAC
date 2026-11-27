@@ -21,3 +21,5 @@ v0.13 is the product/visual reference; v0.14 is the architectural reference. Acc
 No fake data, dummy buttons or historical boundary inference. Feature priority is not a change to formal P0/P1 gates. Require an explicit legacy-function regression matrix, comparable visual captures desktop/mobile, content inventory, API/database and browser tests before replacement release.
 
 Route candidate: 145 original segments, 135 source graph nodes; source-weight Dijkstra and separate map overlay. Browser verification pending; previous directory cycle had four map initialization failures, corrected invalid match expression. Historical territories remain pending.
+
+Historical snapshots candidate: 27 original polygons (five source years) and four original event points; explicit source-year temporal normalization, independent comparison and linked detail. No interpolated boundaries. Corrected prior release variable ordering build failure; browser validation pending.

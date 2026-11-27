@@ -121,7 +121,7 @@ def query_claims(conn, release, after, limit, bounds, certainty, entity=None, di
         conditions.append("version_id>%s")
         args.append(after)
     if entity is not None:
-        conditions.append("payload->>'predicate' NOT IN ('NAME','ARTICLE','EDITORIAL_LINK','EDITORIAL_JOURNEY','DIRECTORY_ENTRY','ROUTE_SEGMENT')")
+        conditions.append("payload->>'predicate' NOT IN ('NAME','ARTICLE','EDITORIAL_LINK','EDITORIAL_JOURNEY','DIRECTORY_ENTRY','ROUTE_SEGMENT','HISTORICAL_SNAPSHOT')")
         if direction == "out":
             conditions.append("payload->>'subject_id'=%s")
             args.append(str(entity))
@@ -350,3 +350,17 @@ def route_path(start: str=Query(...,min_length=1,max_length=120),end: str=Query(
         raise HTTPException(404,"route_node_not_found")
     if result is None: raise HTTPException(404,"route_not_connected")
     return {"release_id":str(rid),"semantics":"undirected_source_weight_network",**result}
+
+
+@app.get("/api/v1/snapshots")
+def snapshots(release: UUID | None=None,as_of: str | None=Query(None,max_length=32)):
+    bounds=time_range(as_of,None,None,"any")
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        sql="SELECT snapshot FROM public_read.snapshots WHERE release_id=%s"
+        args=[rid]
+        if bounds is not None:
+            sql+=" AND public_read.temporal_match(temporal,%s,%s) IN ('certain','possible')"
+            args.extend(bounds)
+        rows=conn.execute(sql+" ORDER BY (snapshot->>'year')::int,version_id",args).fetchall()
+    return {"release_id":str(rid),"semantics":"approximate_source_snapshots_not_validity_intervals","snapshots":[r["snapshot"] for r in rows]}

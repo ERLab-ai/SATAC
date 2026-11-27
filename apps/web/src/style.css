@@ -16,3 +16,5 @@
 @media(max-width:760px){.brand{min-width:0;flex:1}.brand>div{min-width:0}.header-actions{flex:none;max-width:57%;justify-content:flex-end}.header-actions button{white-space:nowrap}}
 
 .route-legend{position:absolute;bottom:112px;right:12px;background:#152f36ed;border:1px solid #d1af72;border-radius:5px;padding:5px 8px;font-size:11px;z-index:3}.encyclopedia select{max-width:100%}@media(max-width:760px){.route-legend{font-size:9px}}
+
+.territory-label{min-height:24px;font-size:12px;padding:2px 6px;background:#152f36e8;color:#f2d099;border-color:#c9ad73;white-space:nowrap}.territory-legend{position:absolute;bottom:112px;right:12px;z-index:3;background:#152f36ed;border:1px solid #d1af72;border-radius:5px;padding:6px;font-size:11px;max-width:70%}@media(max-width:760px){.territory-legend{font-size:9px}}

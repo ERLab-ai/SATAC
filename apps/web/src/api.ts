@@ -40,3 +40,5 @@ export type DirectoryEntry={entity_id:string;collection:'historical'|'modern';re
 
 export type RouteNetwork={release_id:string;segments:{id:string;from_id:string;to_id:string;meters:number;coordinates:[number,number][]}[];nodes:{id:string;name:string}[]};
 export type RoutePath={release_id:string;meters:number;steps:{id:string;from_id:string;to_id:string;reversed:boolean}[]};
+
+export type Snapshot={type:'territory';year:number;record:{id:string;name:string;source_name:string;subject:string;kind:'polity'|'region'|'dependency';border_precision:number;geometry:import('geojson').Polygon|import('geojson').MultiPolygon;label:[number,number];browse_url:string;source_blob_sha:string}}|{type:'milestone';year:number;record:{title:string;place:string;p:[number,number];article:string;text:string}};
