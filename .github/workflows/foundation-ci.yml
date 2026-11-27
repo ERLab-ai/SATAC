@@ -144,6 +144,7 @@ jobs:
         run: |
           test "$(node --version)" = v22.16.0
           test "$(npm --version)" = 10.9.2
+          echo 'd8fc9df705bd8d880856b399843b93b67ca4ff0edc7e6dd0b0280ac022fa7349  package-lock.json' | sha256sum -c -
           npm ci --no-audit --no-fund
           git diff --exit-code -- package-lock.json
       - name: Rebuild verified legacy physical assets
@@ -159,6 +160,13 @@ jobs:
         run: |
           npm run build
           python ../../pipelines/verify_web_assets.py --root dist/physical
+      - name: Verify repeatable web build
+        run: |
+          (cd apps/web/dist && find . -type f -print0 | sort -z | xargs -0 sha256sum) > "$RUNNER_TEMP/build-first.sha256"
+          npm --prefix apps/web run build
+          (cd apps/web/dist && find . -type f -print0 | sort -z | xargs -0 sha256sum) > "$RUNNER_TEMP/build-second.sha256"
+          cmp "$RUNNER_TEMP/build-first.sha256" "$RUNNER_TEMP/build-second.sha256"
+          sha256sum "$RUNNER_TEMP/build-first.sha256"
       - name: Install browser
         working-directory: apps/web
         run: npx playwright install --with-deps chromium
