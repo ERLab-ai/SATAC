@@ -17,3 +17,6 @@
 !data/
 !data/migration_samples/
 !data/migration_samples/**
+
+!contracts/
+!contracts/route_graph.py

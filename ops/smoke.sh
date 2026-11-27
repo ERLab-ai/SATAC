@@ -39,6 +39,7 @@ docker compose run --rm -T --no-deps ops publish-initial --manifest-sha256 "$has
 curl -fsS http://127.0.0.1:18080/ready
 curl -fsS http://127.0.0.1:18080/api/v1/articles | python -c 'import sys,json;assert len(json.load(sys.stdin)["articles"])==50'
 curl -fsS http://127.0.0.1:18080/api/v1/cells | python -c 'import sys,json;assert len(json.load(sys.stdin)["cells"])==2480'
+curl -fsS 'http://127.0.0.1:18080/api/v1/routes/path?start=MAKKA_398E213N_S_JAZI&end=MADINA_396E244N_S_JAZI' | python -c 'import sys,json;assert json.load(sys.stdin)["meters"]==392496'
 curl -fsS http://127.0.0.1:18080/physical/manifest.json | python -c 'import sys,json;assert len(json.load(sys.stdin)["files"])==52'
 curl -fsSI http://127.0.0.1:18080/ | grep -qi 'content-security-policy:'
 test "$(curl -s -X POST -o /dev/null -w '%{http_code}' http://127.0.0.1:18080/api/v1/releases)" = 403

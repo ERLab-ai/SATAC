@@ -6,7 +6,9 @@ RUN python -m pip install --no-cache-dir pip==26.3 && python -m pip install --no
 RUN groupadd -g 10001 satac && useradd -u 10001 -g 10001 -M -s /usr/sbin/nologin satac
 FROM base AS runtime
 COPY apps/api/main.py apps/api/main.py
+COPY contracts/route_graph.py contracts/route_graph.py
 USER 10001:10001
+RUN python -c 'from apps.api.main import app; from contracts.route_graph import shortest; assert app and callable(shortest)'
 EXPOSE 8000
 CMD ["python","-m","uvicorn","apps.api.main:app","--host","0.0.0.0","--port","8000","--no-proxy-headers","--no-access-log","--limit-concurrency","32","--timeout-keep-alive","5"]
 FROM base AS administration
