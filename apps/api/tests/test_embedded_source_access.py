@@ -28,12 +28,23 @@ class EmbeddedSourceAccess(unittest.TestCase):
             conn.commit()
             self.assertEqual(len(get("/api/v1/articles")["articles"]),50)
             self.assertNotIn("references",get("/api/v1/claims/"+str(c))["claim"])
+            def exported():
+                result=[]
+                after=None
+                while True:
+                    params={"after":after} if after else {}
+                    page=get("/api/v1/export/claims",limit=50,**params)
+                    result.extend(page["claims"])
+                    after=page["next_after"]
+                    if not after:return result
+            self.assertNotIn("references",next(a for a in exported() if a["claim_id"]==str(c)))
             conn.execute("SET LOCAL ROLE satac_curator")
             conn.execute("SELECT knowledge.revoke_embedded_source(%s,'fixture embedded decision','fixture curator')",(source,))
             conn.commit()
             self.assertEqual(get("/api/v1/articles")["articles"],[])
             get("/api/v1/articles/hegra",404)
             get("/api/v1/claims/"+str(c),404)
+            self.assertFalse(any(a["predicate"]=="ARTICLE" for a in exported()))
             self.assertFalse(any(x["kind"]=="article" for x in get("/api/v1/explore",q="الحجر")["references"]))
             self.assertEqual(len(get("/api/v1/map/features",bbox="-180,-85,180,85")["features"]),3)
             self.assertEqual(conn.execute("SELECT manifest_sha256 FROM knowledge.release WHERE id=%s",(release,)).fetchone()[0],original)

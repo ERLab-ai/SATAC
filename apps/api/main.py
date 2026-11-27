@@ -230,6 +230,20 @@ def claim(claim_id: UUID, release: UUID | None = None):
     return {"release_id":str(rid),"claim":decode_payload(row["raw"])}
 
 
+@app.get("/api/v1/export/claims")
+def export_claims(release: UUID, after: UUID | None=None,
+                  limit: int=Query(25,ge=1,le=50)):
+    """Live, paginated JSON export of already public claim projections.
+
+    Pin the release; never export private stored snapshots. Withdrawals and
+    access masks are evaluated at each request, including archived releases.
+    """
+    with reader() as conn:
+        rid,rows,cursor=query_claims(conn,release,after,limit,None,"any")
+    return {"format":"satac-public-claims-v1","release_id":str(rid),
+            "claims":[decode_payload(r["raw"]) for r in rows],"next_after":cursor}
+
+
 @app.get("/api/v1/conflicts")
 def scientific_conflicts(entity_id: UUID, release: UUID | None=None,
                          after: UUID | None=None, limit: int=Query(20,ge=1,le=50),

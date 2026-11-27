@@ -41,6 +41,8 @@ class AccessRevocationIntegration(unittest.TestCase):
                     self.assertEqual([x["title"] for x in row["references"]],["Retained fixture source"])
                     self.assertEqual([x["geometry"]["coordinates"] for x in row["geometries"]],[[44,24]])
                     self.assertNotIn("private reason",str(row))
+                    response=get("/api/v1/export/claims",release=str(release))
+                    self.assertEqual(response["claims"],[row])
                     self.assertEqual(get("/api/v1/map/features",release=str(release),bbox="38,20,40,22")["features"],[])
                     self.assertEqual(len(get("/api/v1/map/features",release=str(release),bbox="43,23,45,25")["features"]),1)
                     self.assertEqual(len(get("/api/v1/explore",release=str(release),q="Revocation fixture")["results"]),1)
@@ -53,6 +55,7 @@ class AccessRevocationIntegration(unittest.TestCase):
                 conn.execute("SELECT knowledge.withhold_version(%s,'access policy','fixture curator')",(v,))
                 conn.commit()
                 self.assertEqual(client.get(path,params={"release":str(r1)}).status_code,404)
+                self.assertEqual(get("/api/v1/export/claims",release=str(r1))["claims"],[])
                 self.assertEqual(get("/api/v1/explore",release=str(r1),q="Revocation fixture")["results"],[])
                 self.assertTrue(conn.execute("SELECT knowledge.verify_release(%s)",(r1,)).fetchone()[0])
             finally:
