@@ -25,7 +25,7 @@ done
 curl -fsS http://127.0.0.1:18080/health
 test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18080/ready)" = 503
 curl -fsS http://127.0.0.1:18080/api/v1/releases | python -c 'import json,sys;assert json.load(sys.stdin)["releases"]==[]'
-test "$(docker compose run --rm -T --no-deps migrate | tail -n1)" = '{"applied":15,"new":0}'
+test "$(docker compose run --rm -T --no-deps migrate | tail -n1)" = '{"applied":16,"new":0}'
 docker compose --profile tools build ops
 docker compose run --rm -T --no-deps ops stage > "$work/proposal.json"
 docker compose run --rm -T --no-deps ops stage > "$work/proposal-again.json"
@@ -50,7 +50,7 @@ docker compose exec -T db pg_dump -U satac_admin -d satac -Fc > "$work/backup.du
 test -s "$work/backup.dump"
 docker compose exec -T db createdb -U satac_admin satac_restore
 docker compose exec -T db pg_restore -U satac_admin -d satac_restore --exit-on-error < "$work/backup.dump"
-check="SELECT (SELECT count(*) FROM satac_ops.schema_migrations)=15 AND (SELECT count(*) FROM knowledge.release_member)=3309 AND knowledge.verify_release('$release') AND (SELECT release_id FROM knowledge.current_release)='$release';"
+check="SELECT (SELECT count(*) FROM satac_ops.schema_migrations)=16 AND (SELECT count(*) FROM knowledge.release_member)=3309 AND knowledge.verify_release('$release') AND (SELECT release_id FROM knowledge.current_release)='$release';"
 test "$(docker compose exec -T db psql -U satac_admin -d satac_restore -At -v ON_ERROR_STOP=1 -c "$check")" = t
 test "$(docker compose exec -T db psql -U satac_admin -d satac_restore -At -v ON_ERROR_STOP=1 -c "SET ROLE satac_runtime; SELECT count(*) FROM public_read.release_claims;" | tail -n1)" = 3309
 docker compose exec -T db dropdb -U satac_admin satac_restore
