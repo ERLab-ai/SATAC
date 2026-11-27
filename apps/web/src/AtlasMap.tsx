@@ -26,6 +26,7 @@ export default function AtlasMap({data,selected,onSelect,physical,geoLabels,date
  const {borders,grid,texture,rivers,mini}=reference;
  const [glyphsReady,setGlyphsReady]=useState(false),[referenceError,setReferenceError]=useState('');
  const [extent,setExtent]=useState<Extent>({west:30,east:55,south:10,north:40});
+ const [toolsOpen,setToolsOpen]=useState(()=>!window.matchMedia('(max-width:760px)').matches);
  const [ready,setReady]=useState(false),[failed,setFailed]=useState(false),[labels,setLabels]=useState<GeoLabel[]>([]);
  useEffect(()=>{const c=new AbortController();fetch('/physical/labels.json',{signal:c.signal}).then(r=>{if(!r.ok)throw Error('labels');return r.json();}).then(setLabels).catch(()=>{if(!c.signal.aborted)setFailed(true);});return ()=>c.abort();},[]);
  useEffect(()=>{
@@ -67,7 +68,9 @@ export default function AtlasMap({data,selected,onSelect,physical,geoLabels,date
  {id:'points',type:'circle',source:'places',filter:['==',['geometry-type'],'Point'],paint:{'circle-radius':7,'circle-color':'#346b61','circle-stroke-color':'#f0d4a1','circle-stroke-width':2}},
  {id:'selected',type:'circle',source:'places',filter:['all',['==',['geometry-type'],'Point'],['==',['get','subject_id'],'']],paint:{'circle-radius':12,'circle-color':'#e8a547','circle-stroke-color':'#fff','circle-stroke-width':3}}
  ]}});}catch(e){console.error('Map initialization:',e);setFailed(true);return;}
- map.current=m;m.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-left');
+ map.current=m;
+ const observer=new ResizeObserver(()=>m.resize());observer.observe(node.current);
+ m.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-left');
  m.addControl(new maplibregl.ScaleControl({unit:'metric'}),'bottom-left');
  const updateExtent=()=>{const b=m.getBounds();setExtent({west:b.getWest(),east:b.getEast(),south:b.getSouth(),north:b.getNorth()});};
  m.on('moveend',updateExtent);m.on('resize',updateExtent);
@@ -83,7 +86,7 @@ export default function AtlasMap({data,selected,onSelect,physical,geoLabels,date
  m.on('click','territory-fill',e=>{const id=e.features?.[0]?.properties?.id;if(typeof id==='string')territorySelect.current(id);});
  m.on('click','geology-fill',e=>{const id=e.features?.[0]?.properties?.id;if(typeof id==='string')geoSelect.current(id);});
  m.on('click','cell-fill',e=>{const id=e.features?.[0]?.properties?.id;if(typeof id==='string')cellSelect.current(id);});
- return ()=>{m.remove();map.current=null;};
+ return ()=>{observer.disconnect();m.remove();map.current=null;};
  },[]);
  useEffect(()=>{
  if(!ready||!map.current)return;
@@ -123,10 +126,13 @@ export default function AtlasMap({data,selected,onSelect,physical,geoLabels,date
  const draw=()=>{
  markers.forEach(x=>x.remove());markers=[];
  const zoom=m.getZoom(),bounds=m.getBounds(),rects:{x:number;y:number;w:number;h:number}[]=[];
+ const anchors:[number,number][]=[...articles.map(a=>a.location),...directory.map(d=>[d.record.lon,d.record.lat] as [number,number]),...topics.flatMap(t=>t.location?[t.location]:[]),...geology.map(g=>g.type==='province'?g.record.anchor:[g.record.lon,g.record.lat] as [number,number]),...snapshots.map(s=>s.type==='territory'?s.record.label:s.record.p)];
+ const occupied=anchors.filter(p=>bounds.contains(p)).map(p=>m.project(p));
  for(const [name,lon,lat,kind,rank] of [...labels].sort((a,b)=>a[4]-b[4])){
  if((kind==='city'&&dated)||zoom<[1,3,5,7][rank]||!bounds.contains([lon,lat]))continue;
  const pt=m.project([lon,lat]),w=Math.max(40,name.length*8),h=18;
  if(rects.some(r=>Math.abs(r.x-pt.x)<(r.w+w)/2+4&&Math.abs(r.y-pt.y)<h))continue;
+ if(occupied.some(p=>Math.abs(p.x-pt.x)<w/2+18&&Math.abs(p.y-pt.y)<18))continue;
  if(data.features.some(f=>{if(f.geometry.type!=='Point')return false;const [x,y]=f.geometry.coordinates,p=m.project([x,y]);return Math.abs(p.x-pt.x)<w/2+45&&Math.abs(p.y-pt.y)<30;}))continue;
  rects.push({x:pt.x,y:pt.y,w,h});
  const el=document.createElement('span');el.className='geo-reference-label '+kind;el.textContent=name;
@@ -136,7 +142,7 @@ export default function AtlasMap({data,selected,onSelect,physical,geoLabels,date
  };
  draw();m.on('moveend',draw);m.on('resize',draw);
  return ()=>{m.off('moveend',draw);m.off('resize',draw);markers.forEach(x=>x.remove());};
- },[ready,geoLabels,dated,labels,data]);
+ },[ready,geoLabels,dated,labels,data,articles,directory,topics,geology,snapshots]);
  useEffect(()=>{if(ready&&map.current)(map.current.getSource('places') as GeoJSONSource).setData(data);},[data,ready]);
  useEffect(()=>{
  if(!ready||!map.current)return;
@@ -247,17 +253,19 @@ export default function AtlasMap({data,selected,onSelect,physical,geoLabels,date
  useEffect(()=>{if(!ready||!map.current)return;const t=topics.find(t=>topicKey(t)===topicSelected);if(t?.location)map.current.easeTo({center:t.location,zoom:Math.max(5,map.current.getZoom()),duration:0});},[ready,topics,topicSelected]);
  return <section className="map-shell" aria-label="الخريطة الجغرافية"><div ref={node} className="map" data-testid="map" data-ready={ready?'true':'false'} data-gazetteer-glyphs={glyphsReady?'ready':'fallback'} dir="ltr"/>
  {failed&&<p className="map-message" role="alert">تعذر عرض جزء من الخريطة. يمكنك استخدام قائمة المواضع.</p>}
- <div className="map-views"><button onClick={()=>map.current?.jumpTo({center:[42,24],zoom:4})}>الجزيرة</button><button onClick={()=>map.current?.jumpTo({center:[0,20],zoom:1})}>العالم</button></div>
- <div className="reference-controls"><button aria-pressed={borders&&modernReference} disabled={!modernReference} onClick={()=>onReference(r=>({...r,borders:!r.borders}))}>الحدود المعاصرة</button><button aria-pressed={grid} onClick={()=>onReference(r=>({...r,grid:!r.grid}))}>شبكة الإحداثيات</button>{physical==='hex'&&<button aria-pressed={texture} onClick={()=>onReference(r=>({...r,texture:!r.texture}))}>تظليل الشبكة</button>}<button aria-pressed={rivers} onClick={()=>onReference(r=>({...r,rivers:!r.rivers}))}>المجاري المائية</button><button aria-pressed={mini} onClick={()=>onReference(r=>({...r,mini:!r.mini}))}>الخريطة المصغرة</button></div>
- {referenceError&&<p className="reference-warning" role="status">{referenceError}</p>}
+ <div className="map-tools-stack"><div className="map-views"><button onClick={()=>map.current?.jumpTo({center:[42,24],zoom:4})}>الجزيرة</button><button onClick={()=>map.current?.jumpTo({center:[0,20],zoom:1})}>العالم</button></div>
+ <button className="map-tools-toggle" aria-expanded={toolsOpen} onClick={()=>setToolsOpen(v=>!v)}>أدوات الخريطة</button><div className="reference-controls" hidden={!toolsOpen}><button aria-pressed={borders&&modernReference} disabled={!modernReference} onClick={()=>onReference(r=>({...r,borders:!r.borders}))}>الحدود المعاصرة</button><button aria-pressed={grid} onClick={()=>onReference(r=>({...r,grid:!r.grid}))}>شبكة الإحداثيات</button>{physical==='hex'&&<button aria-pressed={texture} onClick={()=>onReference(r=>({...r,texture:!r.texture}))}>تظليل الشبكة</button>}<button aria-pressed={rivers} onClick={()=>onReference(r=>({...r,rivers:!r.rivers}))}>المجاري المائية</button><button aria-pressed={mini} onClick={()=>onReference(r=>({...r,mini:!r.mini}))}>الخريطة المصغرة</button></div>
+ {referenceError&&<p className="reference-warning" role="status">{referenceError}</p>}</div>
+ <div className="map-legend-stack" aria-label="مفاتيح الخريطة">
  {borders&&modernReference&&<div className="border-legend" data-testid="modern-border-legend">حدود دول مرجعية معاصرة · GSHHG / Basemap</div>}
  {grid&&<div className="grid-legend" data-testid="graticule-legend">شبكة إحداثيات 15°</div>}
- {mini&&<MiniMap extent={extent} onNavigate={(lon,lat)=>map.current?.jumpTo({center:[lon,lat]})} onWorld={()=>map.current?.jumpTo({center:[0,20],zoom:1})}/>}
+
  {network&&(showLinks||journey!==null)&&<div className="editorial-legend" data-testid="editorial-legend">خطوط موضوعية · ليست مسارات تاريخية</div>}
  {directory.length>0&&<div className="directory-legend" data-testid="directory-map-count">{directory.length} مواضع مرجعية · {directory[0].collection==='historical'?'المعجم التاريخي':'العينة المعاصرة'}</div>}
  {routes&&<div className="route-legend" data-testid="route-map-count">{routes.segments.length} مقطع من شبكة المصدر</div>}
  {snapshots.length>0&&<div className="territory-legend" data-testid="territory-map-legend">{yearText(snapshots[0].year)} · {snapshots[0].type==='milestone'?'موضع حدث لا حدود دولة':'نطاقات تقريبية من المصدر'}{comparison.length>0&&` · الخط السماوي: ${yearText(comparison[0].year)}`}</div>}
  {geology.length>0&&<div className="geology-legend" data-testid="geology-map-legend">جيولوجيا مرجعية معاصرة · USGS / Smithsonian</div>}
  {cells&&<div className="cell-legend" data-testid="cell-map-legend">{lensNames[cellLens]} · {cells.cells.length} خلية <button onClick={()=>{const m=map.current;if(!m)return;const p=m.getCenter(),c=atCell(p.lng,p.lat,cells.cells);if(c){setCellMessage('');cellSelect.current(c.id);}else setCellMessage('مركز الخريطة خارج الخلايا المتاحة.');}}>خلية مركز الخريطة</button>{cellMessage&&<p role="status">{cellMessage}</p>}</div>}
+ </div>{mini&&<MiniMap extent={extent} onNavigate={(lon,lat)=>map.current?.jumpTo({center:[lon,lat]})} onWorld={()=>map.current?.jumpTo({center:[0,20],zoom:1})}/>}
  <div className="map-caption">خلفية جغرافية معاصرة · {physical==='relief'?'تظليل التضاريس':physical==='etopo'?'ألوان الارتفاعات والأعماق':physical==='hex'?'شبكة سداسية إقليمية غير متساوية المساحة':'يابسة ومياه'} · لا تمثل حدودًا تاريخية</div></section>;
 }

@@ -1,4 +1,4 @@
-import {useEffect,useMemo,useState,type FormEvent} from 'react';
+import {useEffect,useMemo,useRef,useState,type FormEvent} from 'react';
 import {createRoot} from 'react-dom/client';
 import AtlasMap from './AtlasMap';
 import LayerPanel,{type ReferenceSettings,type LayerItem} from './LayerPanel';
@@ -26,6 +26,11 @@ function yearValue(value:string,era:string){
 const YEAR_LIMIT=10n**30n;
 function displayYear(a:bigint){return a<=0n?{year:(1n-a).toString(),era:'BCE'}:{year:a.toString(),era:'CE'};}
 function App(){
+ const appRef=useRef<HTMLDivElement>(null);
+ const [full,setFull]=useState(false),[fullError,setFullError]=useState('');
+ useEffect(()=>{const sync=()=>setFull(document.fullscreenElement===appRef.current);document.addEventListener('fullscreenchange',sync);return ()=>document.removeEventListener('fullscreenchange',sync);},[]);
+ async function toggleFull(){setFullError('');try{if(document.fullscreenElement===appRef.current){await document.exitFullscreen();}else if(appRef.current?.requestFullscreen&&document.fullscreenEnabled){await appRef.current.requestFullscreen();}else{setFullError('ملء الشاشة غير متاح في هذا المتصفح.');}}catch{setFullError('تعذر تفعيل ملء الشاشة في هذا المتصفح.');}}
+
  const [allReleases,setAllReleases]=useState<Release[]>([]),[release,setRelease]=useState(''),[releaseError,setReleaseError]=useState('');
  const [panel,setPanel]=useState<'search'|'detail'|'encyclopedia'|'network'|'directory'|'routes'|'territories'|'geology'|'cells'|'extended'|'layers'|null>(null);
  const [theme,setTheme]=useState('all');
@@ -123,11 +128,11 @@ function App(){
  },[]);
  function chooseTheme(v:string){clearTime();setTheme(v);setJourney(null);setJourneyStep(0);setRoutePath(null);setTopicSelected(null);setCompare(null);}
  const snapshotYear=time.as_of?snapshots.find(s=>(s.year<0?s.year+1:s.year).toString()===time.as_of)?.year??null:null;
- const primary=territoryLayer?snapshots.filter(s=>s.year===snapshotYear):[];
- const comparison=primary.some(s=>s.type==='territory')&&compare!==snapshotYear?snapshots.filter(s=>s.type==='territory'&&s.year===compare):[];
+ const primary=useMemo(()=>territoryLayer?snapshots.filter(s=>s.year===snapshotYear):[],[territoryLayer,snapshots,snapshotYear]);
+ const comparison=useMemo(()=>primary.some(s=>s.type==='territory')&&compare!==snapshotYear?snapshots.filter(s=>s.type==='territory'&&s.year===compare):[],[primary,compare,snapshotYear,snapshots]);
  function chooseSnapshot(y:number|null){setTheme('all');setCompare(null);setTerritorySelected(null);setPlaying(false);resetSelection();if(y===null){clearTime();return;}const d=displayYear(BigInt(y<0?y+1:y));setYear(d.year);setEra(d.era);setTimeLabel(d.year+(d.era==='BCE'?' ق.م':' م'));setTime({as_of:(y<0?y+1:y).toString(),certainty:'any'});setCertainty('any');}
  function chooseTerritory(id:string|null){setTerritorySelected(id);setPanel('territories');}
- useEffect(()=>{setTerritorySelected(null);if(snapshotYear===null||!snapshots.some(s=>s.year===snapshotYear&&s.type==='territory'))setCompare(null);else if(compare===snapshotYear)setCompare(null);},[snapshotYear,snapshots,compare]);
+ useEffect(()=>{setTerritorySelected(id=>id&&snapshots.some(s=>s.year===snapshotYear&&(s.type==='territory'?s.record.id:'milestone:'+s.year)===id)?id:null);if(snapshotYear===null||!snapshots.some(s=>s.year===snapshotYear&&s.type==='territory'))setCompare(null);else if(compare===snapshotYear)setCompare(null);},[snapshotYear,snapshots,compare]);
  const visibleTopics=useMemo(()=>topicLayer&&!time.as_of?topics.filter(t=>theme==='all'||(t.type==='story'?theme==='islamic':theme==='modern')):[],[topicLayer,time.as_of,topics,theme]);
  const visibleDirectory=useMemo(()=>directoryLayer&&!time.as_of&&sourceEraAllows(directoryCollection,theme)?directoryRows:[],[directoryLayer,time.as_of,directoryCollection,theme,directoryRows]);
  const visibleArticles=useMemo(()=>articleLayer&&!time.as_of?articleRows.filter(a=>theme==='all'||a.eras.includes(theme)):[],[articleLayer,time.as_of,articleRows,theme]);
@@ -140,7 +145,7 @@ function App(){
  if(hit.kind==='topic'){chooseTopic(hit.id);return;}
  if(hit.kind==='geology'){setGeoFilter(defaultGeoFilter);setGeoLayer(true);chooseGeology(hit.id);return;}
  if(hit.kind==='historical'||hit.kind==='modern'){setDirectoryCollection(hit.kind);setDirectoryRegion('');setDirectoryQuery('');setDirectoryLayer(true);chooseDirectory(hit.id);return;}
- if(hit.kind==='snapshot'&&hit.year!==null){setTerritoryLayer(true);chooseSnapshot(hit.year);setPanel('territories');return;}
+ if(hit.kind==='snapshot'&&hit.year!==null){setTerritoryLayer(true);chooseSnapshot(hit.year);setTerritorySelected(hit.id);setPanel('territories');return;}
  }
  const undated=time.as_of?'محجوبة في السنة الدقيقة؛ سجلات مرجعية غير مؤرخة.':undefined;
  const modernAllowed=!time.as_of&&(theme==='all'||theme==='modern');
@@ -159,18 +164,18 @@ function App(){
  ...([{id:'rivers',label:'خطوط المجاري المائية'},{id:'borders',label:'حدود الدول المرجعية'},{id:'grid',label:'خطوط شبكة الإحداثيات'},{id:'texture',label:'نسيج تظليل الشبكة'},{id:'mini',label:'نافذة الخريطة المصغرة'}] as const).map(item=>({...item,checked:reference[item.id],onChange:(v:boolean)=>setReference(r=>({...r,[item.id]:v})),suppressed:item.id==='borders'&&!modernAllowed?'محجوبة في العرض التاريخي.':item.id==='texture'&&physical!=='hex'?'تظهر في الخلفية السداسية فقط.':undefined}))
  ];
  function resetLayers(){setShowLocations(true);setGeoLabels(true);setArticleLayer(false);setTopicLayer(false);setDirectoryLayer(false);setShowLinks(false);setJourney(null);setRouteLayer(false);setRoutePath(null);setTerritoryLayer(false);setCompare(null);setGeoLayer(false);setCellLayer(false);setPhysical('relief');setReference({rivers:false,borders:false,grid:false,texture:true,mini:true});}
- const visibleData=showLocations?data:{...data,features:data.features.filter(f=>f.properties.role!=='location')};
+ const visibleData=useMemo(()=>showLocations?data:{...data,features:data.features.filter(f=>f.properties.role!=='location')},[data,showLocations]);
  const places=[...new Map(visibleData.features.map(f=>[f.properties.subject_id,f.properties])).values()];
  const currentName=entity?.names.find(n=>n.lang==='ar')?.name??entity?.names[0]?.name;
- return <div className="app">
- <header className="masthead"><div className="brand"><span className="mark">S</span><div><span className="eyebrow">SATAC · نموذج تأسيسي v0.14</span><h1>السعودية عبر الزمن، عبر القارات</h1></div></div><nav className="header-actions" aria-label="أدوات الأطلس"><button aria-expanded={panel==='search'} onClick={()=>setPanel(p=>p==='search'?null:'search')}>استكشف</button><button aria-expanded={panel==='detail'} onClick={()=>setPanel(p=>p==='detail'?null:'detail')}>المعرفة</button><button aria-expanded={panel==='encyclopedia'} onClick={()=>{setPanel(p=>p==='encyclopedia'?null:'encyclopedia');setArticleLayer(true);}}>الموسوعة</button><button aria-expanded={panel==='network'} onClick={()=>{setPanel(p=>p==='network'?null:'network');setShowLinks(true);}}>العلاقات</button><button aria-expanded={panel==='directory'} onClick={()=>{setPanel(p=>p==='directory'?null:'directory');setDirectoryLayer(true);}}>المعجم</button><button aria-expanded={panel==='routes'} onClick={()=>{setPanel(p=>p==='routes'?null:'routes');setRouteLayer(true);}}>الطرق</button><button aria-expanded={panel==='territories'} onClick={()=>{setPanel(p=>p==='territories'?null:'territories');setTerritoryLayer(true);}}>النطاقات</button><button aria-expanded={panel==='geology'} onClick={()=>{setPanel(p=>p==='geology'?null:'geology');setGeoLayer(true);}}>الجيولوجيا</button><button aria-expanded={panel==='cells'} onClick={()=>{setPanel(p=>p==='cells'?null:'cells');setCellLayer(true);}}>التحليل</button><button aria-expanded={panel==='layers'} onClick={()=>setPanel(p=>p==='layers'?null:'layers')}>الطبقات</button><button onClick={()=>setPanel(null)}>الخريطة</button></nav></header>
- <main><section className="toolbar" aria-label="أدوات البحث والإصدار">
+ return <div ref={appRef} className="app">
+ <header className="masthead"><div className="brand"><span className="mark">S</span><div><span className="eyebrow">SATAC · نموذج تأسيسي v0.14</span><h1>السعودية عبر الزمن، عبر القارات</h1></div></div><button className="fullscreen-toggle" aria-label={full?'إنهاء ملء الشاشة':'ملء الشاشة'} aria-pressed={full} onClick={toggleFull}>{full?'↙':'⛶'}</button><nav className="header-actions" aria-label="أدوات الأطلس"><button aria-expanded={panel==='search'} onClick={()=>setPanel(p=>p==='search'?null:'search')}>استكشف</button><button aria-expanded={panel==='detail'} onClick={()=>setPanel(p=>p==='detail'?null:'detail')}>المعرفة</button><button aria-expanded={panel==='encyclopedia'} onClick={()=>{setPanel(p=>p==='encyclopedia'?null:'encyclopedia');setArticleLayer(true);}}>الموسوعة</button><button aria-expanded={panel==='network'} onClick={()=>{setPanel(p=>p==='network'?null:'network');setShowLinks(true);}}>العلاقات</button><button aria-expanded={panel==='directory'} onClick={()=>{setPanel(p=>p==='directory'?null:'directory');setDirectoryLayer(true);}}>المعجم</button><button aria-expanded={panel==='routes'} onClick={()=>{setPanel(p=>p==='routes'?null:'routes');setRouteLayer(true);}}>الطرق</button><button aria-expanded={panel==='territories'} onClick={()=>{setPanel(p=>p==='territories'?null:'territories');setTerritoryLayer(true);}}>النطاقات</button><button aria-expanded={panel==='geology'} onClick={()=>{setPanel(p=>p==='geology'?null:'geology');setGeoLayer(true);}}>الجيولوجيا</button><button aria-expanded={panel==='cells'} onClick={()=>{setPanel(p=>p==='cells'?null:'cells');setCellLayer(true);}}>التحليل</button><button aria-expanded={panel==='layers'} onClick={()=>setPanel(p=>p==='layers'?null:'layers')}>الطبقات</button><button onClick={()=>setPanel(null)}>الخريطة</button></nav></header>
+ <main data-panel={panel??'none'}><section className="toolbar" aria-label="أدوات البحث والإصدار">
  <label>الإصدار المعرفي<select aria-label="الإصدار المعرفي" value={release} onChange={e=>{setRelease(e.target.value);setGeoSelected(null);resetSelection();}}>{!release&&<option value="">تحميل الإصدارات</option>}{allReleases.map(r=><option key={r.release_id} value={r.release_id}>{r.is_current?'الإصدار الحالي':r.created_at.slice(0,10)} · {r.release_id.slice(0,8)}</option>)}</select></label>
  <form className="search" onSubmit={e=>{e.preventDefault();setAfter(undefined);setSubmitted(q.trim());setRefKind('all');setPanel('search');}}><label htmlFor="search">البحث عن موضع أو اسم</label><div className="search-row"><input id="search" value={q} onChange={e=>setQ(e.target.value)} placeholder="موضع، مقال، جيولوجيا..." maxLength={120}/><button disabled={!release}>بحث</button></div></form>
  <label>الخلفية<select aria-label="الخلفية الجغرافية" value={physical} onChange={e=>setPhysical(e.target.value as 'relief'|'etopo'|'flat'|'hex')}><option value="relief">التضاريس</option><option value="etopo">الارتفاعات والأعماق</option><option value="flat">الخريطة المبسطة</option><option value="hex">الشبكة السداسية</option></select></label>
  <label className="layer-toggle"><input type="checkbox" checked={geoLabels} onChange={e=>setGeoLabels(e.target.checked)}/> التسميات الجغرافية</label>
  <label className="layer-toggle"><input type="checkbox" checked={showLocations} onChange={e=>setShowLocations(e.target.checked)}/> المواضع</label>
- {releaseError&&<p role="alert">{releaseError}</p>}</section>
+ {releaseError&&<p role="alert">{releaseError}</p>}{fullError&&<p role="status">{fullError}</p>}</section>
  <section className="main-map"><AtlasMap data={visibleData} selected={selected} onSelect={choose} physical={physical} geoLabels={geoLabels} dated={!!time.as_of} modernReference={modernAllowed} reference={reference} onReference={setReference} articles={visibleArticles} selectedArticle={articleSelected} onArticleSelect={chooseArticle} network={!time.as_of?thematicNetwork:null} showLinks={showLinks} journey={journey} focus={panel==='network'?focus:undefined} directory={visibleDirectory} directorySelected={panel==='directory'?directorySelected:null} onDirectorySelect={chooseDirectory} routes={routeLayer&&!time.as_of&&sourceEraAllows('historical',theme)?routes:null} routePath={routePath?.release_id===release?routePath:null} snapshots={primary} comparison={comparison} territorySelected={territorySelected} onTerritorySelect={chooseTerritory} geology={geoRows} geoLabelsEnabled={geoFilter.labels} geoSelected={panel==='geology'?geoSelected:null} onGeoSelect={chooseGeology} cells={cellLayer?cellData:null} cellLens={cellLens} cellStats={cellStats} cellSelected={panel==='cells'?cellSelected:null} onCellSelect={chooseCell} topics={visibleTopics} topicSelected={panel==='extended'?topicSelected:null} onTopicSelect={chooseTopic}/></section>
  <section className="map-status" aria-label="حالة الخريطة"><p role="status" data-testid="feature-count">{mapLoading?'جارٍ تحميل المعالم…':places.length+' مواضع'}</p>
  {mapError&&<p role="alert">{mapError}</p>}{truncated&&<p>عُرضت أول 2000 سجل؛ نتائج إضافية غير معروضة.</p>}{time.as_of&&<p>التأريخ: {timeLabel} · لا تظهر السجلات غير المؤرخة.</p>}

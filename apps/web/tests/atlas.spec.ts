@@ -179,7 +179,7 @@ test('historical and modern directory reference layers',async({page})=>{
  await page.getByRole('button',{name:'المعجم',exact:true}).click();
  await expect(page.getByTestId('directory-count')).toHaveText('190 مواضع');
  await expect(page.getByTestId('directory-map-count')).toContainText('190');
- await page.getByLabel('مجموعة المعجم').selectOption('modern');
+ await page.getByLabel('مجموعة المعجم',{exact:true}).selectOption('modern');
  await expect(page.getByTestId('directory-count')).toHaveText('323 مواضع');
  await page.getByLabel('البحث في المعجم').fill('Riyadh');
  await expect(page.getByTestId('directory-count')).toHaveText('1 مواضع');
@@ -353,7 +353,7 @@ test('thematic eligibility of reference directory and geosites',async({page})=>{
  await expect(page.getByRole('complementary',{name:'المعجم الجغرافي'}).locator('.legacy-gaz-icon').first()).toBeVisible();
  await page.getByRole('button',{name:'المملكة والعالم',exact:true}).click();
  await expect(page.getByTestId('directory-map-count')).toHaveCount(0);
- await page.getByLabel('مجموعة المعجم').selectOption('modern');
+ await page.getByLabel('مجموعة المعجم',{exact:true}).selectOption('modern');
  await expect(page.getByTestId('directory-map-count')).toContainText('323');
  await page.getByRole('button',{name:'الموسوعة',exact:true}).click();
  await page.getByRole('button',{name:'الموضوعات الإضافية (7)',exact:true}).click();
@@ -424,4 +424,37 @@ test('unified exploration and synchronized central layers',async({page})=>{
  await expect(page.getByTestId('directory-map-count')).toHaveCount(0);
  await layers.getByRole('button',{name:'استعادة الطبقات الافتراضية'}).click();
  await expect(page.getByTestId('graticule-legend')).toHaveCount(0);
+});
+
+test('responsive map area and panel containment at narrow viewports',async({page})=>{
+ for(const viewport of [{width:390,height:844},{width:320,height:568},{width:844,height:390}]){
+ await page.setViewportSize(viewport);await page.goto('/');
+ await expect(page.getByTestId('map')).toHaveAttribute('data-ready','true',{timeout:20000});
+ const map=(await page.getByTestId('map').boundingBox())!;
+ const toolbar=(await page.getByRole('region',{name:'أدوات البحث والإصدار'}).boundingBox())!;
+ const timeline=(await page.getByRole('region',{name:'الشريط الزمني'}).boundingBox())!;
+ expect(map.width).toBeGreaterThanOrEqual(viewport.width-2);
+ expect(map.height).toBeGreaterThan(65);
+ expect(toolbar.y+toolbar.height).toBeLessThanOrEqual(map.y+1);
+ expect(map.y+map.height).toBeLessThanOrEqual(timeline.y+1);
+ await page.getByRole('button',{name:'الطبقات',exact:true}).click();
+ const layer=page.getByRole('complementary',{name:'إدارة الطبقات'});
+ await expect(layer).toBeVisible();
+ const box=(await layer.boundingBox())!;
+ expect(box.y).toBeGreaterThanOrEqual(map.y);
+ expect(box.y+box.height).toBeLessThanOrEqual(map.y+map.height+1);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBeTruthy();
+ await page.screenshot({path:'test-results/layout-'+viewport.width+'x'+viewport.height+'.png'});
+ await page.getByRole('button',{name:'إغلاق الطبقات'}).click();
+ }
+});
+test('native fullscreen or explicit browser limitation',async({page})=>{
+ await page.goto('/');
+ await expect(page.getByTestId('map')).toHaveAttribute('data-ready','true',{timeout:20000});
+ await page.getByRole('button',{name:'ملء الشاشة',exact:true}).click();
+ await expect.poll(()=>page.evaluate(()=>!!document.fullscreenElement||document.body.textContent!.includes('ملء الشاشة غير متاح')||document.body.textContent!.includes('تعذر تفعيل ملء الشاشة'))).toBeTruthy();
+ if(await page.evaluate(()=>!!document.fullscreenElement)){
+ await page.getByRole('button',{name:'إنهاء ملء الشاشة'}).click();
+ await expect.poll(()=>page.evaluate(()=>document.fullscreenElement===null)).toBeTruthy();
+ }
 });
