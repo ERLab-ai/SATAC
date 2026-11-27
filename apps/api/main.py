@@ -121,7 +121,7 @@ def query_claims(conn, release, after, limit, bounds, certainty, entity=None, di
         conditions.append("version_id>%s")
         args.append(after)
     if entity is not None:
-        conditions.append("payload->>'predicate' NOT IN ('NAME','ARTICLE','EDITORIAL_LINK','EDITORIAL_JOURNEY','DIRECTORY_ENTRY','ROUTE_SEGMENT','HISTORICAL_SNAPSHOT','GEOLOGY_RECORD','CELL_METRIC')")
+        conditions.append("payload->>'predicate' NOT IN ('NAME','ARTICLE','EDITORIAL_LINK','EDITORIAL_JOURNEY','DIRECTORY_ENTRY','ROUTE_SEGMENT','HISTORICAL_SNAPSHOT','GEOLOGY_RECORD','CELL_METRIC','EXTENDED_TOPIC')")
         if direction == "out":
             conditions.append("payload->>'subject_id'=%s")
             args.append(str(entity))
@@ -390,3 +390,17 @@ def cells(release: UUID | None=None):
     ids={p["id"] for p in provinces}
     result=[{**r["cell"],"province_ids":[i for i in r["cell"]["province_ids"] if i in ids]} for r in rows[:5000]]
     return {"release_id":str(rid),"semantics":"legacy_reference_metrics_not_resource_availability","cells":result,"provinces":[{"id":p["id"],"name":p["name"]} for p in provinces],"truncated":len(rows)>5000}
+
+
+@app.get("/api/v1/extended-topics")
+def extended_topics(release: UUID | None=None):
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        rows=conn.execute("SELECT topic FROM public_read.extended_topics WHERE release_id=%s ORDER BY topic->>'type',topic->>'id',version_id",(rid,)).fetchall()
+        directory={r["record"]["id"]:r for r in conn.execute("SELECT entity_id,directory->'record' AS record FROM public_read.directory WHERE release_id=%s AND directory->>'collection'='historical'",(rid,))}
+    result=[]
+    for row in rows:
+        t=row["topic"];d=directory.get(t["id"]) if t["type"]=="story" else None
+        record=t["record"] if t["type"]=="geosite" else d["record"] if d else None
+        result.append({**t,"location":[record["lon"],record["lat"]] if record else None,"directory_entity_id":str(d["entity_id"]) if d else None})
+    return {"release_id":str(rid),"semantics":"editorial_reference_anchors_not_historical_extents","topics":result}

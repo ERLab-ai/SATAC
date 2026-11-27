@@ -1,17 +1,19 @@
 import {useEffect,useRef,useState} from 'react';
 import maplibregl,{type GeoJSONSource} from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import type {Features,ArticleSummary,EditorialNetwork,DirectoryEntry,RouteNetwork,RoutePath,Snapshot,GeologyRecord,CellData} from './api';
+import type {Features,ArticleSummary,EditorialNetwork,DirectoryEntry,RouteNetwork,RoutePath,Snapshot,GeologyRecord,CellData,ExtendedTopic} from './api';
 import type {FeatureCollection,LineString} from 'geojson';
 import {snapshotId,yearText} from './Territories';
 import {geoId,geoKinds} from './Geology';
 import {atCell,ring,center,cellBin,colors,lensNames,type Lens,type CellStats} from './Cells';
+import {topicKey,topicTitle} from './ExtendedTopics';
 import {symbols} from './Encyclopedia';
 import MiniMap,{type Extent} from './MiniMap';
 type GeoLabel=[string,number,number,'water'|'land'|'city',number];
-export default function AtlasMap({data,selected,onSelect,physical,geoLabels,dated,articles,selectedArticle,onArticleSelect,network,showLinks,journey,focus,directory,directorySelected,onDirectorySelect,routes,routePath,snapshots,comparison,territorySelected,onTerritorySelect,geology,geoLabelsEnabled,geoSelected,onGeoSelect,cells,cellLens,cellStats,cellSelected,onCellSelect}:{data:Features;selected:string|null;onSelect:(id:string)=>void;physical:'relief'|'etopo'|'flat'|'hex';geoLabels:boolean;dated:boolean;articles:ArticleSummary[];selectedArticle:string|null;onArticleSelect:(id:string)=>void;network:EditorialNetwork|null;showLinks:boolean;journey:number|null;focus:[number,number]|undefined;directory:DirectoryEntry[];directorySelected:string|null;onDirectorySelect:(id:string)=>void;routes:RouteNetwork|null;routePath:RoutePath|null;snapshots:Snapshot[];comparison:Snapshot[];territorySelected:string|null;onTerritorySelect:(id:string)=>void;geology:GeologyRecord[];geoLabelsEnabled:boolean;geoSelected:string|null;onGeoSelect:(id:string)=>void;cells:CellData|null;cellLens:Lens;cellStats:CellStats;cellSelected:string|null;onCellSelect:(id:string)=>void}){
+export default function AtlasMap({data,selected,onSelect,physical,geoLabels,dated,articles,selectedArticle,onArticleSelect,network,showLinks,journey,focus,directory,directorySelected,onDirectorySelect,routes,routePath,snapshots,comparison,territorySelected,onTerritorySelect,geology,geoLabelsEnabled,geoSelected,onGeoSelect,cells,cellLens,cellStats,cellSelected,onCellSelect,topics,topicSelected,onTopicSelect}:{data:Features;selected:string|null;onSelect:(id:string)=>void;physical:'relief'|'etopo'|'flat'|'hex';geoLabels:boolean;dated:boolean;articles:ArticleSummary[];selectedArticle:string|null;onArticleSelect:(id:string)=>void;network:EditorialNetwork|null;showLinks:boolean;journey:number|null;focus:[number,number]|undefined;directory:DirectoryEntry[];directorySelected:string|null;onDirectorySelect:(id:string)=>void;routes:RouteNetwork|null;routePath:RoutePath|null;snapshots:Snapshot[];comparison:Snapshot[];territorySelected:string|null;onTerritorySelect:(id:string)=>void;geology:GeologyRecord[];geoLabelsEnabled:boolean;geoSelected:string|null;onGeoSelect:(id:string)=>void;cells:CellData|null;cellLens:Lens;cellStats:CellStats;cellSelected:string|null;onCellSelect:(id:string)=>void;topics:ExtendedTopic[];topicSelected:string|null;onTopicSelect:(id:string)=>void}){
  const node=useRef<HTMLDivElement>(null),map=useRef<maplibregl.Map|null>(null),select=useRef(onSelect);
  select.current=onSelect;
+ const topicSelect=useRef(onTopicSelect);topicSelect.current=onTopicSelect;
  const cellSelect=useRef(onCellSelect);cellSelect.current=onCellSelect;
  const [cellMessage,setCellMessage]=useState('');
  useEffect(()=>{setCellMessage('');},[cells,cellSelected]);
@@ -207,6 +209,11 @@ export default function AtlasMap({data,selected,onSelect,physical,geoLabels,date
  (map.current.getSource('cells') as GeoJSONSource).setData(features);
  },[ready,cells,cellLens,cellStats,cellSelected]);
  useEffect(()=>{if(!ready||!map.current)return;const c=cells?.cells.find(x=>x.id===cellSelected);if(c)map.current.easeTo({center:center(c),zoom:Math.max(5,map.current.getZoom()),duration:0});},[ready,cells,cellSelected]);
+ useEffect(()=>{
+ if(!ready||!map.current)return;const m=map.current;
+ const markers=topics.flatMap(t=>{if(!t.location)return [];const el=document.createElement('button');el.type='button';el.className='extended-marker '+t.type;el.textContent=t.type==='geosite'?'▲':'✦';el.title=topicTitle(t);el.setAttribute('aria-label','موضوع '+topicTitle(t));el.addEventListener('click',e=>{e.stopPropagation();topicSelect.current(topicKey(t));});return [new maplibregl.Marker({element:el,anchor:'bottom',offset:t.type==='geosite'?[13,-10]:[-13,-10]}).setLngLat(t.location).addTo(m)];});return ()=>markers.forEach(x=>x.remove());
+ },[ready,topics]);
+ useEffect(()=>{if(!ready||!map.current)return;const t=topics.find(t=>topicKey(t)===topicSelected);if(t?.location)map.current.easeTo({center:t.location,zoom:Math.max(5,map.current.getZoom()),duration:0});},[ready,topics,topicSelected]);
  return <section className="map-shell" aria-label="الخريطة الجغرافية"><div ref={node} className="map" data-testid="map" data-ready={ready?'true':'false'} dir="ltr"/>
  {failed&&<p className="map-message" role="alert">تعذر عرض جزء من الخريطة. يمكنك استخدام قائمة المواضع.</p>}
  <div className="map-views"><button onClick={()=>map.current?.jumpTo({center:[42,24],zoom:4})}>الجزيرة</button><button onClick={()=>map.current?.jumpTo({center:[0,20],zoom:1})}>العالم</button></div>

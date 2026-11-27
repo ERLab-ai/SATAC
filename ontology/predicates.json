@@ -248,6 +248,16 @@
       "languages": [
         "ar"
       ]
+    },
+    "EXTENDED_TOPIC": {
+      "domain": [
+        "Work"
+      ],
+      "range": [],
+      "literal_type": "extended_topic",
+      "languages": [
+        "ar"
+      ]
     }
   },
   "publication_status": [

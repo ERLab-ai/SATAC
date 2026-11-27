@@ -286,3 +286,25 @@ test('analytical grid exact metrics and reference lenses',async({page})=>{
  await page.getByRole('button',{name:'إغلاق التحليل'}).click();
  await expect(page.getByTestId('cell-map-legend')).toHaveCount(0);
 });
+
+test('extended encyclopedia preserves seven topics and reference anchors',async({page})=>{
+ await page.goto('/');
+ await expect(page.getByTestId('map')).toHaveAttribute('data-ready','true',{timeout:20000});
+ await page.getByRole('button',{name:'الموسوعة',exact:true}).click();
+ await page.getByRole('button',{name:'الموضوعات الإضافية (7)',exact:true}).click();
+ await expect(page.getByTestId('extended-count')).toHaveText('7 موضوعات');
+ await expect(page.locator('.extended-marker')).toHaveCount(7);
+ await page.getByLabel('نوع الموضوع الإضافي').selectOption('geosite');
+ await expect(page.getByTestId('extended-count')).toHaveText('2 موضوعات');
+ const panel=page.getByRole('complementary',{name:'الموضوعات الإضافية'});
+ await panel.getByRole('button',{name:/منتزه سلمى الجيولوجي/}).click();
+ await expect(panel.getByText('صخور يتجاوز عمر بعضها 740 مليون سنة')).toBeVisible();
+ await expect(panel.getByRole('link',{name:'اليونسكو — المنتزه الجيولوجي العالمي'})).toHaveAttribute('href','https://www.unesco.org/en/iggp/salma-unesco-global-geopark');
+ await page.getByLabel('السنة التاريخية').fill('550');
+ await page.getByRole('button',{name:'تطبيق الزمن'}).click();
+ await expect(page.locator('.extended-marker')).toHaveCount(0);
+ await page.getByRole('button',{name:'كل الأزمنة'}).click();
+ await expect(page.locator('.extended-marker')).toHaveCount(7);
+ await panel.getByRole('button',{name:'الموسوعة الرئيسية'}).click();
+ await expect(page.getByTestId('article-count')).toHaveText('50 مقالات');
+});
