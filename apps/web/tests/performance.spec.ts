@@ -11,7 +11,7 @@ test('record atlas load and cell panel performance baseline',async({browser})=>{
    await page.goto('/');
    await expect(page.getByTestId('map')).toHaveAttribute('data-ready','true',{timeout:20000});
    const mapReady=Date.now()-start;
-   await expect(page.getByTestId('feature-count')).not.toContainText('جارٍ تحميل المعالم');
+   await expect(page.getByTestId('feature-count')).toHaveText('3 مواضع');
    const dataReady=Date.now()-start;
    const cellStart=Date.now();
    await page.getByRole('button',{name:'التحليل',exact:true}).click();

@@ -100,9 +100,17 @@ def main():
         server.terminate()
         try: server.wait(timeout=10)
         except subprocess.TimeoutExpired: server.kill();server.wait()
+    cpu_model=None
+    cpu_info=Path('/proc/cpuinfo')
+    if cpu_info.exists():
+        cpu_model=next((line.split(':',1)[1].strip() for line in cpu_info.read_text().splitlines() if line.startswith('model name')),None)
+    mem_total=None
+    mem_info=Path('/proc/meminfo')
+    if mem_info.exists():
+        mem_total=next((int(line.split()[1]) for line in mem_info.read_text().splitlines() if line.startswith('MemTotal:')),None)
     report={"mode":"isolated_synthetic" if args.scale else "restored_ci_candidate",
             "release_id":release,"claim_versions":members,"environment":{"os":platform.platform(),
-            "python":platform.python_version(),"cpu_count":os.cpu_count(),"postgresql":pg,"postgis":postgis,
+            "python":platform.python_version(),"cpu_count":os.cpu_count(),"cpu_model":cpu_model,"host_mem_total_kib":mem_total,"postgresql":pg,"postgis":postgis,
             "server":"single uvicorn process / loopback HTTP / fresh DB connection per request","api_peak_rss_kib":rss},
             "measurements":results}
     if args.scale:
