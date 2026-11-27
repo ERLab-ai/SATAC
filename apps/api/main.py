@@ -217,6 +217,56 @@ def claim(claim_id: UUID, release: UUID | None = None):
     return {"release_id":str(rid),"claim":decode_payload(row["raw"])}
 
 
+@app.get("/api/v1/conflicts")
+def scientific_conflicts(entity_id: UUID, release: UUID | None=None,
+                         after: UUID | None=None, limit: int=Query(20,ge=1,le=50),
+                         group_id: UUID | None=None, alternative_after: UUID | None=None):
+    """Explicit scientific alternatives only; never infer conflict from differing claims."""
+    if (after is not None or alternative_after is not None) and release is None:
+        raise HTTPException(422,"pagination_requires_release")
+    if (alternative_after is not None and group_id is None) or (group_id is not None and after is not None):
+        raise HTTPException(422,"invalid_conflict_cursor")
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        # Read only the live access-masked release projection. A withdrawn member
+        # cannot establish group visibility or contribute an alternative.
+        groups=conn.execute("""
+            SELECT (payload->>'conflict_group_id')::uuid AS group_id, count(*) AS alternative_count
+            FROM public_read.release_claims
+            WHERE release_id=%s AND payload->>'subject_id'=%s AND payload ? 'conflict_group_id'
+              AND (%s::uuid IS NULL OR (payload->>'conflict_group_id')::uuid>%s::uuid)
+              AND (%s::uuid IS NULL OR (payload->>'conflict_group_id')::uuid=%s::uuid)
+            GROUP BY 1 HAVING count(*)>=2 ORDER BY 1 LIMIT %s
+        """,(rid,str(entity_id),after,after,group_id,group_id,limit+1)).fetchall()
+        if group_id is not None and not groups:
+            raise HTTPException(404,"conflict_not_found")
+        result=[]
+        for group in groups[:limit]:
+            gid=group["group_id"]
+            rows=conn.execute("""
+                SELECT c.version_id,c.payload::text AS raw,
+                  (SELECT n.name FROM public_read.entity_names n
+                   WHERE n.release_id=c.release_id AND n.entity_id=(c.payload->>'object_id')::uuid
+                   ORDER BY CASE n.lang WHEN 'ar' THEN 0 ELSE 1 END,n.version_id LIMIT 1) AS object_name
+                FROM public_read.release_claims c
+                WHERE c.release_id=%s AND c.payload->>'subject_id'=%s
+                  AND c.payload->>'conflict_group_id'=%s
+                  AND (%s::uuid IS NULL OR c.version_id>%s::uuid)
+                ORDER BY c.version_id LIMIT 51
+            """,(rid,str(entity_id),str(gid),alternative_after,alternative_after)).fetchall()
+            alternatives=[]
+            for row in rows[:50]:
+                alternative=decode_payload(row["raw"])
+                if row["object_name"] is not None:
+                    alternative["object_name"]=row["object_name"]
+                alternatives.append(alternative)
+            result.append({"group_id":str(gid),"alternative_count":group["alternative_count"],
+                           "alternatives":alternatives,
+                           "next_alternative_after":str(rows[49]["version_id"]) if len(rows)>50 else None})
+    return {"release_id":str(rid),"conflicts":result,
+            "next_after":str(groups[limit-1]["group_id"]) if len(groups)>limit else None}
+
+
 @app.get("/api/v1/relations")
 def relations(entity_id: UUID, direction: Literal["in","out","both"]="both", predicate: str | None=Query(None,max_length=64),
               release: UUID | None=None, after: UUID | None=None, limit: int=Query(50,ge=1,le=200),
