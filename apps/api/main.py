@@ -291,7 +291,7 @@ def editorial_network(release: UUID | None=None):
     with reader() as conn:
         rid=resolve_release(conn,release)
         articles=[r["article"] for r in conn.execute("SELECT article FROM public_read.articles WHERE release_id=%s ORDER BY article->>'id'",(rid,))]
-        nodes={a["id"]:{k:a[k] for k in ("id","title","location","art")} for a in articles}
+        nodes={a["id"]:{k:a[k] for k in ("id","title","location","art","eras")} for a in articles}
         rows=conn.execute("SELECT kind,editorial FROM public_read.editorial_network WHERE release_id=%s ORDER BY (editorial->>'ordinal')::int,version_id",(rid,)).fetchall()
     links=[];journeys=[]
     for row in rows:

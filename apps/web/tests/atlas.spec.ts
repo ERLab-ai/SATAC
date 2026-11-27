@@ -320,3 +320,27 @@ test('extended encyclopedia preserves seven topics and reference anchors',async(
  await panel.getByRole('button',{name:'الموسوعة الرئيسية'}).click();
  await expect(page.getByTestId('article-count')).toHaveText('50 مقالات');
 });
+
+test('original symbolic artwork and shared thematic timeline',async({page})=>{
+ await page.goto('/');
+ await expect(page.getByTestId('map')).toHaveAttribute('data-ready','true',{timeout:20000});
+ await page.getByRole('button',{name:'الموسوعة',exact:true}).click();
+ await expect(page.getByTestId('article-count')).toHaveText('50 مقالات');
+ await expect(page.locator('.article-marker img')).toHaveCount(50);
+ await page.getByRole('button',{name:'العصور القديمة',exact:true}).click();
+ await expect(page.getByLabel('الحقبة الموضوعية')).toHaveValue('ancient');
+ await expect.poll(()=>page.locator('.article-marker').count()).toBeLessThan(50);
+ const panel=page.getByRole('complementary',{name:'الموسوعة'});
+ await panel.getByRole('button',{name:/الحِجر: عمارة الأنباط/}).click();
+ await expect(page.getByTestId('article-artwork')).toHaveAttribute('src','/legacy-art/tomb.svg');
+ await expect.poll(()=>page.getByTestId('article-artwork').evaluate((e:HTMLImageElement)=>e.naturalWidth)).toBeGreaterThan(0);
+ await page.getByLabel('السنة التاريخية').fill('550');
+ await page.getByRole('button',{name:'تطبيق الزمن'}).click();
+ await expect(page.locator('.article-marker')).toHaveCount(0);
+ await expect(page.getByRole('button',{name:'العصور القديمة',exact:true})).toHaveAttribute('aria-pressed','false');
+ await page.getByRole('button',{name:'العصور الإسلامية',exact:true}).click();
+ await expect(page.getByLabel('السنة التاريخية')).toHaveValue('');
+ await expect(page.getByLabel('الحقبة الموضوعية')).toHaveValue('islamic');
+ await page.getByRole('button',{name:'كل العصور',exact:true}).click();
+ await expect(page.getByTestId('article-count')).toHaveText('50 مقالات');
+});

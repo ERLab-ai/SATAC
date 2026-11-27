@@ -8,6 +8,7 @@ import {geoId,geoKinds} from './Geology';
 import {atCell,ring,center,cellBin,colors,lensNames,type Lens,type CellStats} from './Cells';
 import {topicKey,topicTitle} from './ExtendedTopics';
 import {symbols} from './Encyclopedia';
+import {categoryIcon} from './legacyVisuals';
 import MiniMap,{type Extent} from './MiniMap';
 type GeoLabel=[string,number,number,'water'|'land'|'city',number];
 export default function AtlasMap({data,selected,onSelect,physical,geoLabels,dated,articles,selectedArticle,onArticleSelect,network,showLinks,journey,focus,directory,directorySelected,onDirectorySelect,routes,routePath,snapshots,comparison,territorySelected,onTerritorySelect,geology,geoLabelsEnabled,geoSelected,onGeoSelect,cells,cellLens,cellStats,cellSelected,onCellSelect,topics,topicSelected,onTopicSelect}:{data:Features;selected:string|null;onSelect:(id:string)=>void;physical:'relief'|'etopo'|'flat'|'hex';geoLabels:boolean;dated:boolean;articles:ArticleSummary[];selectedArticle:string|null;onArticleSelect:(id:string)=>void;network:EditorialNetwork|null;showLinks:boolean;journey:number|null;focus:[number,number]|undefined;directory:DirectoryEntry[];directorySelected:string|null;onDirectorySelect:(id:string)=>void;routes:RouteNetwork|null;routePath:RoutePath|null;snapshots:Snapshot[];comparison:Snapshot[];territorySelected:string|null;onTerritorySelect:(id:string)=>void;geology:GeologyRecord[];geoLabelsEnabled:boolean;geoSelected:string|null;onGeoSelect:(id:string)=>void;cells:CellData|null;cellLens:Lens;cellStats:CellStats;cellSelected:string|null;onCellSelect:(id:string)=>void;topics:ExtendedTopic[];topicSelected:string|null;onTopicSelect:(id:string)=>void}){
@@ -130,10 +131,11 @@ export default function AtlasMap({data,selected,onSelect,physical,geoLabels,date
  useEffect(()=>{
  if(!ready||!map.current)return;
  const m=map.current;
+ const seen=new Map<string,number>();
  const markers=articles.map(a=>{
- const el=document.createElement('button');el.type='button';el.className='article-marker';el.textContent=symbols[a.art]??'◆';el.title=a.title;el.setAttribute('aria-label','مقال '+a.title);
+ const el=document.createElement('button');el.type='button';el.className='article-marker';const icon=categoryIcon(a.category);if(icon){const img=document.createElement('img');img.src=icon;img.alt='';el.append(img);}else el.textContent=symbols[a.art]??'◆';el.title=a.title;el.setAttribute('aria-label','مقال '+a.title);
  el.addEventListener('click',e=>{e.stopPropagation();articleSelect.current(a.id);});
- return new maplibregl.Marker({element:el,anchor:'center'}).setLngLat(a.location).addTo(m);
+ const key=a.location.join(',');const i=seen.get(key)??0;seen.set(key,i+1);return new maplibregl.Marker({element:el,anchor:'center',offset:[i*12,i*10]}).setLngLat(a.location).addTo(m);
  });
  return ()=>markers.forEach(x=>x.remove());
  },[ready,articles]);
