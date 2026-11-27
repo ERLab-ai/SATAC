@@ -45,6 +45,16 @@ curl -fsSI http://127.0.0.1:18080/ | grep -qi 'content-security-policy:'
 curl -fsSI http://127.0.0.1:18080/assets/maplibre-gl-worker.mjs | grep -Ei '^content-type: (application|text)/javascript'
 test "$(curl -s -X POST -o /dev/null -w '%{http_code}' http://127.0.0.1:18080/api/v1/releases)" = 403
 if docker compose run --rm -T --no-deps ops publish-initial --manifest-sha256 "$hash" --release "dddd0000-0000-4000-8000-000000000002" < "$work/proposal.json"; then exit 1; fi
+# A07 disposable fixture: live gateway enforcement, without rewriting the asset.
+test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18080/physical/labels.json)" = 200
+docker compose run --rm -T --no-deps ops revoke-asset --path /physical/labels.json --reason 'fixture withholding' --actor 'fixture curator'
+for url in '/physical/labels.json' '/physical/labels.json?cache=1' '/physical/manifest.json'; do
+  test "$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:18080$url")" = 403
+done
+test "$(curl -sI -o /dev/null -w '%{http_code}' http://127.0.0.1:18080/physical/labels.json)" = 403
+test "$(curl -s -H 'Range: bytes=0-5' -o /dev/null -w '%{http_code}' http://127.0.0.1:18080/physical/labels.json)" = 403
+test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18080/physical/relief/0/0/0.webp)" = 200
+test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18080/_asset_access)" = 404
 # Backup/restore drill in separate database of disposable cluster.
 docker compose exec -T db pg_dump -U satac_admin -d satac -Fc > "$work/backup.dump"
 test -s "$work/backup.dump"
@@ -53,5 +63,7 @@ docker compose exec -T db pg_restore -U satac_admin -d satac_restore --exit-on-e
 check="SELECT (SELECT count(*) FROM satac_ops.schema_migrations)=17 AND (SELECT count(*) FROM knowledge.release_member)=3309 AND knowledge.verify_release('$release') AND (SELECT release_id FROM knowledge.current_release)='$release';"
 test "$(docker compose exec -T db psql -U satac_admin -d satac_restore -At -v ON_ERROR_STOP=1 -c "$check")" = t
 test "$(docker compose exec -T db psql -U satac_admin -d satac_restore -At -v ON_ERROR_STOP=1 -c "SET ROLE satac_runtime; SELECT count(*) FROM public_read.release_claims;" | tail -n1)" = 3309
+test "$(docker compose exec -T db psql -U satac_admin -d satac_restore -At -v ON_ERROR_STOP=1 -c "SET ROLE satac_runtime; SELECT NOT public_read.asset_allowed('/physical/labels.json') AND public_read.asset_allowed('/physical/relief/0/0/0.webp');" | tail -n1)" = t
 docker compose exec -T db dropdb -U satac_admin satac_restore
+echo 'PASS: live asset withholding at gateway and restored access decisions'
 echo 'PASS: isolated compose startup, migration ledger, stage idempotence, explicit release, gateway, backup and restore'
