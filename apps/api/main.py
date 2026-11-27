@@ -186,7 +186,7 @@ def relations(entity_id: UUID, direction: Literal["in","out","both"]="both", pre
               release: UUID | None=None, after: UUID | None=None, limit: int=Query(50,ge=1,le=200),
               as_of: str | None=Query(None,max_length=32), start: str | None=Query(None,alias="from",max_length=32),
               end: str | None=Query(None,alias="to",max_length=32), certainty: Literal["any","possible","certain"]="any",
-              max_depth: Literal[1]=1):
+              max_depth: int=Query(1,ge=1,le=1)):
     bounds=time_range(as_of,start,end,certainty)
     with reader() as conn:
         rid,rows,cursor=query_claims(conn,release,after,limit,bounds,certainty,entity_id,direction,predicate)

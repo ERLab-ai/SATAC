@@ -44,6 +44,13 @@ class ApiIntegration(unittest.TestCase):
         self.assertEqual(len(row["geometries"]),1)
         self.assertEqual(row["scientific_note"],"Approximate fixture")
 
+    def test_available_reference_and_restricted_source(self):
+        row=self.get("/api/v1/claims/"+C2)["claim"]
+        self.assertEqual(len(row["references"]),1)
+        self.assertEqual(row["references"][0]["title"],"Example source")
+        self.assertEqual(row["references"][0]["locator"],"p. 1")
+        self.assertEqual(row["references"][0]["stance"],"context")
+
     def test_withdrawal_in_historical_release(self):
         self.get("/api/v1/claims/"+C3,{"release":R1},404)
         self.get("/api/v1/claims/"+C1,{"release":"40000000-0000-0000-0000-000000000099"},404)
@@ -63,13 +70,14 @@ class ApiIntegration(unittest.TestCase):
         self.assertEqual(ids(**{"from":"600","to":"650"}),[C1])
 
     def test_keyset_and_direction(self):
-        r=self.get("/api/v1/relations",{"entity_id":P,"direction":"out","limit":1})
+        r=self.get("/api/v1/relations",{"entity_id":P,"direction":"out","limit":1,"max_depth":1})
         self.assertEqual([x["claim_id"] for x in r["claims"]],[C1])
         r2=self.get("/api/v1/relations",{"entity_id":P,"release":r["release_id"],"after":r["next_after"],"limit":1})
         self.assertEqual([x["claim_id"] for x in r2["claims"]],[C2])
         self.assertIsNone(r2["next_after"])
         self.assertEqual(self.get("/api/v1/relations",{"entity_id":P,"direction":"in"})["claims"],[])
         self.get("/api/v1/relations",{"entity_id":P,"after":r["next_after"]},422)
+        self.get("/api/v1/relations",{"entity_id":P,"max_depth":2},422)
 
     def test_map_bbox_lens_and_withdrawal(self):
         r=self.get("/api/v1/map/features",{"bbox":"38,20,41,23","lens":"location","release":R1,"as_of":"550"})
