@@ -1,0 +1,40 @@
+name: Map startup diagnostics
+on:
+  push:
+    branches: ['foundation/**']
+    paths: ['.github/workflows/map-startup-diagnostics.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Recover exact failed build for isolated static diagnostic
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 46042401540 --repo ERLab-ai/SATAC --name web-build-and-lock --dir "$RUNNER_TEMP/map-failed"
+          cp -r "$RUNNER_TEMP/map-failed/apps/web/dist" apps/web/dist
+          python pipelines/verify_web_assets.py --root apps/web/dist/physical
+      - name: Install test harness
+        working-directory: apps/web
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Inspect real browser startup without database
+        working-directory: apps/web
+        run: |
+          cat > diagnostic.config.ts <<'EOF'
+          import {defineConfig} from '@playwright/test';
+          export default defineConfig({testDir:'./tests',testMatch:'map-startup.spec.ts',workers:1,timeout:45000,use:{baseURL:'http://127.0.0.1:4173',headless:true,launchOptions:{args:['--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']}},
+          webServer:{command:'npm run preview',url:'http://127.0.0.1:4173',reuseExistingServer:false,timeout:60000}});
+          EOF
+          npx playwright test --config diagnostic.config.ts
