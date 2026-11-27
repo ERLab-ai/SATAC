@@ -305,6 +305,18 @@ test('extended encyclopedia preserves seven topics and reference anchors',async(
  await expect(page.locator('.extended-marker')).toHaveCount(0);
  await page.getByRole('button',{name:'كل الأزمنة'}).click();
  await expect(page.locator('.extended-marker')).toHaveCount(7);
+ await page.getByLabel('علامات الموضوعات الإضافية').uncheck();
+ await expect(page.locator('.extended-marker')).toHaveCount(0);
+ await page.getByLabel('نوع الموضوع الإضافي').selectOption('all');
+ await expect(page.locator('.extended-marker')).toHaveCount(0);
+ await page.getByLabel('علامات الموضوعات الإضافية').check();
+ await page.getByRole('button',{name:'التحليل',exact:true}).click();
+ await page.getByLabel('معرف الخلية').selectOption('572,140');
+ const cell=page.getByRole('complementary',{name:'التحليل المكاني'});
+ await expect(cell.getByRole('heading',{name:'موضوعات إضافية في الخلية'})).toBeVisible();
+ await expect(cell.getByRole('button',{name:'فيد — مدينة على درب زبيدة',exact:true})).toBeVisible();
+ await cell.getByRole('button',{name:'منتزه سلمى الجيولوجي',exact:true}).click();
+ await expect(panel.getByText('صخور يتجاوز عمر بعضها 740 مليون سنة')).toBeVisible();
  await panel.getByRole('button',{name:'الموسوعة الرئيسية'}).click();
  await expect(page.getByTestId('article-count')).toHaveText('50 مقالات');
 });

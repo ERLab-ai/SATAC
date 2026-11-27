@@ -1,7 +1,8 @@
-import type {CellData,CellMetric,ArticleSummary,DirectoryEntry} from './api';
+import type {CellData,CellMetric,ArticleSummary,DirectoryEntry,ExtendedTopic} from './api';
+import {topicKey,topicTitle} from './ExtendedTopics';
 export type Lens='water'|'articles'|'historical'|'modern';
 export const lensNames:Record<Lens,string>={water:'أطوال المجاري المائية',articles:'الموضوعات الموسوعية',historical:'المواضع التاريخية',modern:'المواضع المعاصرة'};
-export type CellStats=Map<string,{articles:ArticleSummary[];historical:DirectoryEntry[];modern:DirectoryEntry[]}>;
+export type CellStats=Map<string,{articles:ArticleSummary[];historical:DirectoryEntry[];modern:DirectoryEntry[];extended:ExtendedTopic[]}>;
 export function center(c:CellMetric):[number,number]{return [c.c*1.5*c.radius*.36-180,90-(c.t+(c.c%2)*.5)*Math.sqrt(3)*c.radius*.36];}
 export function ring(c:CellMetric):[number,number][]{const [x,y]=center(c);const p=Array.from({length:6},(_,i)=>[x+c.radius*.36*Math.cos(i*Math.PI/3),y-c.radius*.36*Math.sin(i*Math.PI/3)] as [number,number]);return [...p,p[0]];}
 export function atCell(lon:number,lat:number,rows:CellMetric[]):CellMetric|undefined{
@@ -9,15 +10,16 @@ export function atCell(lon:number,lat:number,rows:CellMetric[]):CellMetric|undef
  for(let i=c-1;i<=c+1;i++){const j=Math.round(y/dy-(i%2)*.5);for(let k=j-1;k<=j+1;k++){const d=Math.hypot(x-i*1.5*r,y-(k+(i%2)*.5)*dy);if(d<best){best=d;id=i+','+k;}}}
  return rows.find(row=>row.id===id);
 }
-export function stats(rows:CellMetric[],articles:ArticleSummary[],directory:DirectoryEntry[]):CellStats{
- const m:CellStats=new Map();const bucket=(x:number,y:number)=>{const c=atCell(x,y,rows);if(!c)return;let s=m.get(c.id);if(!s){s={articles:[],historical:[],modern:[]};m.set(c.id,s);}return s;};
+export function stats(rows:CellMetric[],articles:ArticleSummary[],directory:DirectoryEntry[],topics:ExtendedTopic[]=[]):CellStats{
+ const m:CellStats=new Map();const bucket=(x:number,y:number)=>{const c=atCell(x,y,rows);if(!c)return;let s=m.get(c.id);if(!s){s={articles:[],historical:[],modern:[],extended:[]};m.set(c.id,s);}return s;};
  for(const a of articles)bucket(...a.location)?.articles.push(a);
  for(const d of directory)bucket(d.record.lon,d.record.lat)?.[d.collection].push(d);
+ for(const t of topics)if(t.location)bucket(...t.location)?.extended.push(t);
  return m;
 }
 export function cellBin(c:CellMetric,lens:Lens,s:CellStats){const n=lens==='water'?c.water_km:s.get(c.id)?.[lens].length??0;return lens==='water'?(n===0?0:n<25?1:n<75?2:3):(n===0?0:n===1?1:n<4?2:3);}
 export const colors=(lens:Lens)=>lens==='water'?['#657466','#507e91','#3c9aaf','#8dd6d8']:['#657466','#9c8654','#d7a657','#ffe09a'];
-export default function Cells({data,lens,onLens,selected,onSelect,stats:counts,dated,onClose,error,onArticle,onDirectory,onProvince}:{data:CellData|null;lens:Lens;onLens:(v:Lens)=>void;selected:string|null;onSelect:(v:string|null)=>void;stats:CellStats;dated:boolean;onClose:()=>void;error:string;onArticle:(id:string)=>void;onDirectory:(id:string)=>void;onProvince:(id:number)=>void}){
+export default function Cells({data,lens,onLens,selected,onSelect,stats:counts,dated,onClose,error,onArticle,onDirectory,onProvince,onTopic}:{data:CellData|null;lens:Lens;onLens:(v:Lens)=>void;selected:string|null;onSelect:(v:string|null)=>void;stats:CellStats;dated:boolean;onClose:()=>void;error:string;onArticle:(id:string)=>void;onDirectory:(id:string)=>void;onProvince:(id:number)=>void;onTopic:(id:string)=>void}){
  const row=data?.cells.find(x=>x.id===selected),s=row?counts.get(row.id):undefined;
  return <aside className="encyclopedia floating-panel" aria-label="التحليل المكاني"><button className="panel-close" aria-label="إغلاق التحليل" onClick={onClose}>×</button><h2>الأرض والماء والعمران</h2>
  <p className="muted">خلايا إقليمية غير متساوية المساحة؛ جغرافيا مرجعية معاصرة. لا تقيس توفر الماء أو السكان أو الاحتياطيات.</p>{error&&<p role="alert">{error}</p>}
@@ -30,6 +32,7 @@ export default function Cells({data,lens,onLens,selected,onSelect,stats:counts,d
  <h3>السجلات المعروضة داخل الخلية</h3><p>{s?.articles.length??0} موضوعات · {s?.historical.length??0} مواضع تاريخية · {s?.modern.length??0} مواضع معاصرة</p>
  {s?.articles.map(a=><button key={a.id} onClick={()=>onArticle(a.id)}>{a.title}</button>)}
  {[...(s?.historical??[]),...(s?.modern??[])].map(a=><button key={a.entity_id} onClick={()=>onDirectory(a.entity_id)}>{a.record.name}</button>)}
+ {!!s?.extended.length&&<section><h3>موضوعات إضافية في الخلية</h3>{s.extended.map(t=><button key={topicKey(t)} onClick={()=>onTopic(topicKey(t))}>{topicTitle(t)}</button>)}</section>}
  <h3>الأقاليم الجيولوجية المتقاطعة</h3>{row.province_ids.map(id=><button key={id} onClick={()=>onProvince(id)}>{data?.provinces.find(p=>p.id===id)?.name??id}</button>)}
  {!row.province_ids.length&&<p>لا توجد ارتباطات منشورة في العينة.</p>}<p>ارتباطات هندسية من المصدر الأصلي، لا تقدير لمساحة الموارد.</p><a href="https://www.soest.hawaii.edu/pwessel/gshhg/" target="_blank" rel="noopener noreferrer">GSHHG — المصدر الجغرافي</a></article>}
  </aside>;
