@@ -30,7 +30,10 @@ class ArticlesIntegration(unittest.TestCase):
         result=self.get("/api/v1/articles",{"release":str(R)})
         self.assertEqual(len(result["articles"]),50)
         for original in self.source["articles"]:
-            row=self.get("/api/v1/articles/"+original["id"],{"release":str(R)})["article"]
+            response=self.get("/api/v1/articles/"+original["id"],{"release":str(R)})
+            row=response["article"]
+            titles={a["id"]:a["title"] for a in self.source["articles"]}
+            self.assertEqual(response["related_topics"],[{"id":s,"title":titles[s]} for s in original["related"]])
             self.assertEqual({k:row[k] for k in original},original)
             self.assertEqual(row["bibliography"],[{"id":s,"title":self.source["sources"][s][0],"url":self.source["sources"][s][1]} for s in original["sources"]])
             self.assertEqual(set(row),set(original)|{"bibliography"})

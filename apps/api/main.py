@@ -280,7 +280,7 @@ def article(slug: str,release: UUID | None=None):
         rid=resolve_release(conn,release)
         row=conn.execute("SELECT work_id,article FROM public_read.articles WHERE release_id=%s AND article->>'id'=%s",(rid,slug)).fetchone()
         if row is None: raise HTTPException(404,"article_not_found")
-        ids={r["id"] for r in conn.execute("SELECT article->>'id' AS id FROM public_read.articles WHERE release_id=%s",(rid,))}
+        titles={r["id"]:r["title"] for r in conn.execute("SELECT article->>'id' AS id,article->>'title' AS title FROM public_read.articles WHERE release_id=%s",(rid,))}
     a=row["article"]
-    a["related"]=[s for s in a["related"] if s in ids]
-    return {"release_id":str(rid),"work_id":str(row["work_id"]),"article":a}
+    a["related"]=[s for s in a["related"] if s in titles]
+    return {"release_id":str(rid),"work_id":str(row["work_id"]),"article":a,"related_topics":[{"id":s,"title":titles[s]} for s in a["related"]]}

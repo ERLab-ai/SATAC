@@ -127,6 +127,8 @@ test('encyclopedia restores original articles, thematic search and map anchors',
  await expect(panel.getByRole('heading',{name:'الحِجر: عمارة الأنباط'})).toBeVisible();
  await expect(panel.getByRole('heading',{name:'مراجع المقال'})).toBeVisible();
  await expect(panel.getByRole('link',{name:'موقع الحِجر الأثري'})).toHaveAttribute('href','https://whc.unesco.org/en/list/1293/');
+ await page.screenshot({path:'test-results/encyclopedia-desktop.png'});
+ await expect(panel.getByRole('heading',{name:'موضوعات مرتبطة'})).toBeVisible();
  await panel.getByRole('button',{name:'العودة إلى المقالات'}).click();
  await page.getByLabel('البحث في المقالات').fill('');
  await page.getByRole('button',{name:'بحث المقالات'}).click();
