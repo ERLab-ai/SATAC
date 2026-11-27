@@ -21,7 +21,7 @@ jobs:
       - run: python -m unittest discover -s tests -v
   database:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 20
     services:
       db:
         image: postgis/postgis:16-3.4@sha256:44126d872ac91993766c341e369c539e8196614321765d36a6f1bab0419a5fa5
@@ -175,11 +175,20 @@ jobs:
         env:
           SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
         run: npm test
+      - name: Checkout exact pre-optimization API for same-host comparison
+        uses: actions/checkout@v4
+        with:
+          ref: 'bdcc4c01990c54785783f9805739727881ef2a47'
+          path: .benchmark-baseline
+          persist-credentials: false
       - name: Reference API performance baseline
         env:
           SATAC_BENCHMARK_ONLY: '1'
           SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
-        run: python pipelines/benchmark_api.py --output benchmark-results/reference.json
+        run: |
+          python pipelines/benchmark_api.py --server-root .benchmark-baseline --output benchmark-results/reference-before.json
+          python pipelines/benchmark_api.py --output benchmark-results/reference.json
+          python pipelines/compare_performance.py benchmark-results/reference-before.json benchmark-results/reference.json benchmark-results/reference-comparison.json
       - name: A13 isolated 10000-claim performance baseline
         env:
           SATAC_BENCHMARK_ONLY: '1'
@@ -190,7 +199,9 @@ jobs:
           docker exec "$DB" createdb -U satac -T satac satac_benchmark
           trap 'docker exec "$DB" dropdb -U satac --force satac_benchmark' EXIT
           (printf "SET satac.benchmark_only='on';\n"; cat db/tests/performance_fixture.sql) | docker exec -i "$DB" psql -U satac -d satac_benchmark -v ON_ERROR_STOP=1
+          python pipelines/benchmark_api.py --scale --server-root .benchmark-baseline --output benchmark-results/a13-before.json
           python pipelines/benchmark_api.py --scale --output benchmark-results/a13.json
+          python pipelines/compare_performance.py benchmark-results/a13-before.json benchmark-results/a13.json benchmark-results/a13-comparison.json
       - name: Public access revocation HTTP integration
         env:
           SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac

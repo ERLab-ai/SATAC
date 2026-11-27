@@ -43,6 +43,9 @@ def reader():
         with conn.transaction():
             conn.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
             conn.execute("SET LOCAL statement_timeout = '5s'")
+            # Short, bounded public reads: avoid per-statement LLVM compilation.
+            # Keep this transaction-local, not a server-wide setting.
+            conn.execute("SET LOCAL jit = off")
             privileges = conn.execute("""SELECT pg_has_role(current_user,'satac_reader','USAGE') AS reader,
                 pg_has_role(current_user,'satac_publisher','MEMBER') AS publisher,
                 pg_has_role(current_user,'satac_curator','MEMBER') AS curator,
@@ -427,29 +430,38 @@ def explore(q: str=Query(...,min_length=1,max_length=120),release: UUID | None=N
             args.extend([*bounds,["possible","certain"] if certainty=="any" else [certainty]])
         names=conn.execute("SELECT entity_id,claim_id,version_id,name,lang,kind FROM public_read.entity_names WHERE "+" AND ".join(filters)+" ORDER BY version_id LIMIT %s",[*args,limit+1]).fetchall()
         refs=conn.execute("""
-          WITH candidates AS (
+          WITH released AS MATERIALIZED (
+            SELECT payload FROM public_read.release_claims
+            WHERE release_id=%s AND payload->>'predicate' IN
+              ('ARTICLE','DIRECTORY_ENTRY','GEOLOGY_RECORD','EXTENDED_TOPIC','HISTORICAL_SNAPSHOT')
+          ), candidates AS (
             SELECT 'article' AS kind,article->>'id' AS id,article->>'title' AS title,
               article->>'category' AS subtitle,concat_ws(' ',article->>'subtitle',article->>'summary',article->>'keywords') AS extra,NULL::int AS year
-            FROM public_read.articles WHERE release_id=%s
+            FROM (SELECT payload->'article' AS article FROM released
+                  WHERE payload->>'predicate'='ARTICLE' AND payload ? 'article') a
             UNION ALL
             SELECT directory->>'collection',entity_id::text,directory->'record'->>'name',
               directory->>'region_label',directory->'record'->>'en',NULL::int
-            FROM public_read.directory WHERE release_id=%s
+            FROM (SELECT (payload->>'subject_id')::uuid AS entity_id,payload->'directory' AS directory
+                  FROM released WHERE payload->>'predicate'='DIRECTORY_ENTRY') d
             UNION ALL
             SELECT 'geology',(geology->>'type')||':'||(geology->'record'->>'id'),
               geology->'record'->>'name',geology->'record'->>'en',NULL,NULL::int
-            FROM public_read.geology WHERE release_id=%s
+            FROM (SELECT payload->'geology' AS geology FROM released
+                  WHERE payload->>'predicate'='GEOLOGY_RECORD') g
             UNION ALL
             SELECT 'topic',(topic->>'type')||':'||(topic->>'id'),
               coalesce(topic->'record'->>'title',topic->'record'->>'name'),
               CASE WHEN topic->>'type'='story' THEN 'المعجم التاريخي' ELSE 'التراث الجيولوجي' END,
               coalesce(topic->'record'->>'lead',topic->'record'->>'summary'),NULL::int
-            FROM public_read.extended_topics WHERE release_id=%s
+            FROM (SELECT payload->'topic' AS topic FROM released
+                  WHERE payload->>'predicate'='EXTENDED_TOPIC') t
             UNION ALL
             SELECT 'snapshot',coalesce(snapshot->'record'->>'id','milestone:'||(snapshot->>'year')),
               coalesce(snapshot->'record'->>'name',snapshot->'record'->>'title'),
               snapshot->>'year',snapshot->'record'->>'source_name',(snapshot->>'year')::int
-            FROM public_read.snapshots WHERE release_id=%s
+            FROM (SELECT payload->'snapshot' AS snapshot FROM released
+                  WHERE payload->>'predicate'='HISTORICAL_SNAPSHOT') s
           ), matched AS (
             SELECT kind,id,title,subtitle,year,
               CASE WHEN public_read.search_key(title)=%s THEN 0
@@ -457,7 +469,7 @@ def explore(q: str=Query(...,min_length=1,max_length=120),release: UUID | None=N
             FROM candidates WHERE strpos(public_read.search_key(concat_ws(' ',title,subtitle,extra)),%s)>0
           )
           SELECT kind,id,title,subtitle,year FROM matched ORDER BY rank,kind,title,id LIMIT 101
-        """, [rid]*5+[key,key,key]).fetchall()
+        """, [rid,key,key,key]).fetchall()
     page=names[:limit]
     return {"release_id":str(rid),"results":page,"next_after":str(page[-1]["version_id"]) if len(names)>limit else None,
             "references":refs[:100],"references_truncated":len(refs)>100,

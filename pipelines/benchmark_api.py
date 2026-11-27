@@ -1,5 +1,6 @@
 """Loopback HTTP performance baseline; no production writes or external traffic."""
 import argparse
+import hashlib
 import json
 import math
 import os
@@ -34,22 +35,24 @@ def measure(client, label, path, params, key, expected, count, warmup):
         result = value if isinstance(value, int) else len(value)
         if expected is not None and result != expected:
             raise AssertionError(f"{label}: expected {expected}, got {result}")
-        return elapsed, len(response.content), result, body.get("next_after")
+        digest=hashlib.sha256(json.dumps(body,sort_keys=True,ensure_ascii=False,separators=(',',':')).encode('utf-8')).hexdigest()
+        return elapsed, len(response.content), result, body.get("next_after"),digest
     for _ in range(warmup):
         request()
     records = [request() for _ in range(count)]
     times = [r[0] for r in records]
     if len({r[2:] for r in records}) != 1:
-        raise AssertionError("result count or cursor drift")
+        raise AssertionError("response payload, result count or cursor drift")
     return {"case":label,"path":path,"parameters":params,"requests":count,"warmup":warmup,
             "p50_ms":round(statistics.median(times),3),"p95_ms":round(percentile(times,.95),3),
             "max_ms":round(max(times),3),"response_bytes":records[0][1],"result_count":records[0][2],
-            "has_next_page":records[0][3] is not None,"samples_ms":[round(t,3) for t in times]}
+            "has_next_page":records[0][3] is not None,"response_sha256":records[0][4],"samples_ms":[round(t,3) for t in times]}
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("--scale",action="store_true")
     p.add_argument("--output",type=Path,required=True)
+    p.add_argument("--server-root",type=Path,default=Path.cwd(),help="checkout containing exact API code for paired CI comparison")
     args=p.parse_args()
     dsn=os.environ["SATAC_READER_DSN"]
     with psycopg.connect(dsn) as conn:
@@ -80,7 +83,7 @@ def main():
         ("route","/api/v1/routes/path",{"start":"MAKKA_398E213N_S_JAZI","end":"MADINA_396E244N_S_JAZI"},"meters",392496,20,5)])
     if args.scale:
         assert sum(1 for i in range(10000) if 40<=34+(i%100)*.25<=43 and 20<=12+(i//100)*.22<=24 and 100+(i%10)*100<=550<=199+(i%10)*100)==36
-    server=subprocess.Popen([sys.executable,"-m","uvicorn","apps.api.main:app","--host","127.0.0.1","--port","8765","--no-access-log"],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+    server=subprocess.Popen([sys.executable,"-m","uvicorn","apps.api.main:app","--host","127.0.0.1","--port","8765","--no-access-log"],cwd=args.server_root.resolve(),stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
     try:
         with httpx.Client(base_url="http://127.0.0.1:8765",timeout=15,trust_env=False) as client:
             for _ in range(100):
@@ -108,7 +111,8 @@ def main():
     mem_info=Path('/proc/meminfo')
     if mem_info.exists():
         mem_total=next((int(line.split()[1]) for line in mem_info.read_text().splitlines() if line.startswith('MemTotal:')),None)
-    report={"mode":"isolated_synthetic" if args.scale else "restored_ci_candidate",
+    server_commit=subprocess.check_output(["git","rev-parse","HEAD"],cwd=args.server_root.resolve(),text=True).strip()
+    report={"server_commit":server_commit,"mode":"isolated_synthetic" if args.scale else "restored_ci_candidate",
             "release_id":release,"claim_versions":members,"environment":{"os":platform.platform(),
             "python":platform.python_version(),"cpu_count":os.cpu_count(),"cpu_model":cpu_model,"host_mem_total_kib":mem_total,"postgresql":pg,"postgis":postgis,
             "server":"single uvicorn process / loopback HTTP / fresh DB connection per request","api_peak_rss_kib":rss},
