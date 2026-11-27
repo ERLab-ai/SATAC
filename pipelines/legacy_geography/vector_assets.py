@@ -2,7 +2,7 @@
 import json
 import re
 from hashlib import sha256
-from pathlib import Path
+from shapely.geometry import LineString, box, mapping
 
 WORLD_HASH="4c8e268ba75045b73be09b4f2bcabffd955479493b5a6a7bbee4fc21b212b0ed"
 PAIR=re.compile(r"[ML](-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)")
@@ -60,5 +60,20 @@ def build_vectors(geo,world_path,out):
         hashes[key+".geojson"]=write(out/(key+".geojson"),lines)
     if counts!={"worldRivers":9325,"regionalRivers":1848}:
         raise ValueError("river count mismatch")
+    # Preserve global rivers at higher zoom outside the regional source envelope.
+    # Clip coarse reference geometry instead of double-drawing coarse and fine lines.
+    envelope=box(18,0,75,45)
+    outside=[]
+    def lineparts(g):
+        if g.geom_type=="LineString" and not g.is_empty and g.length>0:
+            yield g
+        elif hasattr(g,"geoms"):
+            for part in g.geoms:
+                yield from lineparts(part)
+    for path in geo["worldRivers"]:
+        for line in lineparts(LineString(coords(path)).difference(envelope)):
+            outside.append(feature("LineString",mapping(line)["coordinates"],{}))
+    hashes["outsideRivers.geojson"]=write(out/"outsideRivers.geojson",outside)
+    print("High-zoom coarse river pieces outside regional coverage:",len(outside))
     print("Verified worldtiles SHA-256; converted",len(cells),"hexagons and river paths",counts)
     return hashes,{"worldtiles_sha256":WORLD_HASH,"hex_cells":len(cells),"land_centers":len(world["land"]),"river_paths":counts,"legacy_bbox":world["bbox"]}

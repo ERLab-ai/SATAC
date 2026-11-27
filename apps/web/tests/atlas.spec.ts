@@ -93,10 +93,12 @@ test('legacy hexagons, rivers and synchronized minimap',async({page})=>{
  await expect(page.getByText(/شبكة سداسية إقليمية/)).toBeVisible();
  const world=page.waitForResponse(r=>r.url().endsWith('/physical/worldRivers.geojson')&&r.status()===200);
  const regional=page.waitForResponse(r=>r.url().endsWith('/physical/regionalRivers.geojson')&&r.status()===200);
+ const outside=page.waitForResponse(r=>r.url().endsWith('/physical/outsideRivers.geojson')&&r.status()===200);
  const toggle=page.getByRole('button',{name:'المجاري المائية',exact:true});
  await toggle.click();
  expect((await (await world).json()).features).toHaveLength(9325);
  expect((await (await regional).json()).features).toHaveLength(1848);
+ expect((await (await outside).json()).features.length).toBeGreaterThan(0);
  await expect(toggle).toHaveAttribute('aria-pressed','true');
  await toggle.click();await expect(toggle).toHaveAttribute('aria-pressed','false');
  const mini=page.getByRole('img',{name:'نطاق عرض الخريطة الحالية'});

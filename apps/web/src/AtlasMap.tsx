@@ -14,7 +14,7 @@ export default function AtlasMap({data,selected,onSelect,physical,geoLabels,date
  if(!node.current)return;
  let m:maplibregl.Map;
  try{m=new maplibregl.Map({container:node.current,center:[42,24],zoom:4,minZoom:1,maxZoom:14,renderWorldCopies:false,attributionControl:false,
- style:{version:8,sources:{land:{type:'geojson',data:'/land.geojson'},relief:{type:'raster',tiles:[location.origin+'/physical/relief/{z}/{x}/{y}.webp'],tileSize:512,maxzoom:2},etopo:{type:'raster',tiles:[location.origin+'/physical/etopo/{z}/{x}/{y}.webp'],tileSize:512,maxzoom:2},hex:{type:'geojson',data:{type:'FeatureCollection',features:[]}},worldRivers:{type:'geojson',data:{type:'FeatureCollection',features:[]}},regionalRivers:{type:'geojson',data:{type:'FeatureCollection',features:[]}},places:{type:'geojson',data:{type:'FeatureCollection',features:[]}}},
+ style:{version:8,sources:{land:{type:'geojson',data:'/land.geojson'},relief:{type:'raster',tiles:[location.origin+'/physical/relief/{z}/{x}/{y}.webp'],tileSize:512,maxzoom:2},etopo:{type:'raster',tiles:[location.origin+'/physical/etopo/{z}/{x}/{y}.webp'],tileSize:512,maxzoom:2},hex:{type:'geojson',data:{type:'FeatureCollection',features:[]}},worldRivers:{type:'geojson',data:{type:'FeatureCollection',features:[]}},regionalRivers:{type:'geojson',data:{type:'FeatureCollection',features:[]}},outsideRivers:{type:'geojson',data:{type:'FeatureCollection',features:[]}},places:{type:'geojson',data:{type:'FeatureCollection',features:[]}}},
  layers:[
  {id:'water',type:'background',paint:{'background-color':'#193d50'}},
  {id:'land',type:'fill',source:'land',paint:{'fill-color':'#b9a77c','fill-outline-color':'#8b9d85'}},
@@ -22,6 +22,7 @@ export default function AtlasMap({data,selected,onSelect,physical,geoLabels,date
  {id:'etopo',type:'raster',source:'etopo',layout:{visibility:'none'},paint:{'raster-opacity':1,'raster-fade-duration':0}},
  {id:'hex',type:'fill',source:'hex',layout:{visibility:'none'},paint:{'fill-color':['get','color'],'fill-outline-color':'#394e4655'}},
  {id:'world-rivers',type:'line',source:'worldRivers',maxzoom:5,layout:{visibility:'none'},paint:{'line-color':'#76bbcf','line-width':0.8}},
+ {id:'outside-rivers',type:'line',source:'outsideRivers',minzoom:5,layout:{visibility:'none'},paint:{'line-color':'#76bbcf','line-width':0.8}},
  {id:'regional-rivers',type:'line',source:'regionalRivers',minzoom:5,layout:{visibility:'none'},paint:{'line-color':'#76bbcf','line-width':1.2}},
  {id:'areas',type:'fill',source:'places',filter:['==',['geometry-type'],'Polygon'],paint:{'fill-color':'#b17a3a','fill-opacity':0.35}},
  {id:'lines',type:'line',source:'places',filter:['==',['geometry-type'],'LineString'],paint:{'line-color':'#936629','line-width':3}},
@@ -49,8 +50,8 @@ export default function AtlasMap({data,selected,onSelect,physical,geoLabels,date
  const m=map.current;
  const load=(id:string,path:string)=>{if(!loaded.current.has(id)){(m.getSource(id) as GeoJSONSource).setData(path);loaded.current.add(id);}};
  if(physical==='hex')load('hex','/physical/hex.geojson');
- if(rivers){load('worldRivers','/physical/worldRivers.geojson');load('regionalRivers','/physical/regionalRivers.geojson');}
- for(const id of ['world-rivers','regional-rivers'])m.setLayoutProperty(id,'visibility',rivers?'visible':'none');
+ if(rivers){load('worldRivers','/physical/worldRivers.geojson');load('regionalRivers','/physical/regionalRivers.geojson');load('outsideRivers','/physical/outsideRivers.geojson');}
+ for(const id of ['world-rivers','regional-rivers','outside-rivers'])m.setLayoutProperty(id,'visibility',rivers?'visible':'none');
  },[ready,physical,rivers]);
  useEffect(()=>{
  if(!ready||!map.current||!geoLabels)return;
