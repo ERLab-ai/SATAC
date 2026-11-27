@@ -140,11 +140,20 @@ def main():
     asset.add_argument("--path",required=True)
     asset.add_argument("--reason",required=True)
     asset.add_argument("--actor",required=True)
+    url=sub.add_parser("revoke-embedded-url")
+    url.add_argument("--url",required=True)
+    url.add_argument("--reason",required=True)
+    url.add_argument("--actor",required=True)
     a=p.parse_args()
     with connection() as conn:
         if a.command=="migrate":result=migrate(conn)
         elif a.command=="stage":result=stage(conn)
         elif a.command=="publish-initial":result=publish_initial(conn,a)
+        elif a.command=="revoke-embedded-url":
+            with conn.transaction():
+                conn.execute("SET LOCAL ROLE satac_curator")
+                conn.execute("SELECT knowledge.revoke_embedded_url(%s,%s,%s)",(a.url,a.reason,a.actor))
+                result={"recorded":True,"operation":a.command}
         elif a.command=="revoke-asset":
             with conn.transaction():
                 conn.execute("SET LOCAL ROLE satac_curator")
