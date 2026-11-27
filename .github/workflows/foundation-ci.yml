@@ -19,3 +19,26 @@ jobs:
         with:
           python-version: '3.13.5'
       - run: python -m unittest discover -s tests -v
+  database:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    services:
+      db:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: satac
+          POSTGRES_PASSWORD: disposable-ci-only
+          POSTGRES_DB: satac
+        options: >-
+          --health-cmd "pg_isready -U satac -d satac"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install migration
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0001_knowledge.sql
+      - name: Database integration tests
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/tests/knowledge.sql
