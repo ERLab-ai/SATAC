@@ -8,10 +8,10 @@ import {geoId,geoKinds} from './Geology';
 import {atCell,ring,center,cellBin,colors,lensNames,type Lens,type CellStats} from './Cells';
 import {topicKey,topicTitle} from './ExtendedTopics';
 import {symbols} from './Encyclopedia';
-import {categoryIcon} from './legacyVisuals';
+import {categoryIcon,gazetteerIcon} from './legacyVisuals';
 import MiniMap,{type Extent} from './MiniMap';
 type GeoLabel=[string,number,number,'water'|'land'|'city',number];
-export default function AtlasMap({data,selected,onSelect,physical,geoLabels,dated,articles,selectedArticle,onArticleSelect,network,showLinks,journey,focus,directory,directorySelected,onDirectorySelect,routes,routePath,snapshots,comparison,territorySelected,onTerritorySelect,geology,geoLabelsEnabled,geoSelected,onGeoSelect,cells,cellLens,cellStats,cellSelected,onCellSelect,topics,topicSelected,onTopicSelect}:{data:Features;selected:string|null;onSelect:(id:string)=>void;physical:'relief'|'etopo'|'flat'|'hex';geoLabels:boolean;dated:boolean;articles:ArticleSummary[];selectedArticle:string|null;onArticleSelect:(id:string)=>void;network:EditorialNetwork|null;showLinks:boolean;journey:number|null;focus:[number,number]|undefined;directory:DirectoryEntry[];directorySelected:string|null;onDirectorySelect:(id:string)=>void;routes:RouteNetwork|null;routePath:RoutePath|null;snapshots:Snapshot[];comparison:Snapshot[];territorySelected:string|null;onTerritorySelect:(id:string)=>void;geology:GeologyRecord[];geoLabelsEnabled:boolean;geoSelected:string|null;onGeoSelect:(id:string)=>void;cells:CellData|null;cellLens:Lens;cellStats:CellStats;cellSelected:string|null;onCellSelect:(id:string)=>void;topics:ExtendedTopic[];topicSelected:string|null;onTopicSelect:(id:string)=>void}){
+export default function AtlasMap({data,selected,onSelect,physical,geoLabels,dated,modernReference,articles,selectedArticle,onArticleSelect,network,showLinks,journey,focus,directory,directorySelected,onDirectorySelect,routes,routePath,snapshots,comparison,territorySelected,onTerritorySelect,geology,geoLabelsEnabled,geoSelected,onGeoSelect,cells,cellLens,cellStats,cellSelected,onCellSelect,topics,topicSelected,onTopicSelect}:{data:Features;selected:string|null;onSelect:(id:string)=>void;physical:'relief'|'etopo'|'flat'|'hex';geoLabels:boolean;dated:boolean;modernReference:boolean;articles:ArticleSummary[];selectedArticle:string|null;onArticleSelect:(id:string)=>void;network:EditorialNetwork|null;showLinks:boolean;journey:number|null;focus:[number,number]|undefined;directory:DirectoryEntry[];directorySelected:string|null;onDirectorySelect:(id:string)=>void;routes:RouteNetwork|null;routePath:RoutePath|null;snapshots:Snapshot[];comparison:Snapshot[];territorySelected:string|null;onTerritorySelect:(id:string)=>void;geology:GeologyRecord[];geoLabelsEnabled:boolean;geoSelected:string|null;onGeoSelect:(id:string)=>void;cells:CellData|null;cellLens:Lens;cellStats:CellStats;cellSelected:string|null;onCellSelect:(id:string)=>void;topics:ExtendedTopic[];topicSelected:string|null;onTopicSelect:(id:string)=>void}){
  const node=useRef<HTMLDivElement>(null),map=useRef<maplibregl.Map|null>(null),select=useRef(onSelect);
  select.current=onSelect;
  const topicSelect=useRef(onTopicSelect);topicSelect.current=onTopicSelect;
@@ -22,6 +22,7 @@ export default function AtlasMap({data,selected,onSelect,physical,geoLabels,date
  const territorySelect=useRef(onTerritorySelect);territorySelect.current=onTerritorySelect;
  const directorySelect=useRef(onDirectorySelect);directorySelect.current=onDirectorySelect;
  const articleSelect=useRef(onArticleSelect);articleSelect.current=onArticleSelect;
+ const [borders,setBorders]=useState(false),[grid,setGrid]=useState(false),[texture,setTexture]=useState(true),[glyphsReady,setGlyphsReady]=useState(false),[referenceError,setReferenceError]=useState('');
  const [rivers,setRivers]=useState(false),[mini,setMini]=useState(true),[extent,setExtent]=useState<Extent>({west:30,east:55,south:10,north:40});
  const [ready,setReady]=useState(false),[failed,setFailed]=useState(false),[labels,setLabels]=useState<GeoLabel[]>([]);
  useEffect(()=>{const c=new AbortController();fetch('/physical/labels.json',{signal:c.signal}).then(r=>{if(!r.ok)throw Error('labels');return r.json();}).then(setLabels).catch(()=>{if(!c.signal.aborted)setFailed(true);});return ()=>c.abort();},[]);
@@ -29,13 +30,18 @@ export default function AtlasMap({data,selected,onSelect,physical,geoLabels,date
  if(!node.current)return;
  let m:maplibregl.Map;
  try{m=new maplibregl.Map({container:node.current,center:[42,24],zoom:4,minZoom:1,maxZoom:14,renderWorldCopies:false,attributionControl:false,
- style:{version:8,sources:{land:{type:'geojson',data:'/land.geojson'},relief:{type:'raster',tiles:[location.origin+'/physical/relief/{z}/{x}/{y}.webp'],tileSize:512,maxzoom:2},etopo:{type:'raster',tiles:[location.origin+'/physical/etopo/{z}/{x}/{y}.webp'],tileSize:512,maxzoom:2},hex:{type:'geojson',data:{type:'FeatureCollection',features:[]}},worldRivers:{type:'geojson',data:{type:'FeatureCollection',features:[]}},regionalRivers:{type:'geojson',data:{type:'FeatureCollection',features:[]}},outsideRivers:{type:'geojson',data:{type:'FeatureCollection',features:[]}},editorial:{type:'geojson',data:{type:'FeatureCollection',features:[]}},directory:{type:'geojson',data:{type:'FeatureCollection',features:[]}},routes:{type:'geojson',data:{type:'FeatureCollection',features:[]}},territories:{type:'geojson',data:{type:'FeatureCollection',features:[]}},geology:{type:'geojson',data:{type:'FeatureCollection',features:[]}},cells:{type:'geojson',data:{type:'FeatureCollection',features:[]}},places:{type:'geojson',data:{type:'FeatureCollection',features:[]}}},
+ style:{version:8,sources:{land:{type:'geojson',data:'/land.geojson'},relief:{type:'raster',tiles:[location.origin+'/physical/relief/{z}/{x}/{y}.webp'],tileSize:512,maxzoom:2},etopo:{type:'raster',tiles:[location.origin+'/physical/etopo/{z}/{x}/{y}.webp'],tileSize:512,maxzoom:2},hex:{type:'geojson',data:{type:'FeatureCollection',features:[]}},hexTexture:{type:'image',url:'/physical/hex-texture.webp',coordinates:[[3.6,55.8],[95.4,55.8],[95.4,-14.4],[3.6,-14.4]]},worldBorders:{type:'geojson',data:{type:'FeatureCollection',features:[]}},regionalBorders:{type:'geojson',data:{type:'FeatureCollection',features:[]}},outsideBorders:{type:'geojson',data:{type:'FeatureCollection',features:[]}},graticule:{type:'geojson',data:{type:'FeatureCollection',features:[]}},worldRivers:{type:'geojson',data:{type:'FeatureCollection',features:[]}},regionalRivers:{type:'geojson',data:{type:'FeatureCollection',features:[]}},outsideRivers:{type:'geojson',data:{type:'FeatureCollection',features:[]}},editorial:{type:'geojson',data:{type:'FeatureCollection',features:[]}},directory:{type:'geojson',data:{type:'FeatureCollection',features:[]}},routes:{type:'geojson',data:{type:'FeatureCollection',features:[]}},territories:{type:'geojson',data:{type:'FeatureCollection',features:[]}},geology:{type:'geojson',data:{type:'FeatureCollection',features:[]}},cells:{type:'geojson',data:{type:'FeatureCollection',features:[]}},places:{type:'geojson',data:{type:'FeatureCollection',features:[]}}},
  layers:[
  {id:'water',type:'background',paint:{'background-color':'#193d50'}},
  {id:'land',type:'fill',source:'land',paint:{'fill-color':'#b9a77c','fill-outline-color':'#8b9d85'}},
  {id:'relief',type:'raster',source:'relief',layout:{visibility:'visible'},paint:{'raster-opacity':1,'raster-fade-duration':0}},
  {id:'etopo',type:'raster',source:'etopo',layout:{visibility:'none'},paint:{'raster-opacity':1,'raster-fade-duration':0}},
- {id:'hex',type:'fill',source:'hex',layout:{visibility:'none'},paint:{'fill-color':['get','color'],'fill-outline-color':'#394e4655'}},
+ {id:'hex',type:'fill',source:'hex',minzoom:3,layout:{visibility:'none'},paint:{'fill-color':['get','color'],'fill-outline-color':'#394e4655'}},
+ {id:'hex-texture',type:'raster',source:'hexTexture',minzoom:3,layout:{visibility:'none'},paint:{'raster-opacity':0.9,'raster-fade-duration':0}},
+ {id:'graticule',type:'line',source:'graticule',layout:{visibility:'none'},paint:{'line-color':'#e8dfbf','line-opacity':0.25,'line-width':0.7}},
+ {id:'world-borders',type:'line',source:'worldBorders',maxzoom:5,layout:{visibility:'none'},paint:{'line-color':'#eee0b9','line-opacity':0.8,'line-width':1,'line-dasharray':[4,3]}},
+ {id:'outside-borders',type:'line',source:'outsideBorders',minzoom:5,layout:{visibility:'none'},paint:{'line-color':'#eee0b9','line-opacity':0.8,'line-width':1,'line-dasharray':[4,3]}},
+ {id:'regional-borders',type:'line',source:'regionalBorders',minzoom:5,layout:{visibility:'none'},paint:{'line-color':'#eee0b9','line-opacity':0.8,'line-width':1.2,'line-dasharray':[4,3]}},
  {id:'world-rivers',type:'line',source:'worldRivers',maxzoom:5,layout:{visibility:'none'},paint:{'line-color':'#76bbcf','line-width':0.8}},
  {id:'outside-rivers',type:'line',source:'outsideRivers',minzoom:5,layout:{visibility:'none'},paint:{'line-color':'#76bbcf','line-width':0.8}},
  {id:'regional-rivers',type:'line',source:'regionalRivers',minzoom:5,layout:{visibility:'none'},paint:{'line-color':'#76bbcf','line-width':1.2}},
@@ -53,6 +59,7 @@ export default function AtlasMap({data,selected,onSelect,physical,geoLabels,date
  {id:'route-lines',type:'line',source:'routes',paint:{'line-color':'#bb9460','line-width':2}},
  {id:'route-selected',type:'line',source:'routes',filter:['==',['get','selected'],true],paint:{'line-color':'#ffdb75','line-width':5}},
  {id:'directory-points',type:'circle',source:'directory',paint:{'circle-radius':['interpolate',['linear'],['zoom'],2,3,7,7],'circle-color':['match',['get','collection'],'historical','#e2b77c','#83cadd'],'circle-stroke-color':'#173d50','circle-stroke-width':1.2}},
+ {id:'directory-glyphs',type:'symbol',source:'directory',layout:{visibility:'none','icon-image':['get','glyph'],'icon-size':['interpolate',['linear'],['zoom'],2,0.45,5,0.85,8,1.15],'icon-allow-overlap':false,'icon-ignore-placement':false,'symbol-sort-key':['get','priority']},filter:['==',['get','collection'],'historical']},
  {id:'areas',type:'fill',source:'places',filter:['==',['geometry-type'],'Polygon'],paint:{'fill-color':'#b17a3a','fill-opacity':0.35}},
  {id:'lines',type:'line',source:'places',filter:['==',['geometry-type'],'LineString'],paint:{'line-color':'#936629','line-width':3}},
  {id:'points',type:'circle',source:'places',filter:['==',['geometry-type'],'Point'],paint:{'circle-radius':7,'circle-color':'#346b61','circle-stroke-color':'#f0d4a1','circle-stroke-width':2}},
@@ -68,6 +75,8 @@ export default function AtlasMap({data,selected,onSelect,physical,geoLabels,date
  m.on('mouseenter',layer,()=>{m.getCanvas().style.cursor='pointer';});m.on('mouseleave',layer,()=>{m.getCanvas().style.cursor='';});
  }
  m.on('click','directory-points',e=>{const id=e.features?.[0]?.properties?.entity_id;if(typeof id==='string')directorySelect.current(id);});
+ m.on('click','directory-glyphs',e=>{const id=e.features?.[0]?.properties?.entity_id;if(typeof id==='string')directorySelect.current(id);});
+ m.on('mouseenter','directory-glyphs',()=>{m.getCanvas().style.cursor='pointer';});m.on('mouseleave','directory-glyphs',()=>{m.getCanvas().style.cursor='';});
  m.on('mouseenter','directory-points',()=>{m.getCanvas().style.cursor='pointer';});m.on('mouseleave','directory-points',()=>{m.getCanvas().style.cursor='';});
  m.on('click','territory-fill',e=>{const id=e.features?.[0]?.properties?.id;if(typeof id==='string')territorySelect.current(id);});
  m.on('click','geology-fill',e=>{const id=e.features?.[0]?.properties?.id;if(typeof id==='string')geoSelect.current(id);});
@@ -76,8 +85,22 @@ export default function AtlasMap({data,selected,onSelect,physical,geoLabels,date
  },[]);
  useEffect(()=>{
  if(!ready||!map.current)return;
- for(const id of ['relief','etopo','hex'])map.current.setLayoutProperty(id,'visibility',id===physical?'visible':'none');
- },[ready,physical]);
+ const m=map.current;
+ for(const id of ['relief','etopo','hex'])m.setLayoutProperty(id,'visibility',id===physical||(id==='relief'&&physical==='hex')?'visible':'none');
+ m.setLayoutProperty('hex-texture','visibility',physical==='hex'&&texture?'visible':'none');
+ },[ready,physical,texture]);
+ useEffect(()=>{
+ if(!ready||!map.current)return;
+ const m=map.current;let cancelled=false;
+ const kinds=['metropoles','capitals','towns','waystations','villages','regions','sites','waters'];
+ Promise.all(kinds.map(async kind=>{
+ const img=new Image();img.src=gazetteerIcon(kind)!;await img.decode();
+ const canvas=document.createElement('canvas');canvas.width=56;canvas.height=56;
+ const ctx=canvas.getContext('2d');if(!ctx)throw Error('canvas');ctx.drawImage(img,0,0,56,56);
+ return [kind,ctx.getImageData(0,0,56,56)] as const;
+ })).then(images=>{if(cancelled)return;for(const [kind,image] of images)if(!m.hasImage('gaz-'+kind))m.addImage('gaz-'+kind,image,{pixelRatio:2});m.setFilter('directory-points',['!=',['get','collection'],'historical']);m.setLayoutProperty('directory-glyphs','visibility','visible');setGlyphsReady(true);}).catch(()=>{if(!cancelled)setReferenceError('تعذر تحميل الرموز التاريخية؛ تُعرض العلامات الدائرية البديلة.');});
+ return ()=>{cancelled=true;};
+ },[ready]);
  const loaded=useRef(new Set<string>());
  useEffect(()=>{
  if(!ready||!map.current)return;
@@ -86,7 +109,11 @@ export default function AtlasMap({data,selected,onSelect,physical,geoLabels,date
  if(physical==='hex')load('hex','/physical/hex.geojson');
  if(rivers){load('worldRivers','/physical/worldRivers.geojson');load('regionalRivers','/physical/regionalRivers.geojson');load('outsideRivers','/physical/outsideRivers.geojson');}
  for(const id of ['world-rivers','regional-rivers','outside-rivers'])m.setLayoutProperty(id,'visibility',rivers?'visible':'none');
- },[ready,physical,rivers]);
+ if(borders&&modernReference){for(const id of ['worldBorders','regionalBorders','outsideBorders'])load(id,'/physical/'+id+'.geojson');}
+ for(const id of ['world-borders','regional-borders','outside-borders'])m.setLayoutProperty(id,'visibility',borders&&modernReference?'visible':'none');
+ if(grid)load('graticule','/physical/graticule.geojson');
+ m.setLayoutProperty('graticule','visibility',grid?'visible':'none');
+ },[ready,physical,rivers,borders,modernReference,grid]);
  useEffect(()=>{
  if(!ready||!map.current||!geoLabels)return;
  const m=map.current;
@@ -158,7 +185,7 @@ export default function AtlasMap({data,selected,onSelect,physical,geoLabels,date
  useEffect(()=>{if(ready&&map.current&&network&&focus)map.current.easeTo({center:focus,zoom:Math.max(5,map.current.getZoom()),duration:0});},[ready,network,focus]);
  useEffect(()=>{
  if(!ready||!map.current)return;
- const features:FeatureCollection={type:'FeatureCollection',features:directory.map(x=>({type:'Feature',geometry:{type:'Point',coordinates:[x.record.lon,x.record.lat]},properties:{entity_id:x.entity_id,collection:x.collection}}))};
+ const features:FeatureCollection={type:'FeatureCollection',features:directory.map(x=>({type:'Feature',geometry:{type:'Point',coordinates:[x.record.lon,x.record.lat]},properties:{entity_id:x.entity_id,collection:x.collection,glyph:'gaz-'+(x.record.kind??'towns'),priority:({metropoles:0,capitals:1,towns:2,waystations:3,villages:4,sites:4,waters:5,regions:5} as Record<string,number>)[x.record.kind??'towns']??6}}))};
  (map.current.getSource('directory') as GeoJSONSource).setData(features);
  },[ready,directory]);
  useEffect(()=>{if(!ready||!map.current)return;const x=directory.find(r=>r.entity_id===directorySelected);if(x)map.current.easeTo({center:[x.record.lon,x.record.lat],zoom:Math.max(5,map.current.getZoom()),duration:0});},[ready,directory,directorySelected]);
@@ -216,10 +243,13 @@ export default function AtlasMap({data,selected,onSelect,physical,geoLabels,date
  const markers=topics.flatMap(t=>{if(!t.location)return [];const el=document.createElement('button');el.type='button';el.className='extended-marker '+t.type;el.textContent=t.type==='geosite'?'▲':'✦';el.title=topicTitle(t);el.setAttribute('aria-label','موضوع '+topicTitle(t));el.addEventListener('click',e=>{e.stopPropagation();topicSelect.current(topicKey(t));});return [new maplibregl.Marker({element:el,anchor:'bottom',offset:t.type==='geosite'?[13,-10]:[-13,-10]}).setLngLat(t.location).addTo(m)];});return ()=>markers.forEach(x=>x.remove());
  },[ready,topics]);
  useEffect(()=>{if(!ready||!map.current)return;const t=topics.find(t=>topicKey(t)===topicSelected);if(t?.location)map.current.easeTo({center:t.location,zoom:Math.max(5,map.current.getZoom()),duration:0});},[ready,topics,topicSelected]);
- return <section className="map-shell" aria-label="الخريطة الجغرافية"><div ref={node} className="map" data-testid="map" data-ready={ready?'true':'false'} dir="ltr"/>
+ return <section className="map-shell" aria-label="الخريطة الجغرافية"><div ref={node} className="map" data-testid="map" data-ready={ready?'true':'false'} data-gazetteer-glyphs={glyphsReady?'ready':'fallback'} dir="ltr"/>
  {failed&&<p className="map-message" role="alert">تعذر عرض جزء من الخريطة. يمكنك استخدام قائمة المواضع.</p>}
  <div className="map-views"><button onClick={()=>map.current?.jumpTo({center:[42,24],zoom:4})}>الجزيرة</button><button onClick={()=>map.current?.jumpTo({center:[0,20],zoom:1})}>العالم</button></div>
- <div className="reference-controls"><button aria-pressed={rivers} onClick={()=>setRivers(v=>!v)}>المجاري المائية</button><button aria-pressed={mini} onClick={()=>setMini(v=>!v)}>الخريطة المصغرة</button></div>
+ <div className="reference-controls"><button aria-pressed={borders&&modernReference} disabled={!modernReference} onClick={()=>setBorders(v=>!v)}>الحدود المعاصرة</button><button aria-pressed={grid} onClick={()=>setGrid(v=>!v)}>شبكة الإحداثيات</button>{physical==='hex'&&<button aria-pressed={texture} onClick={()=>setTexture(v=>!v)}>تظليل الشبكة</button>}<button aria-pressed={rivers} onClick={()=>setRivers(v=>!v)}>المجاري المائية</button><button aria-pressed={mini} onClick={()=>setMini(v=>!v)}>الخريطة المصغرة</button></div>
+ {referenceError&&<p className="reference-warning" role="status">{referenceError}</p>}
+ {borders&&modernReference&&<div className="border-legend" data-testid="modern-border-legend">حدود دول مرجعية معاصرة · GSHHG / Basemap</div>}
+ {grid&&<div className="grid-legend" data-testid="graticule-legend">شبكة إحداثيات 15°</div>}
  {mini&&<MiniMap extent={extent} onNavigate={(lon,lat)=>map.current?.jumpTo({center:[lon,lat]})} onWorld={()=>map.current?.jumpTo({center:[0,20],zoom:1})}/>}
  {network&&(showLinks||journey!==null)&&<div className="editorial-legend" data-testid="editorial-legend">خطوط موضوعية · ليست مسارات تاريخية</div>}
  {directory.length>0&&<div className="directory-legend" data-testid="directory-map-count">{directory.length} مواضع مرجعية · {directory[0].collection==='historical'?'المعجم التاريخي':'العينة المعاصرة'}</div>}

@@ -363,3 +363,35 @@ test('thematic eligibility of reference directory and geosites',async({page})=>{
  await expect(page.locator('.extended-marker.geosite')).toHaveCount(0);
  await expect(page.locator('.extended-marker.story')).toHaveCount(5);
 });
+
+test('reference borders, graticule, texture and historical glyph sprites',async({page})=>{
+ const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('/');
+ const map=page.getByTestId('map');
+ await expect(map).toHaveAttribute('data-ready','true',{timeout:20000});
+ await expect(map).toHaveAttribute('data-gazetteer-glyphs','ready');
+ const world=page.waitForResponse(r=>r.url().endsWith('/physical/worldBorders.geojson')&&r.status()===200);
+ const regional=page.waitForResponse(r=>r.url().endsWith('/physical/regionalBorders.geojson')&&r.status()===200);
+ await page.getByRole('button',{name:'الحدود المعاصرة',exact:true}).click();
+ expect((await (await world).json()).features).toHaveLength(458);
+ expect((await (await regional).json()).features).toHaveLength(126);
+ await expect(page.getByTestId('modern-border-legend')).toBeVisible();
+ const grid=page.waitForResponse(r=>r.url().endsWith('/physical/graticule.geojson')&&r.status()===200);
+ await page.getByRole('button',{name:'شبكة الإحداثيات',exact:true}).click();
+ expect((await (await grid).json()).features).toHaveLength(36);
+ await page.getByLabel('الخلفية الجغرافية').selectOption('hex');
+ await expect(page.getByRole('button',{name:'تظليل الشبكة'})).toHaveAttribute('aria-pressed','true');
+ await page.getByRole('button',{name:'تظليل الشبكة'}).click();
+ await expect(page.getByRole('button',{name:'تظليل الشبكة'})).toHaveAttribute('aria-pressed','false');
+ await page.getByRole('button',{name:'تظليل الشبكة'}).click();
+ await page.getByRole('button',{name:'العصور القديمة',exact:true}).click();
+ await expect(page.getByRole('button',{name:'الحدود المعاصرة',exact:true})).toBeDisabled();
+ await expect(page.getByTestId('modern-border-legend')).toHaveCount(0);
+ await page.getByRole('button',{name:'كل العصور',exact:true}).click();
+ await expect(page.getByTestId('modern-border-legend')).toBeVisible();
+ await page.getByLabel('السنة التاريخية').fill('550');
+ await page.getByRole('button',{name:'تطبيق الزمن'}).click();
+ await expect(page.getByTestId('modern-border-legend')).toHaveCount(0);
+ await expect(page.getByTestId('graticule-legend')).toBeVisible();
+ expect(errors).toEqual([]);
+});

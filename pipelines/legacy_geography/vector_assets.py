@@ -1,5 +1,9 @@
 """Convert the original equirectangular SVG paths without inventing geography."""
 import json
+import base64
+import io
+import numpy as np
+from PIL import Image
 import re
 from hashlib import sha256
 from shapely.geometry import LineString, box, mapping
@@ -75,5 +79,56 @@ def build_vectors(geo,world_path,out):
             outside.append(feature("LineString",mapping(line)["coordinates"],{}))
     hashes["outsideRivers.geojson"]=write(out/"outsideRivers.geojson",outside)
     print("High-zoom coarse river pieces outside regional coverage:",len(outside))
+    border_counts={}
+    skipped={}
+    for key,expected in (("worldBorders",458),("regionalBorders",127)):
+        if len(geo[key])!=expected:
+            raise ValueError("border inventory mismatch")
+        lines=[]
+        for path in geo[key]:
+            line=coords(path)
+            if len(set(map(tuple,line)))<2:
+                continue
+            lines.append(feature("LineString",line,{}))
+        border_counts[key]=len(lines)
+        skipped[key]=expected-len(lines)
+        hashes[key+".geojson"]=write(out/(key+".geojson"),lines)
+    if border_counts!={"worldBorders":458,"regionalBorders":126} or skipped!={"worldBorders":0,"regionalBorders":1}:
+        raise ValueError("unexpected border simplification")
+    outside_borders=[]
+    for path in geo["worldBorders"]:
+        for line in lineparts(LineString(coords(path)).difference(envelope)):
+            outside_borders.append(feature("LineString",mapping(line)["coordinates"],{}))
+    hashes["outsideBorders.geojson"]=write(out/"outsideBorders.geojson",outside_borders)
+    # Same 15-degree reference graticule, clipped to Web Mercator's latitude extent.
+    grid=[]
+    for lon in range(-180,181,15):
+        grid.append(feature("LineString",[[lon,lat] for lat in range(-85,86,5)],{}))
+    for lat in range(-75,76,15):
+        grid.append(feature("LineString",[[lon,lat] for lon in range(-180,181,5)],{}))
+    hashes["graticule.geojson"]=write(out/"graticule.geojson",grid)
+    # Reproject the original alpha texture over the source bbox, retaining its signed
+    # luminance shading, not interpreting it as elevation or historical land cover.
+    x0,y0,x1,y1=world["bbox"]
+    west,south,east,north=x0*.36-180,90-y1*.36,x1*.36-180,90-y0*.36
+    image=Image.open(io.BytesIO(base64.b64decode(world["texture"].split(",",1)[1]))).convert("RGBA")
+    if image.size!=(2754,2106):
+        raise ValueError("unexpected hex texture dimensions")
+    # Limit web image dimensions; sample latitude at Mercator pixel centers.
+    width=2048
+    height=round(image.height*width/image.width)
+    image=image.resize((width,image.height),Image.Resampling.LANCZOS)
+    merc=lambda lat: np.arcsinh(np.tan(np.radians(lat)))
+    ys=merc(north)+(np.arange(height)+.5)/height*(merc(south)-merc(north))
+    lat=np.degrees(np.arctan(np.sinh(ys)))
+    rows=np.clip((north-lat)/(north-south)*image.height-.5,0,image.height-1)
+    low=np.floor(rows).astype(int)
+    high=np.minimum(low+1,image.height-1)
+    weights=(rows-low)[:,None,None]
+    pixels=np.asarray(image,dtype=np.float32)
+    projected=Image.fromarray(np.rint(pixels[low]*(1-weights)+pixels[high]*weights).astype(np.uint8))
+    projected.save(out/"hex-texture.webp","WEBP",quality=85,method=4)
+    hashes["hex-texture.webp"]=sha256((out/"hex-texture.webp").read_bytes()).hexdigest()
+    print("Verified border paths:",border_counts,"skipped:",skipped,"texture:",projected.size)
     print("Verified worldtiles SHA-256; converted",len(cells),"hexagons and river paths",counts)
-    return hashes,{"worldtiles_sha256":WORLD_HASH,"hex_cells":len(cells),"land_centers":len(world["land"]),"river_paths":counts,"legacy_bbox":world["bbox"]}
+    return hashes,{"worldtiles_sha256":WORLD_HASH,"hex_cells":len(cells),"land_centers":len(world["land"]),"river_paths":counts,"legacy_bbox":world["bbox"],"border_paths":border_counts,"border_degenerate_skipped":skipped,"graticule_lines":len(grid),"hex_texture":{"bounds":[west,south,east,north],"size":[width,height],"projection":"EPSG:3857"}}

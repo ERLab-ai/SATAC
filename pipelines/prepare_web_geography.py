@@ -62,7 +62,7 @@ def build(source,world,out):
     raster_count=sum(k.endswith(".webp") for k in hashes)
     hashes.update(vectors)
     (out/"manifest.json").write_text(json.dumps({"legacy_sha256":EXPECTED,"labels":91,"maxzoom":MAX_Z,"files":hashes,**meta},indent=2)+"\n")
-    print("Verified source SHA-256; generated",len(hashes)-1,"raster tiles and",len(labels),"labels")
+    print("Verified source SHA-256; generated",raster_count,"global raster tiles,",len(hashes)-raster_count,"other assets and",len(labels),"labels")
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
