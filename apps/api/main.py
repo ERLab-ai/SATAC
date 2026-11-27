@@ -121,6 +121,7 @@ def query_claims(conn, release, after, limit, bounds, certainty, entity=None, di
         conditions.append("version_id>%s")
         args.append(after)
     if entity is not None:
+        conditions.append("payload->>'predicate'<>'NAME'")
         if direction == "out":
             conditions.append("payload->>'subject_id'=%s")
             args.append(str(entity))
@@ -208,6 +209,48 @@ def map_features(bbox: str=Query(...,max_length=120), release: UUID | None=None,
         for g in row["matched"]:
             features.append({"type":"Feature","geometry":g["geometry"],"properties":{
                 "claim_id":p["claim_id"],"version_id":p["version_id"],"subject_id":p["subject_id"],
-                "predicate":p["predicate"],"object_id":p["object_id"],"role":g["role"],
+                "predicate":p["predicate"],**({"object_id":p["object_id"]} if "object_id" in p else {"name":p["object_text"]}),"role":g["role"],
                 "precision":g["precision"],**({"uncertainty_m":g["uncertainty_m"]} if "uncertainty_m" in g else {})}})
     return {"type":"FeatureCollection","release_id":str(rid),"features":features,"next_after":cursor}
+
+
+@app.get("/api/v1/entities/{entity_id}")
+def entity_detail(entity_id: UUID, release: UUID | None=None):
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        rows=conn.execute("""SELECT claim_id,version_id,name,lang,kind FROM public_read.entity_names
+            WHERE release_id=%s AND entity_id=%s ORDER BY CASE lang WHEN 'ar' THEN 0 ELSE 1 END,version_id LIMIT 200""",(rid,entity_id)).fetchall()
+    if not rows:
+        raise HTTPException(404,"entity_not_found")
+    return {"release_id":str(rid),"entity_id":str(entity_id),"kind":rows[0]["kind"],
+            "names":[{k:v for k,v in r.items() if k!="kind"} for r in rows]}
+
+
+@app.get("/api/v1/search")
+def search(q: str=Query(...,min_length=1,max_length=120),lang: Literal["ar","en","any"]="any",
+           kind: str | None=Query(None,alias="type",max_length=40),release: UUID | None=None,
+           after: UUID | None=None,limit: int=Query(50,ge=1,le=200),
+           as_of: str | None=Query(None,max_length=32),start: str | None=Query(None,alias="from",max_length=32),
+           end: str | None=Query(None,alias="to",max_length=32),certainty: Literal["any","possible","certain"]="any"):
+    bounds=time_range(as_of,start,end,certainty)
+    if after is not None and release is None:
+        raise HTTPException(422,"pagination_requires_release")
+    with reader() as conn:
+        key=conn.execute("SELECT public_read.search_key(%s) AS key",(q,)).fetchone()["key"]
+        if not key:
+            raise HTTPException(422,"empty_search")
+        rid=resolve_release(conn,release)
+        filters=["release_id=%s","strpos(public_read.search_key(name),%s)>0"]
+        args=[rid,key]
+        if lang!="any":
+            filters.append("lang=%s");args.append(lang)
+        if kind is not None:
+            filters.append("kind=%s");args.append(kind)
+        if after is not None:
+            filters.append("version_id>%s");args.append(after)
+        if bounds is not None:
+            filters.append("public_read.temporal_match(temporal,%s,%s)=ANY(%s::text[])")
+            args.extend([*bounds,["possible","certain"] if certainty=="any" else [certainty]])
+        rows=conn.execute("SELECT entity_id,claim_id,version_id,name,lang,kind FROM public_read.entity_names WHERE "+" AND ".join(filters)+" ORDER BY version_id LIMIT %s",[*args,limit+1]).fetchall()
+    page=rows[:limit]
+    return {"release_id":str(rid),"results":page,"next_after":str(page[-1]["version_id"]) if len(rows)>limit else None}

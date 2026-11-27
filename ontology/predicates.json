@@ -157,6 +157,17 @@
         "Work"
       ],
       "note": "SourceVersion evidence remains a separate record"
+    },
+    "NAME": {
+      "domain": [
+        "*"
+      ],
+      "range": [],
+      "literal_type": "text",
+      "languages": [
+        "ar",
+        "en"
+      ]
     }
   },
   "publication_status": [

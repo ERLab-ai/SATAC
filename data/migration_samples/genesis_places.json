@@ -1,0 +1,41 @@
+{
+  "provenance": {
+    "release": "genesis-0.1-research-preview",
+    "commit": "46a48ec5bd3656b2c514458d1637358a28664088",
+    "path": "data/knowledge.json",
+    "git_blob_sha": "5bf00fb05c4459e841600923ef6ee27c1b0bd356",
+    "editorial_status": "review_required"
+  },
+  "entities": [
+    {
+      "id": "hail",
+      "name": "منطقة حائل",
+      "en": "Hail region",
+      "kind": "place",
+      "lon": 41.7,
+      "lat": 27.5,
+      "precision": "مركز إقليمي تقريبي؛ ليس موقع النقوش",
+      "local": true
+    },
+    {
+      "id": "hegra",
+      "name": "الحِجر",
+      "en": "Hegra / Al-Hijr",
+      "kind": "place",
+      "lon": 37.9,
+      "lat": 26.8,
+      "precision": "موضع عام تقريبي",
+      "local": true
+    },
+    {
+      "id": "petra",
+      "name": "البتراء",
+      "en": "Petra",
+      "kind": "place",
+      "lon": 35.45,
+      "lat": 30.33,
+      "precision": "موضع عام تقريبي",
+      "local": false
+    }
+  ]
+}
