@@ -1,7 +1,8 @@
 import {useEffect,useState,type FormEvent} from 'react';
 import {createRoot} from 'react-dom/client';
 import AtlasMap from './AtlasMap';
-import {get,releases,mapFeatures,emptyFeatures,type Release,type Features,type TimeFilter,type SearchResult,type Entity,type Claim} from './api';
+import Encyclopedia from './Encyclopedia';
+import {get,releases,mapFeatures,emptyFeatures,type Release,type Features,type TimeFilter,type SearchResult,type Entity,type Claim,type ArticleSummary} from './api';
 import './style.css';
 
 function yearValue(value:string,era:string){
@@ -16,7 +17,8 @@ function yearValue(value:string,era:string){
 const YEAR_LIMIT=10n**30n;
 function displayYear(a:bigint){return a<=0n?{year:(1n-a).toString(),era:'BCE'}:{year:a.toString(),era:'CE'};}
 function App(){
- const [panel,setPanel]=useState<'search'|'detail'|null>(null);
+ const [panel,setPanel]=useState<'search'|'detail'|'encyclopedia'|null>(null);
+ const [articleRows,setArticleRows]=useState<ArticleSummary[]>([]),[articleSelected,setArticleSelected]=useState<string|null>(null),[articleLayer,setArticleLayer]=useState(false);
  const [playing,setPlaying]=useState(false),[step,setStep]=useState('100');
  const [showLocations,setShowLocations]=useState(true);
  const [physical,setPhysical]=useState<'relief'|'etopo'|'flat'|'hex'>('relief');
@@ -51,8 +53,9 @@ function App(){
  (async()=>{const e=await get<Entity>('/api/v1/entities/'+selected,{release},c.signal);const n=e.names.find(n=>n.lang==='ar')??e.names[0];const d=n?(await get<{claim:Claim}>('/api/v1/claims/'+n.claim_id,{release},c.signal)).claim:null;if(!c.signal.aborted){setEntity(e);setClaim(d);}})().catch(()=>{if(!c.signal.aborted)setDetailError('لا تتوفر تفاصيل هذا الكيان في الإصدار المحدد.');}).finally(()=>{if(!c.signal.aborted)setDetailLoading(false);});
  return ()=>c.abort();
  },[release,selected]);
- function resetSelection(){setSelected(null);setEntity(null);setClaim(null);setAfter(undefined);setPanel(p=>p==='detail'?null:p);}
+ function resetSelection(){setSelected(null);setEntity(null);setClaim(null);setAfter(undefined);setArticleSelected(null);setPanel(p=>p==='detail'?null:p);}
  function choose(id:string){setSelected(id);setPanel('detail');}
+ function chooseArticle(id:string|null){setArticleSelected(id);setPanel('encyclopedia');}
  function applyTime(e:FormEvent){e.preventDefault();setPlaying(false);try{const as_of=yearValue(year,era);setTime({as_of,certainty});setTimeLabel(year.trim()+(era==='BCE'?' ق.م':' م'));setTimeError('');resetSelection();}catch(err){setTimeError((err as Error).message);}}
  function clearTime(){setPlaying(false);setTime({});setYear('');setTimeLabel('');setTimeError('');resetSelection();}
  function moveTime(delta:bigint){
@@ -75,7 +78,7 @@ function App(){
  const places=[...new Map(visibleData.features.map(f=>[f.properties.subject_id,f.properties])).values()];
  const currentName=entity?.names.find(n=>n.lang==='ar')?.name??entity?.names[0]?.name;
  return <div className="app">
- <header className="masthead"><div className="brand"><span className="mark">S</span><div><span className="eyebrow">SATAC · نموذج تأسيسي v0.14</span><h1>السعودية عبر الزمن، عبر القارات</h1></div></div><nav className="header-actions" aria-label="أدوات الأطلس"><button aria-expanded={panel==='search'} onClick={()=>setPanel(p=>p==='search'?null:'search')}>استكشف</button><button aria-expanded={panel==='detail'} onClick={()=>setPanel(p=>p==='detail'?null:'detail')}>المعرفة</button><button onClick={()=>setPanel(null)}>الخريطة</button></nav></header>
+ <header className="masthead"><div className="brand"><span className="mark">S</span><div><span className="eyebrow">SATAC · نموذج تأسيسي v0.14</span><h1>السعودية عبر الزمن، عبر القارات</h1></div></div><nav className="header-actions" aria-label="أدوات الأطلس"><button aria-expanded={panel==='search'} onClick={()=>setPanel(p=>p==='search'?null:'search')}>استكشف</button><button aria-expanded={panel==='detail'} onClick={()=>setPanel(p=>p==='detail'?null:'detail')}>المعرفة</button><button aria-expanded={panel==='encyclopedia'} onClick={()=>{setPanel(p=>p==='encyclopedia'?null:'encyclopedia');setArticleLayer(true);}}>الموسوعة</button><button onClick={()=>setPanel(null)}>الخريطة</button></nav></header>
  <main><section className="toolbar" aria-label="أدوات البحث والإصدار">
  <label>الإصدار المعرفي<select aria-label="الإصدار المعرفي" value={release} onChange={e=>{setRelease(e.target.value);resetSelection();}}>{!release&&<option value="">تحميل الإصدارات</option>}{allReleases.map(r=><option key={r.release_id} value={r.release_id}>{r.is_current?'الإصدار الحالي':r.created_at.slice(0,10)} · {r.release_id.slice(0,8)}</option>)}</select></label>
  <form className="search" onSubmit={e=>{e.preventDefault();setAfter(undefined);setSubmitted(q.trim());setPanel('search');}}><label htmlFor="search">البحث عن موضع أو اسم</label><div className="search-row"><input id="search" value={q} onChange={e=>setQ(e.target.value)} placeholder="الحِجر، البتراء..." maxLength={120}/><button disabled={!release}>بحث</button></div></form>
@@ -83,7 +86,7 @@ function App(){
  <label className="layer-toggle"><input type="checkbox" checked={geoLabels} onChange={e=>setGeoLabels(e.target.checked)}/> التسميات الجغرافية</label>
  <label className="layer-toggle"><input type="checkbox" checked={showLocations} onChange={e=>setShowLocations(e.target.checked)}/> المواضع</label>
  {releaseError&&<p role="alert">{releaseError}</p>}</section>
- <section className="main-map"><AtlasMap data={visibleData} selected={selected} onSelect={choose} physical={physical} geoLabels={geoLabels} dated={!!time.as_of}/></section>
+ <section className="main-map"><AtlasMap data={visibleData} selected={selected} onSelect={choose} physical={physical} geoLabels={geoLabels} dated={!!time.as_of} articles={articleLayer&&!time.as_of?articleRows:[]} selectedArticle={articleSelected} onArticleSelect={chooseArticle}/></section>
  <section className="map-status" aria-label="حالة الخريطة"><p role="status" data-testid="feature-count">{mapLoading?'جارٍ تحميل المعالم…':places.length+' مواضع'}</p>
  {mapError&&<p role="alert">{mapError}</p>}{truncated&&<p>عُرضت أول 2000 سجل؛ نتائج إضافية غير معروضة.</p>}{time.as_of&&<p>التأريخ: {timeLabel} · لا تظهر السجلات غير المؤرخة.</p>}
  {!mapLoading&&!mapError&&!places.length&&<p>لا توجد مواضع مطابقة.</p>}</section>
@@ -105,6 +108,6 @@ function App(){
  {detailLoading&&<p role="status">جارٍ تحميل التفاصيل…</p>}{detailError&&<p role="alert">{detailError}</p>}
  {entity&&<article><p className="eyebrow">أسماء منشورة في الإصدار</p><h3>{currentName}</h3><ul className="names">{entity.names.map(n=><li key={n.version_id} lang={n.lang} dir="auto">{n.name}</li>)}</ul>
  {claim?.scientific_note&&<p className="note">{claim.scientific_note}</p>}
- {!!claim?.references?.length&&<section><h3>المراجع المتاحة</h3><ul>{claim.references.map((r,i)=><li key={r.source_version_id+i}>{r.title}{r.locator&&<small>{r.locator}</small>}</li>)}</ul></section>}</article>}</aside></main></div>;
+ {!!claim?.references?.length&&<section><h3>المراجع المتاحة</h3><ul>{claim.references.map((r,i)=><li key={r.source_version_id+i}>{r.title}{r.locator&&<small>{r.locator}</small>}</li>)}</ul></section>}</article>}</aside><div hidden={panel!=='encyclopedia'}><Encyclopedia release={release} selected={articleSelected} onSelect={chooseArticle} onClose={()=>setPanel(null)} onAnchors={setArticleRows} dated={!!time.as_of} showAnchors={articleLayer} setShowAnchors={setArticleLayer}/></div></main></div>;
 }
 createRoot(document.getElementById('root')!).render(<App/>);

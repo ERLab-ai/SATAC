@@ -11,7 +11,7 @@ v0.13 is the product/visual reference; v0.14 is the architectural reference. Acc
 | Map tools | Region/world, scale, zoom; synchronized minimap and world reset added; dedicated fullscreen pending |
 | Layers and lenses | Location and geographic-label toggles; relief/ETOPO/flat/hex backdrop and reference river toggle; restore legacy atlas, historical places, density and thematic layers |
 | Terrain, elevation/bathymetry, hex grid | Relief and ETOPO reference imagery reprojected to Web Mercator raster tiles; 37,209 original regional visual hexagons restored; relief residual texture, analytical cells, true DEM and finer detail pending |
-| Encyclopedia | Name/evidence card only; restore 50 main articles and contextual narrative |
+| Encyclopedia | 50 main articles and original bibliography restored in candidate; thematic reader, search and editorial map anchors; legacy artwork and extended articles pending |
 | Historical gazetteer and settlements | Three-place sample only; migrate legacy collections with provenance |
 | Relations, journeys, route network, historical political comparison | Pending legacy migration and interactive visualization |
 | Resources, geology, volcanism, cells | Pending original dataset migration and visualization |

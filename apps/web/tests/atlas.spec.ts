@@ -113,3 +113,33 @@ test('legacy hexagons, rivers and synchronized minimap',async({page})=>{
  await page.getByRole('button',{name:'الجزيرة',exact:true}).click();
  await page.screenshot({path:'test-results/hex-minimap.png'});
 });
+
+test('encyclopedia restores original articles, thematic search and map anchors',async({page})=>{
+ await page.goto('/');
+ await expect(page.getByTestId('feature-count')).toHaveText('3 مواضع');
+ await page.getByRole('button',{name:'الموسوعة',exact:true}).click();
+ await expect(page.getByTestId('article-count')).toHaveText('50 مقالات');
+ await expect(page.locator('.article-marker')).toHaveCount(50);
+ await page.getByLabel('البحث في المقالات').fill('الحجر');
+ await page.getByRole('button',{name:'بحث المقالات'}).click();
+ const panel=page.getByRole('complementary',{name:'الموسوعة'});
+ await panel.getByRole('button',{name:/الحِجر: عمارة الأنباط/}).click();
+ await expect(panel.getByRole('heading',{name:'الحِجر: عمارة الأنباط'})).toBeVisible();
+ await expect(panel.getByRole('heading',{name:'مراجع المقال'})).toBeVisible();
+ await expect(panel.getByRole('link',{name:'موقع الحِجر الأثري'})).toHaveAttribute('href','https://whc.unesco.org/en/list/1293/');
+ await panel.getByRole('button',{name:'العودة إلى المقالات'}).click();
+ await page.getByLabel('البحث في المقالات').fill('');
+ await page.getByRole('button',{name:'بحث المقالات'}).click();
+ await expect(page.getByTestId('article-count')).toHaveText('50 مقالات');
+ await page.getByLabel('الحقبة الموضوعية').selectOption('ancient');
+ await expect.poll(()=>page.locator('.article-marker').count()).toBeLessThan(50);
+ await page.getByLabel('معالم الموسوعة').uncheck();
+ await expect(page.locator('.article-marker')).toHaveCount(0);
+ await page.getByLabel('معالم الموسوعة').check();
+ await page.getByRole('button',{name:'إغلاق الموسوعة'}).click();
+ await page.getByLabel('السنة التاريخية').fill('550');
+ await page.getByRole('button',{name:'تطبيق الزمن'}).click();
+ await expect(page.locator('.article-marker')).toHaveCount(0);
+ await page.getByRole('button',{name:'كل الأزمنة'}).click();
+ await expect.poll(()=>page.locator('.article-marker').count()).toBeGreaterThan(0);
+});

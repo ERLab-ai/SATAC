@@ -121,7 +121,7 @@ def query_claims(conn, release, after, limit, bounds, certainty, entity=None, di
         conditions.append("version_id>%s")
         args.append(after)
     if entity is not None:
-        conditions.append("payload->>'predicate'<>'NAME'")
+        conditions.append("payload->>'predicate' NOT IN ('NAME','ARTICLE')")
         if direction == "out":
             conditions.append("payload->>'subject_id'=%s")
             args.append(str(entity))
@@ -254,3 +254,33 @@ def search(q: str=Query(...,min_length=1,max_length=120),lang: Literal["ar","en"
         rows=conn.execute("SELECT entity_id,claim_id,version_id,name,lang,kind FROM public_read.entity_names WHERE "+" AND ".join(filters)+" ORDER BY version_id LIMIT %s",[*args,limit+1]).fetchall()
     page=rows[:limit]
     return {"release_id":str(rid),"results":page,"next_after":str(page[-1]["version_id"]) if len(rows)>limit else None}
+
+
+@app.get("/api/v1/articles")
+def articles(release: UUID | None=None,q: str | None=Query(None,max_length=120),
+             era: Literal["all","deep","ancient","islamic","states","modern"]="all"):
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        filters=["release_id=%s"];args=[rid]
+        if era!="all":
+            filters.append("article->'eras' ? %s");args.append(era)
+        if q is not None:
+            key=conn.execute("SELECT public_read.search_key(%s) AS key",(q,)).fetchone()["key"]
+            if not key: raise HTTPException(422,"empty_search")
+            filters.append("strpos(public_read.search_key(concat_ws(' ',article->>'title',article->>'subtitle',article->>'summary',article->>'keywords',article->>'sections')),%s)>0");args.append(key)
+        rows=conn.execute("SELECT article FROM public_read.articles WHERE "+" AND ".join(filters)+" ORDER BY article->>'id' LIMIT 200",args).fetchall()
+    keys=("id","title","subtitle","category","art","eras","location","summary","short_name","heritage_status")
+    return {"release_id":str(rid),"articles":[{k:r["article"][k] for k in keys if k in r["article"]} for r in rows]}
+
+
+@app.get("/api/v1/articles/{slug}")
+def article(slug: str,release: UUID | None=None):
+    if not re.fullmatch(r"[a-z0-9_]{1,80}",slug): raise HTTPException(404,"article_not_found")
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        row=conn.execute("SELECT work_id,article FROM public_read.articles WHERE release_id=%s AND article->>'id'=%s",(rid,slug)).fetchone()
+        if row is None: raise HTTPException(404,"article_not_found")
+        ids={r["id"] for r in conn.execute("SELECT article->>'id' AS id FROM public_read.articles WHERE release_id=%s",(rid,))}
+    a=row["article"]
+    a["related"]=[s for s in a["related"] if s in ids]
+    return {"release_id":str(rid),"work_id":str(row["work_id"]),"article":a}

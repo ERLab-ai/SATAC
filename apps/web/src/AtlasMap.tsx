@@ -1,12 +1,14 @@
 import {useEffect,useRef,useState} from 'react';
 import maplibregl,{type GeoJSONSource} from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import type {Features} from './api';
+import type {Features,ArticleSummary} from './api';
+import {symbols} from './Encyclopedia';
 import MiniMap,{type Extent} from './MiniMap';
 type GeoLabel=[string,number,number,'water'|'land'|'city',number];
-export default function AtlasMap({data,selected,onSelect,physical,geoLabels,dated}:{data:Features;selected:string|null;onSelect:(id:string)=>void;physical:'relief'|'etopo'|'flat'|'hex';geoLabels:boolean;dated:boolean}){
+export default function AtlasMap({data,selected,onSelect,physical,geoLabels,dated,articles,selectedArticle,onArticleSelect}:{data:Features;selected:string|null;onSelect:(id:string)=>void;physical:'relief'|'etopo'|'flat'|'hex';geoLabels:boolean;dated:boolean;articles:ArticleSummary[];selectedArticle:string|null;onArticleSelect:(id:string)=>void}){
  const node=useRef<HTMLDivElement>(null),map=useRef<maplibregl.Map|null>(null),select=useRef(onSelect);
  select.current=onSelect;
+ const articleSelect=useRef(onArticleSelect);articleSelect.current=onArticleSelect;
  const [rivers,setRivers]=useState(false),[mini,setMini]=useState(true),[extent,setExtent]=useState<Extent>({west:30,east:55,south:10,north:40});
  const [ready,setReady]=useState(false),[failed,setFailed]=useState(false),[labels,setLabels]=useState<GeoLabel[]>([]);
  useEffect(()=>{const c=new AbortController();fetch('/physical/labels.json',{signal:c.signal}).then(r=>{if(!r.ok)throw Error('labels');return r.json();}).then(setLabels).catch(()=>{if(!c.signal.aborted)setFailed(true);});return ()=>c.abort();},[]);
@@ -94,6 +96,20 @@ export default function AtlasMap({data,selected,onSelect,physical,geoLabels,date
  });
  return ()=>labels.forEach(l=>l.remove());
  },[data,ready]);
+ useEffect(()=>{
+ if(!ready||!map.current)return;
+ const m=map.current;
+ const markers=articles.map(a=>{
+ const el=document.createElement('button');el.type='button';el.className='article-marker';el.textContent=symbols[a.art]??'◆';el.title=a.title;el.setAttribute('aria-label','مقال '+a.title);
+ el.addEventListener('click',e=>{e.stopPropagation();articleSelect.current(a.id);});
+ return new maplibregl.Marker({element:el,anchor:'center'}).setLngLat(a.location).addTo(m);
+ });
+ return ()=>markers.forEach(x=>x.remove());
+ },[ready,articles]);
+ useEffect(()=>{
+ if(!ready||!map.current)return;const a=articles.find(x=>x.id===selectedArticle);
+ if(a)map.current.easeTo({center:a.location,zoom:Math.max(5,map.current.getZoom()),duration:0});
+ },[ready,selectedArticle,articles]);
  return <section className="map-shell" aria-label="الخريطة الجغرافية"><div ref={node} className="map" data-testid="map" data-ready={ready?'true':'false'} dir="ltr"/>
  {failed&&<p className="map-message" role="alert">تعذر عرض جزء من الخريطة. يمكنك استخدام قائمة المواضع.</p>}
  <div className="map-views"><button onClick={()=>map.current?.jumpTo({center:[42,24],zoom:4})}>الجزيرة</button><button onClick={()=>map.current?.jumpTo({center:[0,20],zoom:1})}>العالم</button></div>

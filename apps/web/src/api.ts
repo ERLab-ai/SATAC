@@ -30,3 +30,6 @@ export async function mapFeatures(release:string,time:TimeFilter,signal:AbortSig
  }
  return {data,truncated:true};
 }
+
+export type ArticleSummary={id:string;title:string;subtitle:string;category:string;art:string;eras:string[];location:[number,number];summary:string;short_name?:string;heritage_status?:string};
+export type ArticleDetail=ArticleSummary & {sections:{title:string;text:string}[];bibliography:{id:string;title:string;url:string}[];related:string[]};

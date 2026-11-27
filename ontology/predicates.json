@@ -168,6 +168,16 @@
         "ar",
         "en"
       ]
+    },
+    "ARTICLE": {
+      "domain": [
+        "Work"
+      ],
+      "range": [],
+      "literal_type": "editorial_article",
+      "languages": [
+        "ar"
+      ]
     }
   },
   "publication_status": [
