@@ -126,11 +126,23 @@ def main():
     pub=sub.add_parser("publish-initial")
     pub.add_argument("--manifest-sha256",required=True)
     pub.add_argument("--release",required=True,type=UUID)
+    activate=sub.add_parser("activate-release")
+    activate.add_argument("--expected-current",required=True,type=UUID)
+    activate.add_argument("--target",required=True,type=UUID)
+    activate.add_argument("--manifest-sha256",required=True)
+    activate.add_argument("--reason",required=True)
+    activate.add_argument("--actor",required=True)
     a=p.parse_args()
     with connection() as conn:
         if a.command=="migrate":result=migrate(conn)
         elif a.command=="stage":result=stage(conn)
-        else:result=publish_initial(conn,a)
+        elif a.command=="publish-initial":result=publish_initial(conn,a)
+        else:
+            with conn.transaction():
+                conn.execute("SET LOCAL ROLE satac_publisher")
+                event=conn.execute("SELECT knowledge.activate_release(%s,%s,%s,%s,%s)",
+                    (a.expected_current,a.target,a.manifest_sha256,a.reason,a.actor)).fetchone()[0]
+                result={"activation_id":str(event),"release_id":str(a.target)}
     print(json.dumps(result,ensure_ascii=False,sort_keys=True,separators=(",",":")))
 
 if __name__=="__main__":
