@@ -8,6 +8,10 @@ test('map startup diagnostic and mandatory readiness',async({page})=>{
  await page.addInitScript(()=>document.addEventListener('securitypolicyviolation',e=>console.error('CSP violation: '+e.violatedDirective+' '+e.blockedURI)));
  try{
  await page.goto('/');
+ const worker=await page.request.get('/assets/maplibre-gl-worker.mjs');
+ expect(worker.status()).toBe(200);
+ expect(worker.headers()['content-type']).toMatch(/javascript/);
+ expect((await worker.body()).length).toBeGreaterThan(10000);
  await expect(page.getByTestId('map')).toHaveAttribute('data-ready','true',{timeout:20000});
  await expect(page.getByTestId('map')).toHaveAttribute('data-gazetteer-glyphs','ready',{timeout:10000});
  }finally{
