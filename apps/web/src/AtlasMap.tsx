@@ -1,5 +1,6 @@
 import {useEffect,useRef,useState} from 'react';
-import maplibregl,{type GeoJSONSource} from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
+import type {GeoJSONSource} from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type {Features,ArticleSummary,EditorialNetwork,DirectoryEntry,RouteNetwork,RoutePath,Snapshot,GeologyRecord,CellData,ExtendedTopic} from './api';
 import type {FeatureCollection,LineString} from 'geojson';

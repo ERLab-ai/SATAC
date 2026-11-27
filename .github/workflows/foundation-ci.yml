@@ -149,7 +149,7 @@ jobs:
         run: |
           test "$(node --version)" = v22.16.0
           test "$(npm --version)" = 10.9.2
-          echo 'd8fc9df705bd8d880856b399843b93b67ca4ff0edc7e6dd0b0280ac022fa7349  package-lock.json' | sha256sum -c -
+          echo '0cb81ca77931f5a6a6a061281024804d4cb47697eebb0a94d75ecef93e61fd84  package-lock.json' | sha256sum -c -
           npm ci --no-audit --no-fund
           git diff --exit-code -- package-lock.json
       - name: Rebuild verified legacy physical assets
