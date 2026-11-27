@@ -121,7 +121,7 @@ def query_claims(conn, release, after, limit, bounds, certainty, entity=None, di
         conditions.append("version_id>%s")
         args.append(after)
     if entity is not None:
-        conditions.append("payload->>'predicate' NOT IN ('NAME','ARTICLE','EDITORIAL_LINK','EDITORIAL_JOURNEY','DIRECTORY_ENTRY','ROUTE_SEGMENT','HISTORICAL_SNAPSHOT')")
+        conditions.append("payload->>'predicate' NOT IN ('NAME','ARTICLE','EDITORIAL_LINK','EDITORIAL_JOURNEY','DIRECTORY_ENTRY','ROUTE_SEGMENT','HISTORICAL_SNAPSHOT','GEOLOGY_RECORD')")
         if direction == "out":
             conditions.append("payload->>'subject_id'=%s")
             args.append(str(entity))
@@ -364,3 +364,18 @@ def snapshots(release: UUID | None=None,as_of: str | None=Query(None,max_length=
             args.extend(bounds)
         rows=conn.execute(sql+" ORDER BY (snapshot->>'year')::int,version_id",args).fetchall()
     return {"release_id":str(rid),"semantics":"approximate_source_snapshots_not_validity_intervals","snapshots":[r["snapshot"] for r in rows]}
+
+
+@app.get("/api/v1/geology")
+def geology(release: UUID | None=None):
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        rows=conn.execute("SELECT geology FROM public_read.geology WHERE release_id=%s ORDER BY geology->>'type',geology->'record'->>'id',version_id",(rid,)).fetchall()
+        links=conn.execute("""
+          WITH records AS (SELECT geology->>'type' AS kind, geology->'record' AS r FROM public_read.geology WHERE release_id=%s),
+          p AS (SELECT (r->>'id')::int AS id, public.ST_GeomFromGeoJSON(jsonb_build_object('type','Polygon','coordinates',jsonb_build_array(r->'ring'))) AS geom FROM records WHERE kind='province'),
+          v AS (SELECT r->>'id' AS id,public.ST_SetSRID(public.ST_MakePoint((r->>'lon')::float8,(r->>'lat')::float8),4326) AS geom FROM records WHERE kind='volcano')
+          SELECT v.id,coalesce(array_agg(p.id ORDER BY p.id) FILTER(WHERE p.id IS NOT NULL),ARRAY[]::int[]) AS ids
+          FROM v LEFT JOIN p ON public.ST_Covers(p.geom,v.geom) GROUP BY v.id
+        """,(rid,)).fetchall()
+    return {"release_id":str(rid),"semantics":"present_reference_not_past_reconstruction","records":[r["geology"] for r in rows],"volcano_provinces":{r["id"]:r["ids"] for r in links}}

@@ -23,3 +23,5 @@ No fake data, dummy buttons or historical boundary inference. Feature priority i
 Route candidate: 145 original segments, 135 source graph nodes; source-weight Dijkstra and separate map overlay. Browser verification pending; previous directory cycle had four map initialization failures, corrected invalid match expression. Historical territories remain pending.
 
 Historical snapshots candidate: 27 original polygons (five source years) and four original event points; explicit source-year temporal normalization, independent comparison and linked detail. No interpolated boundaries. Corrected prior release variable ordering build failure; browser validation pending.
+
+Geology candidate: 44 original valid provinces and 12 volcanic sites, reference layers, original colors and filters, PostGIS point/polygon associations, retained source files. Cell intersection reader and resource metrics pending. No historical geological reconstruction.

@@ -228,6 +228,16 @@
       "languages": [
         "ar"
       ]
+    },
+    "GEOLOGY_RECORD": {
+      "domain": [
+        "Place"
+      ],
+      "range": [],
+      "literal_type": "geology_record",
+      "languages": [
+        "ar"
+      ]
     }
   },
   "publication_status": [

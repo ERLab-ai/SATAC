@@ -17,3 +17,5 @@ Executable P0 reference: [publication and correction contract](docs/inception/pu
 [Directory candidate](docs/inception/directory-candidate.md): original 190 historical and 323 modern records, release-scoped reference directory.
 
 [Historical snapshots candidate](docs/inception/snapshots-candidate.md): original 27 approximate territories, four event markers, exact-year navigation and comparison.
+
+[Geology candidate](docs/inception/geology-candidate.md): original 44 geological provinces and 12 volcano reference records, release-scoped spatial associations.

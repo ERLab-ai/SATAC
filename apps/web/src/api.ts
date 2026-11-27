@@ -42,3 +42,6 @@ export type RouteNetwork={release_id:string;segments:{id:string;from_id:string;t
 export type RoutePath={release_id:string;meters:number;steps:{id:string;from_id:string;to_id:string;reversed:boolean}[]};
 
 export type Snapshot={type:'territory';year:number;record:{id:string;name:string;source_name:string;subject:string;kind:'polity'|'region'|'dependency';border_precision:number;geometry:import('geojson').Polygon|import('geojson').MultiPolygon;label:[number,number];browse_url:string;source_blob_sha:string}}|{type:'milestone';year:number;record:{title:string;place:string;p:[number,number];article:string;text:string}};
+
+export type GeologyRecord={type:'province';reference:string;simplification_deg:number;record:{id:number;name:string;en:string;kind:'shield'|'basin'|'volcanic'|'structure'|'other';ring:[number,number][];anchor:[number,number]}}|{type:'volcano';record:{id:string;name:string;en:string;lon:number;lat:number;elevation:number|null;period:'holocene'|'pleistocene';last:string;summary:string;source:string}};
+export type GeologyData={release_id:string;records:GeologyRecord[];volcano_provinces:Record<string,number[]>};

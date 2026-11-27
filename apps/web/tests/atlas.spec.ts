@@ -239,3 +239,27 @@ test('exact historical snapshots, comparison and event markers',async({page})=>{
  await expect(page.locator('.territory-label')).toHaveCount(0);
  await expect(page.getByTestId('territory-count')).toHaveText('0 نطاقات · 0 محطات');
 });
+
+test('released geology, independent filters, source details and dated reference',async({page})=>{
+ page.on('console',m=>{if(m.type()==='error')console.log(m.text());});
+ await page.goto('/');
+ await expect(page.getByTestId('map')).toHaveAttribute('data-ready','true',{timeout:20000});
+ await page.getByRole('button',{name:'الجيولوجيا',exact:true}).click();
+ await expect(page.getByTestId('geology-count')).toHaveText('44 إقليمًا · 12 موضعًا بركانيًا');
+ await page.getByLabel('فئة الإقليم').selectOption('basin');
+ await expect(page.getByTestId('geology-count')).toHaveText('18 إقليمًا · 12 موضعًا بركانيًا');
+ await page.getByLabel('الأقاليم الجيولوجية',{exact:true}).uncheck();
+ await page.getByLabel('الفترة البركانية').selectOption('pleistocene');
+ await expect(page.getByTestId('geology-count')).toHaveText('0 إقليمًا · 4 موضعًا بركانيًا');
+ await page.getByLabel('البحث في الجيولوجيا').fill('Hutaymah');
+ await expect(page.getByTestId('geology-count')).toHaveText('0 إقليمًا · 1 موضعًا بركانيًا');
+ const panel=page.getByRole('complementary',{name:'جيولوجيا الأرض'});
+ await panel.getByRole('button',{name:/حرة الحطيمة/}).click();
+ await expect(panel.getByText('الارتفاع المرجعي: غير متاح')).toBeVisible();
+ await expect(panel.getByRole('link',{name:'Smithsonian — Global Volcanism Program'})).toHaveAttribute('href','https://volcano.si.edu/volcano.cfm?vn=231806');
+ await page.getByLabel('السنة التاريخية').fill('550');
+ await page.getByRole('button',{name:'تطبيق الزمن'}).click();
+ await expect(page.getByTestId('geology-map-legend')).toBeVisible();
+ await page.getByRole('button',{name:'إغلاق الجيولوجيا'}).click();
+ await expect(page.getByTestId('geology-map-legend')).toHaveCount(0);
+});
