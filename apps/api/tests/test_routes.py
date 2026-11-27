@@ -41,7 +41,8 @@ class RoutesIntegration(unittest.TestCase):
         r=self.get("/api/v1/routes/path",{"start":A,"end":B})
         reverse=self.get("/api/v1/routes/path",{"start":B,"end":A})
         by_id={e["id"]:e for e in self.edges}
-        self.assertGreater(r["meters"],0)
+        self.assertEqual(r["meters"],392496)
+        self.assertEqual(len(r["steps"]),15)
         self.assertEqual(r["meters"],sum(by_id[s["id"]]["meters"] for s in r["steps"]))
         self.assertEqual(r["meters"],reverse["meters"])
         self.assertEqual(r["steps"][0]["from_id"],A)

@@ -175,6 +175,7 @@ test('editorial relations and ordered journeys, not dated routes',async({page})=
 
 test('historical and modern directory reference layers',async({page})=>{
  await page.goto('/');
+ await expect(page.getByTestId('map')).toHaveAttribute('data-ready','true',{timeout:20000});
  await page.getByRole('button',{name:'المعجم',exact:true}).click();
  await expect(page.getByTestId('directory-count')).toHaveText('190 مواضع');
  await expect(page.getByTestId('directory-map-count')).toContainText('190');
@@ -204,7 +205,7 @@ test('released route network and shortest source-weight path',async({page})=>{
  await page.getByLabel('بداية الطريق').selectOption('MAKKA_398E213N_S_JAZI');
  await page.getByLabel('نهاية الطريق').selectOption('MADINA_396E244N_S_JAZI');
  await page.getByRole('button',{name:'احسب المسار'}).click();
- await expect(page.getByTestId('route-distance')).toContainText('كم وفق المصدر');
+ await expect(page.getByTestId('route-distance')).toHaveText('392.50 كم وفق المصدر');
  await page.getByLabel('إظهار الطرق').uncheck();
  await expect(page.getByTestId('route-map-count')).toHaveCount(0);
  await page.getByLabel('إظهار الطرق').check();

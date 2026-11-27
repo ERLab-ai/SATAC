@@ -145,6 +145,7 @@ export default function AtlasMap({data,selected,onSelect,physical,geoLabels,date
  const features:FeatureCollection={type:'FeatureCollection',features:(routes?.segments??[]).map(e=>({type:'Feature',geometry:{type:'LineString',coordinates:e.coordinates},properties:{selected:chosen.has(e.id)}}))};
  (map.current.getSource('routes') as GeoJSONSource).setData(features);
  },[ready,routes,routePath]);
+ useEffect(()=>{if(!ready||!map.current||!routes||!routePath?.steps.length)return;const ids=new Set(routePath.steps.map(s=>s.id));const points=routes.segments.filter(s=>ids.has(s.id)).flatMap(s=>s.coordinates);if(points.length){const bounds=new maplibregl.LngLatBounds();points.forEach(p=>bounds.extend(p));map.current.fitBounds(bounds,{padding:70,maxZoom:8,duration:0});}},[ready,routes,routePath]);
  return <section className="map-shell" aria-label="الخريطة الجغرافية"><div ref={node} className="map" data-testid="map" data-ready={ready?'true':'false'} dir="ltr"/>
  {failed&&<p className="map-message" role="alert">تعذر عرض جزء من الخريطة. يمكنك استخدام قائمة المواضع.</p>}
  <div className="map-views"><button onClick={()=>map.current?.jumpTo({center:[42,24],zoom:4})}>الجزيرة</button><button onClick={()=>map.current?.jumpTo({center:[0,20],zoom:1})}>العالم</button></div>
