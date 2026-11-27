@@ -136,11 +136,20 @@ def main():
     embedded.add_argument("--source",required=True,type=UUID)
     embedded.add_argument("--reason",required=True)
     embedded.add_argument("--actor",required=True)
+    asset=sub.add_parser("revoke-asset")
+    asset.add_argument("--path",required=True)
+    asset.add_argument("--reason",required=True)
+    asset.add_argument("--actor",required=True)
     a=p.parse_args()
     with connection() as conn:
         if a.command=="migrate":result=migrate(conn)
         elif a.command=="stage":result=stage(conn)
         elif a.command=="publish-initial":result=publish_initial(conn,a)
+        elif a.command=="revoke-asset":
+            with conn.transaction():
+                conn.execute("SET LOCAL ROLE satac_curator")
+                conn.execute("SELECT knowledge.revoke_asset(%s,%s,%s)",(a.path,a.reason,a.actor))
+                result={"recorded":True,"operation":a.command}
         elif a.command=="revoke-embedded-source":
             with conn.transaction():
                 conn.execute("SET LOCAL ROLE satac_curator")

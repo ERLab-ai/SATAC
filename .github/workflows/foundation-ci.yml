@@ -146,6 +146,8 @@ jobs:
         run: python -m unittest discover -s apps/api/tests -p test_scientific_conflicts.py -v
       - name: Install embedded source access migration
         run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0016_embedded_source_access.sql
+      - name: Install static asset access migration
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0017_static_asset_access.sql
       - name: Unified exploration integration
         env:
           SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac

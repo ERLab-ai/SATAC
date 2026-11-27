@@ -12,7 +12,7 @@ import psycopg
 from psycopg.rows import dict_row
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
 app = FastAPI(title="SATAC Public API", version="0.14.0-dev", description="Release-scoped public knowledge; astronomical years are decimal strings.")
 YEAR = re.compile(r"^-?[0-9]{1,31}$")
@@ -182,6 +182,19 @@ def query_claims(conn, release, after, limit, bounds, certainty, entity=None, di
     rows = conn.execute(sql,params).fetchall()
     page = rows[:limit]
     return rid,page,(str(page[-1]["version_id"]) if len(rows)>limit else None)
+
+
+@app.get("/_asset-access", include_in_schema=False)
+def asset_access(request: Request):
+    """Internal gateway authorization, with no private audit metadata."""
+    path=request.headers.get("X-SATAC-Asset","")
+    if len(path)>240:
+        raise HTTPException(403,"asset_unavailable")
+    with reader() as conn:
+        allowed=conn.execute("SELECT public_read.asset_allowed(%s) AS allowed",(path,)).fetchone()["allowed"]
+    if not allowed:
+        raise HTTPException(403,"asset_unavailable")
+    return Response(status_code=204)
 
 
 @app.get("/health")
