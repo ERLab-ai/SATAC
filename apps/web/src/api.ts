@@ -33,3 +33,5 @@ export async function mapFeatures(release:string,time:TimeFilter,signal:AbortSig
 
 export type ArticleSummary={id:string;title:string;subtitle:string;category:string;art:string;eras:string[];location:[number,number];summary:string;short_name?:string;heritage_status?:string};
 export type ArticleDetail=ArticleSummary & {sections:{title:string;text:string}[];bibliography:{id:string;title:string;url:string}[];related:string[]};
+
+export type EditorialNetwork={release_id:string;geometry_semantics:'editorial_connections_not_routes';articles:Pick<ArticleSummary,'id'|'title'|'location'|'art'>[];links:{ordinal:number;record:[string,string,string,string?]}[];journeys:{ordinal:number;record:{title:string;subtitle:string;art:string;ids:string[]}}[]};

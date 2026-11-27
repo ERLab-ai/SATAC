@@ -11,3 +11,5 @@ Executable P0 reference: [publication and correction contract](docs/inception/pu
 [Legacy visual and feature parity register](docs/inception/atlas-parity.md): owner-approved product direction, incremental recovery; not replacement release.
 
 [Encyclopedia candidate](docs/inception/encyclopedia-candidate.md): 50 original main articles, article-level bibliography, release-scoped thematic search and map navigation.
+
+[Editorial network candidate](docs/inception/editorial-network-candidate.md): original 13 connections and 8 ordered journeys, release-scoped schematic map layers.

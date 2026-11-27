@@ -13,7 +13,7 @@ v0.13 is the product/visual reference; v0.14 is the architectural reference. Acc
 | Terrain, elevation/bathymetry, hex grid | Relief and ETOPO reference imagery reprojected to Web Mercator raster tiles; 37,209 original regional visual hexagons restored; relief residual texture, analytical cells, true DEM and finer detail pending |
 | Encyclopedia | 50 main articles and original bibliography restored in candidate; thematic reader, search and editorial map anchors; legacy artwork and extended articles pending |
 | Historical gazetteer and settlements | Three-place sample only; migrate legacy collections with provenance |
-| Relations, journeys, route network, historical political comparison | Pending legacy migration and interactive visualization |
+| Relations, journeys, route network, historical political comparison | 13 editorial connections and 8 ordered thematic journeys restored as candidate; original route network and historical political comparison pending |
 | Resources, geology, volcanism, cells | Pending original dataset migration and visualization |
 | Offline use | Legacy standalone reference retained; new API requires server. Offline strategy pending |
 | Engineering | Keep policy v1.2, stable identities, release-scoped public reads, spatial/temporal precision and regression tests |

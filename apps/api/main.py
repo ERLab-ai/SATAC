@@ -121,7 +121,7 @@ def query_claims(conn, release, after, limit, bounds, certainty, entity=None, di
         conditions.append("version_id>%s")
         args.append(after)
     if entity is not None:
-        conditions.append("payload->>'predicate' NOT IN ('NAME','ARTICLE')")
+        conditions.append("payload->>'predicate' NOT IN ('NAME','ARTICLE','EDITORIAL_LINK','EDITORIAL_JOURNEY')")
         if direction == "out":
             conditions.append("payload->>'subject_id'=%s")
             args.append(str(entity))
@@ -284,3 +284,21 @@ def article(slug: str,release: UUID | None=None):
     a=row["article"]
     a["related"]=[s for s in a["related"] if s in titles]
     return {"release_id":str(rid),"work_id":str(row["work_id"]),"article":a,"related_topics":[{"id":s,"title":titles[s]} for s in a["related"]]}
+
+
+@app.get("/api/v1/editorial-network")
+def editorial_network(release: UUID | None=None):
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        articles=[r["article"] for r in conn.execute("SELECT article FROM public_read.articles WHERE release_id=%s ORDER BY article->>'id'",(rid,))]
+        nodes={a["id"]:{k:a[k] for k in ("id","title","location","art")} for a in articles}
+        rows=conn.execute("SELECT kind,editorial FROM public_read.editorial_network WHERE release_id=%s ORDER BY (editorial->>'ordinal')::int,version_id",(rid,)).fetchall()
+    links=[];journeys=[]
+    for row in rows:
+        item=row["editorial"]
+        rec=item["record"]
+        if row["kind"]=="EDITORIAL_LINK" and all(x in nodes for x in rec[:2]):
+            links.append(item)
+        elif row["kind"]=="EDITORIAL_JOURNEY" and all(x in nodes for x in rec["ids"]):
+            journeys.append(item)
+    return {"release_id":str(rid),"geometry_semantics":"editorial_connections_not_routes","articles":list(nodes.values()),"links":links,"journeys":journeys}

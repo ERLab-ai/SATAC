@@ -178,6 +178,26 @@
       "languages": [
         "ar"
       ]
+    },
+    "EDITORIAL_LINK": {
+      "domain": [
+        "Work"
+      ],
+      "range": [],
+      "literal_type": "editorial_link",
+      "languages": [
+        "ar"
+      ]
+    },
+    "EDITORIAL_JOURNEY": {
+      "domain": [
+        "Work"
+      ],
+      "range": [],
+      "literal_type": "editorial_journey",
+      "languages": [
+        "ar"
+      ]
     }
   },
   "publication_status": [

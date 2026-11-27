@@ -145,3 +145,30 @@ test('encyclopedia restores original articles, thematic search and map anchors',
  await page.getByRole('button',{name:'كل الأزمنة'}).click();
  await expect.poll(()=>page.locator('.article-marker').count()).toBeGreaterThan(0);
 });
+
+test('editorial relations and ordered journeys, not dated routes',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('button',{name:'العلاقات',exact:true}).click();
+ await expect(page.getByTestId('link-count')).toHaveText('13 علاقة');
+ await expect(page.getByTestId('journey-count')).toHaveText('8 رحلات');
+ await expect(page.getByTestId('editorial-legend')).toBeVisible();
+ await page.getByLabel('اختيار الرحلة').selectOption('0');
+ await expect(page.getByTestId('journey-progress')).toHaveText('المحطة 1 من 4');
+ await page.getByRole('button',{name:'المحطة التالية'}).click();
+ await expect(page.getByTestId('journey-progress')).toHaveText('المحطة 2 من 4');
+ await page.getByRole('button',{name:'قراءة مقال المحطة'}).click();
+ await expect(page.getByRole('complementary',{name:'الموسوعة'}).getByRole('heading',{name:'حِمى: على دروب القوافل'})).toBeVisible();
+ await page.getByRole('button',{name:'إغلاق الموسوعة'}).click();
+ await page.getByRole('button',{name:'العلاقات',exact:true}).click();
+ await page.getByLabel('إظهار العلاقات').uncheck();
+ await page.getByLabel('اختيار الرحلة').selectOption('');
+ await expect(page.getByTestId('editorial-legend')).toHaveCount(0);
+ await page.getByLabel('إظهار العلاقات').check();
+ await page.getByRole('button',{name:'إغلاق العلاقات'}).click();
+ await page.getByLabel('السنة التاريخية').fill('550');
+ await page.getByRole('button',{name:'تطبيق الزمن'}).click();
+ await expect(page.getByTestId('editorial-legend')).toHaveCount(0);
+ await page.getByRole('button',{name:'كل الأزمنة'}).click();
+ await expect(page.getByTestId('editorial-legend')).toBeVisible();
+ await page.screenshot({path:'test-results/editorial-network.png'});
+});
