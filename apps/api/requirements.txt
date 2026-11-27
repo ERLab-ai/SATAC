@@ -1,5 +1,5 @@
 # Direct pins for the candidate; not a complete transitive lock.
-fastapi==0.115.12
+fastapi==0.163.2
 pydantic==2.11.5
 psycopg[binary]==3.2.9
 uvicorn==0.34.2
