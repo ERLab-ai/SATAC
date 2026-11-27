@@ -98,7 +98,7 @@ function App(){
  <label className="layer-toggle"><input type="checkbox" checked={geoLabels} onChange={e=>setGeoLabels(e.target.checked)}/> التسميات الجغرافية</label>
  <label className="layer-toggle"><input type="checkbox" checked={showLocations} onChange={e=>setShowLocations(e.target.checked)}/> المواضع</label>
  {releaseError&&<p role="alert">{releaseError}</p>}</section>
- <section className="main-map"><AtlasMap data={visibleData} selected={selected} onSelect={choose} physical={physical} geoLabels={geoLabels} dated={!!time.as_of} articles={articleLayer&&!time.as_of?articleRows:[]} selectedArticle={articleSelected} onArticleSelect={chooseArticle} network={!time.as_of?network:null} showLinks={showLinks} journey={journey} focus={focus}/></section>
+ <section className="main-map"><AtlasMap data={visibleData} selected={selected} onSelect={choose} physical={physical} geoLabels={geoLabels} dated={!!time.as_of} articles={articleLayer&&!time.as_of?articleRows:[]} selectedArticle={articleSelected} onArticleSelect={chooseArticle} network={!time.as_of?network:null} showLinks={showLinks} journey={journey} focus={panel==='network'?focus:undefined}/></section>
  <section className="map-status" aria-label="حالة الخريطة"><p role="status" data-testid="feature-count">{mapLoading?'جارٍ تحميل المعالم…':places.length+' مواضع'}</p>
  {mapError&&<p role="alert">{mapError}</p>}{truncated&&<p>عُرضت أول 2000 سجل؛ نتائج إضافية غير معروضة.</p>}{time.as_of&&<p>التأريخ: {timeLabel} · لا تظهر السجلات غير المؤرخة.</p>}
  {!mapLoading&&!mapError&&!places.length&&<p>لا توجد مواضع مطابقة.</p>}</section>

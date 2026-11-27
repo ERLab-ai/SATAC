@@ -7,7 +7,7 @@ export default function Network({data,journey,step,onJourney,onStep,onArticle,li
  {dated&&<p role="status">تُخفى الخطوط المرجعية عند تحديد سنة دقيقة.</p>}{error&&<p role="alert">{error}</p>}
  <label className="article-toggle"><input type="checkbox" checked={links} onChange={e=>onLinks(e.target.checked)}/> إظهار العلاقات</label>
  <h3>العلاقات الحضارية</h3><p data-testid="link-count">{data?.links.length??0} علاقة</p>
- <ul className="items">{data?.links.map(l=><li key={l.ordinal}><strong>{l.record[2]}</strong>{l.record[3]&&<small>{l.record[3]}</small>}<div className="network-endpoints">{l.record.slice(0,2).map(id=><button key={id} onClick={()=>onArticle(id)}>{titles.get(id)??id}</button>)}</div></li>)}</ul>
+ <ul className="items">{data?.links.map(l=><li key={l.ordinal}><strong>{l.record[2]}</strong>{l.record[3]&&<small>{l.record[3]}</small>}<div className="network-endpoints">{[l.record[0],l.record[1]].map(id=><button key={id} onClick={()=>onArticle(id)}>{titles.get(id)??id}</button>)}</div></li>)}</ul>
  <h3>الرحلات الموضوعية</h3><p data-testid="journey-count">{data?.journeys.length??0} رحلات</p>
  <label>اختيار الرحلة<select aria-label="اختيار الرحلة" value={journey??''} onChange={e=>onJourney(e.target.value===''?null:Number(e.target.value))}><option value="">اختر رحلة</option>{data?.journeys.map(j=><option key={j.ordinal} value={j.ordinal}>{j.record.title}</option>)}</select></label>
  {active&&<section><h3>{active.record.title}</h3><p>{active.record.subtitle}</p><p data-testid="journey-progress">المحطة {step+1} من {active.record.ids.length}</p>
