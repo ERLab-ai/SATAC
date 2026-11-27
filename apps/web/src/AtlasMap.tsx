@@ -13,6 +13,8 @@ export default function AtlasMap({data,selected,onSelect,physical,geoLabels,date
  const node=useRef<HTMLDivElement>(null),map=useRef<maplibregl.Map|null>(null),select=useRef(onSelect);
  select.current=onSelect;
  const cellSelect=useRef(onCellSelect);cellSelect.current=onCellSelect;
+ const [cellMessage,setCellMessage]=useState('');
+ useEffect(()=>{setCellMessage('');},[cells,cellSelected]);
  const geoSelect=useRef(onGeoSelect);geoSelect.current=onGeoSelect;
  const territorySelect=useRef(onTerritorySelect);territorySelect.current=onTerritorySelect;
  const directorySelect=useRef(onDirectorySelect);directorySelect.current=onDirectorySelect;
@@ -215,6 +217,6 @@ export default function AtlasMap({data,selected,onSelect,physical,geoLabels,date
  {routes&&<div className="route-legend" data-testid="route-map-count">{routes.segments.length} مقطع من شبكة المصدر</div>}
  {snapshots.length>0&&<div className="territory-legend" data-testid="territory-map-legend">{yearText(snapshots[0].year)} · {snapshots[0].type==='milestone'?'موضع حدث لا حدود دولة':'نطاقات تقريبية من المصدر'}{comparison.length>0&&` · الخط السماوي: ${yearText(comparison[0].year)}`}</div>}
  {geology.length>0&&<div className="geology-legend" data-testid="geology-map-legend">جيولوجيا مرجعية معاصرة · USGS / Smithsonian</div>}
- {cells&&<div className="cell-legend" data-testid="cell-map-legend">{lensNames[cellLens]} · {cells.cells.length} خلية <button onClick={()=>{const m=map.current;if(!m)return;const p=m.getCenter(),c=atCell(p.lng,p.lat,cells.cells);if(c)cellSelect.current(c.id);}}>خلية مركز الخريطة</button></div>}
+ {cells&&<div className="cell-legend" data-testid="cell-map-legend">{lensNames[cellLens]} · {cells.cells.length} خلية <button onClick={()=>{const m=map.current;if(!m)return;const p=m.getCenter(),c=atCell(p.lng,p.lat,cells.cells);if(c){setCellMessage('');cellSelect.current(c.id);}else setCellMessage('مركز الخريطة خارج الخلايا المتاحة.');}}>خلية مركز الخريطة</button>{cellMessage&&<p role="status">{cellMessage}</p>}</div>}
  <div className="map-caption">خلفية جغرافية معاصرة · {physical==='relief'?'تظليل التضاريس':physical==='etopo'?'ألوان الارتفاعات والأعماق':physical==='hex'?'شبكة سداسية إقليمية غير متساوية المساحة':'يابسة ومياه'} · لا تمثل حدودًا تاريخية</div></section>;
 }

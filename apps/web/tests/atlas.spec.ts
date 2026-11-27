@@ -273,6 +273,9 @@ test('analytical grid exact metrics and reference lenses',async({page})=>{
  await expect(page.getByTestId('cell-area')).toContainText('1800.4');
  await expect(page.getByTestId('cell-water')).toContainText('77.44');
  await expect(page.getByRole('heading',{name:'الأقاليم الجيولوجية المتقاطعة'})).toBeVisible();
+ await page.getByRole('button',{name:'الخريطة',exact:true}).click();
+ await page.getByRole('button',{name:'خلية مركز الخريطة'}).click();
+ await expect(page.getByLabel('معرف الخلية')).toHaveValue('554,126');
  await page.getByLabel('عدسة التحليل').selectOption('articles');
  await expect(page.getByTestId('cell-map-legend')).toContainText('الموضوعات الموسوعية');
  await page.getByLabel('عدسة التحليل').selectOption('water');
