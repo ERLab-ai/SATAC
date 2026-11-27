@@ -395,3 +395,33 @@ test('reference borders, graticule, texture and historical glyph sprites',async(
  await expect(page.getByTestId('graticule-legend')).toBeVisible();
  expect(errors).toEqual([]);
 });
+
+test('unified exploration and synchronized central layers',async({page})=>{
+ await page.goto('/');
+ await expect(page.getByTestId('map')).toHaveAttribute('data-ready','true',{timeout:20000});
+ await page.getByLabel('البحث عن موضع أو اسم').fill('Hutaymah');
+ await page.getByRole('button',{name:'بحث',exact:true}).click();
+ const refs=page.getByRole('region',{name:'نتائج المحتوى المرجعي'});
+ await refs.getByRole('button',{name:/حرة الحطيمة/}).click();
+ const geo=page.getByRole('complementary',{name:'جيولوجيا الأرض'});
+ await expect(geo.getByText('الارتفاع المرجعي: غير متاح')).toBeVisible();
+ await page.getByRole('button',{name:'الطبقات',exact:true}).click();
+ const layers=page.getByRole('complementary',{name:'إدارة الطبقات'});
+ await expect(layers.getByLabel('الجيولوجيا المرجعية',{exact:true})).toBeChecked();
+ await layers.getByLabel('الجيولوجيا المرجعية',{exact:true}).uncheck();
+ await expect(page.getByTestId('geology-map-legend')).toHaveCount(0);
+ await layers.getByLabel('خطوط شبكة الإحداثيات',{exact:true}).check();
+ await expect(page.getByRole('button',{name:'شبكة الإحداثيات',exact:true})).toHaveAttribute('aria-pressed','true');
+ await layers.getByLabel('حدود الدول المرجعية',{exact:true}).check();
+ await expect(page.getByTestId('modern-border-legend')).toBeVisible();
+ await layers.getByLabel('مواضع المعجم',{exact:true}).check();
+ await expect(page.getByTestId('directory-map-count')).toContainText('190');
+ await page.getByLabel('مجموعة المعجم المركزية').selectOption('modern');
+ await expect(page.getByTestId('directory-map-count')).toContainText('323');
+ await page.getByLabel('السنة التاريخية').fill('550');
+ await page.getByRole('button',{name:'تطبيق الزمن'}).click();
+ await expect(page.getByTestId('modern-border-legend')).toHaveCount(0);
+ await expect(page.getByTestId('directory-map-count')).toHaveCount(0);
+ await layers.getByRole('button',{name:'استعادة الطبقات الافتراضية'}).click();
+ await expect(page.getByTestId('graticule-legend')).toHaveCount(0);
+});

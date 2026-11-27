@@ -50,3 +50,5 @@ export type CellMetric={id:string;c:number;t:number;radius:number;area_km2:numbe
 export type CellData={release_id:string;cells:CellMetric[];provinces:{id:number;name:string}[];truncated:boolean};
 
 export type ExtendedTopic=({type:'story';record:{title:string;lead:string;sections:[string,string][];sources:[string,string][]}}|{type:'geosite';record:{id:string;name:string;anchor:string;lon:number;lat:number;area:number;age:string;summary:string;context:string;source:string}})&{id:string;location:[number,number]|null;directory_entity_id:string|null};
+
+export type ExploreHit={kind:'article'|'historical'|'modern'|'geology'|'topic'|'snapshot';id:string;title:string;subtitle:string|null;year:number|null};
