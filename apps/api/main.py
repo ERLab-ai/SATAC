@@ -404,3 +404,61 @@ def extended_topics(release: UUID | None=None):
         record=t["record"] if t["type"]=="geosite" else d["record"] if d else None
         result.append({**t,"location":[record["lon"],record["lat"]] if record else None,"directory_entity_id":str(d["entity_id"]) if d else None})
     return {"release_id":str(rid),"semantics":"editorial_reference_anchors_not_historical_extents","topics":result}
+
+
+@app.get("/api/v1/explore")
+def explore(q: str=Query(...,min_length=1,max_length=120),release: UUID | None=None,
+            after: UUID | None=None,limit: int=Query(25,ge=1,le=100),
+            as_of: str | None=Query(None,max_length=32),certainty: Literal["any","possible","certain"]="any"):
+    """One release-consistent search. Reference hits are not temporal assertions."""
+    bounds=time_range(as_of,None,None,certainty)
+    if after is not None and release is None:
+        raise HTTPException(422,"pagination_requires_release")
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        key=conn.execute("SELECT public_read.search_key(%s) AS key",(q,)).fetchone()["key"]
+        if not key: raise HTTPException(422,"empty_search")
+        filters=["release_id=%s","strpos(public_read.search_key(name),%s)>0"]
+        args=[rid,key]
+        if after is not None:
+            filters.append("version_id>%s");args.append(after)
+        if bounds is not None:
+            filters.append("public_read.temporal_match(temporal,%s,%s)=ANY(%s::text[])")
+            args.extend([*bounds,["possible","certain"] if certainty=="any" else [certainty]])
+        names=conn.execute("SELECT entity_id,claim_id,version_id,name,lang,kind FROM public_read.entity_names WHERE "+" AND ".join(filters)+" ORDER BY version_id LIMIT %s",[*args,limit+1]).fetchall()
+        refs=conn.execute("""
+          WITH candidates AS (
+            SELECT 'article' AS kind,article->>'id' AS id,article->>'title' AS title,
+              article->>'category' AS subtitle,concat_ws(' ',article->>'subtitle',article->>'summary',article->>'keywords') AS extra,NULL::int AS year
+            FROM public_read.articles WHERE release_id=%s
+            UNION ALL
+            SELECT directory->>'collection',entity_id::text,directory->'record'->>'name',
+              directory->>'region_label',directory->'record'->>'en',NULL::int
+            FROM public_read.directory WHERE release_id=%s
+            UNION ALL
+            SELECT 'geology',(geology->>'type')||':'||(geology->'record'->>'id'),
+              geology->'record'->>'name',geology->'record'->>'en',NULL,NULL::int
+            FROM public_read.geology WHERE release_id=%s
+            UNION ALL
+            SELECT 'topic',(topic->>'type')||':'||(topic->>'id'),
+              coalesce(topic->'record'->>'title',topic->'record'->>'name'),
+              CASE WHEN topic->>'type'='story' THEN 'المعجم التاريخي' ELSE 'التراث الجيولوجي' END,
+              coalesce(topic->'record'->>'lead',topic->'record'->>'summary'),NULL::int
+            FROM public_read.extended_topics WHERE release_id=%s
+            UNION ALL
+            SELECT 'snapshot',coalesce(snapshot->'record'->>'id','milestone:'||(snapshot->>'year')),
+              coalesce(snapshot->'record'->>'name',snapshot->'record'->>'title'),
+              snapshot->>'year',snapshot->'record'->>'source_name',(snapshot->>'year')::int
+            FROM public_read.snapshots WHERE release_id=%s
+          ), matched AS (
+            SELECT kind,id,title,subtitle,year,
+              CASE WHEN public_read.search_key(title)=%s THEN 0
+                   WHEN strpos(public_read.search_key(title),%s)>0 THEN 1 ELSE 2 END AS rank
+            FROM candidates WHERE strpos(public_read.search_key(concat_ws(' ',title,subtitle,extra)),%s)>0
+          )
+          SELECT kind,id,title,subtitle,year FROM matched ORDER BY rank,kind,title,id LIMIT 101
+        """, [rid]*5+[key,key,key]).fetchall()
+    page=names[:limit]
+    return {"release_id":str(rid),"results":page,"next_after":str(page[-1]["version_id"]) if len(names)>limit else None,
+            "references":refs[:100],"references_truncated":len(refs)>100,
+            "reference_semantics":"context_not_temporal_matches"}
