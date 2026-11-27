@@ -8,9 +8,9 @@ v0.13 is the product/visual reference; v0.14 is the architectural reference. Acc
 | Floating controls, search and reader, mobile map-first | Implemented candidate; verify keyboard and responsive layout |
 | Timeline | Bottom exact year navigation and playback, no year zero; restore legacy six era selectors after era mappings and data migration |
 | Place symbols and names | Point labels for small datasets, generic markers; restore category-specific sigils; 91 geographic labels restored as scale-dependent reference labels |
-| Map tools | Region/world, scale, zoom; minimap and dedicated fullscreen pending |
-| Layers and lenses | Location and geographic-label toggles; relief/ETOPO/flat backdrop; restore legacy atlas, historical places, density and thematic layers |
-| Terrain, elevation/bathymetry, hex grid | Relief and ETOPO reference imagery reprojected to Web Mercator raster tiles; hex grid, true DEM and finer detail pending |
+| Map tools | Region/world, scale, zoom; synchronized minimap and world reset added; dedicated fullscreen pending |
+| Layers and lenses | Location and geographic-label toggles; relief/ETOPO/flat/hex backdrop and reference river toggle; restore legacy atlas, historical places, density and thematic layers |
+| Terrain, elevation/bathymetry, hex grid | Relief and ETOPO reference imagery reprojected to Web Mercator raster tiles; 37,209 original regional visual hexagons restored; relief residual texture, analytical cells, true DEM and finer detail pending |
 | Encyclopedia | Name/evidence card only; restore 50 main articles and contextual narrative |
 | Historical gazetteer and settlements | Three-place sample only; migrate legacy collections with provenance |
 | Relations, journeys, route network, historical political comparison | Pending legacy migration and interactive visualization |

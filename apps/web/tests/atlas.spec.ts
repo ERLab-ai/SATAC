@@ -83,3 +83,31 @@ test('legacy physical layers and geographic references',async({page})=>{
  await page.screenshot({path:'test-results/physical-mobile.png'});
  expect(errors).toEqual([]);
 });
+
+test('legacy hexagons, rivers and synchronized minimap',async({page})=>{
+ await page.goto('/');
+ await expect(page.getByTestId('map')).toHaveAttribute('data-ready','true',{timeout:20000});
+ const hex=page.waitForResponse(r=>r.url().endsWith('/physical/hex.geojson')&&r.status()===200);
+ await page.getByLabel('الخلفية الجغرافية').selectOption('hex');
+ expect((await (await hex).json()).features).toHaveLength(37209);
+ await expect(page.getByText(/شبكة سداسية إقليمية/)).toBeVisible();
+ const world=page.waitForResponse(r=>r.url().endsWith('/physical/worldRivers.geojson')&&r.status()===200);
+ const regional=page.waitForResponse(r=>r.url().endsWith('/physical/regionalRivers.geojson')&&r.status()===200);
+ const toggle=page.getByRole('button',{name:'المجاري المائية',exact:true});
+ await toggle.click();
+ expect((await (await world).json()).features).toHaveLength(9325);
+ expect((await (await regional).json()).features).toHaveLength(1848);
+ await expect(toggle).toHaveAttribute('aria-pressed','true');
+ await toggle.click();await expect(toggle).toHaveAttribute('aria-pressed','false');
+ const mini=page.getByRole('img',{name:'نطاق عرض الخريطة الحالية'});
+ await expect(mini).toBeVisible();
+ const initial=await page.getByTestId('mini-extent').first().getAttribute('width');
+ await page.getByRole('button',{name:'عرض العالم',exact:true}).click();
+ await expect.poll(()=>page.getByTestId('mini-extent').first().getAttribute('width')).not.toBe(initial);
+ await page.getByRole('button',{name:'الخريطة المصغرة',exact:true}).click();
+ await expect(mini).toHaveCount(0);
+ await page.getByRole('button',{name:'الخريطة المصغرة',exact:true}).click();
+ await expect(mini).toBeVisible();
+ await page.getByRole('button',{name:'الجزيرة',exact:true}).click();
+ await page.screenshot({path:'test-results/hex-minimap.png'});
+});

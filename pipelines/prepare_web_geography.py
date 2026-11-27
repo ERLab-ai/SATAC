@@ -12,6 +12,8 @@ import subprocess
 import sys
 import tempfile
 
+from legacy_geography.vector_assets import build_vectors
+
 import numpy as np
 from PIL import Image
 
@@ -22,7 +24,7 @@ MAX_Z=2
 def digest(p):
     return hashlib.sha256(p.read_bytes()).hexdigest()
 
-def build(source,out):
+def build(source,world,out):
     if digest(source)!=EXPECTED:
         raise ValueError("legacy geography SHA-256 differs")
     data=json.loads(source.read_bytes())
@@ -56,23 +58,31 @@ def build(source,out):
                     image.crop((x*512,y*512,(x+1)*512,(y+1)*512)).save(p,"WEBP",quality=85,method=4)
                     hashes[str(p.relative_to(out))]=digest(p)
     hashes["labels.json"]=digest(out/"labels.json")
-    (out/"manifest.json").write_text(json.dumps({"legacy_sha256":EXPECTED,"labels":91,"maxzoom":MAX_Z,"files":hashes},indent=2)+"\n")
+    vectors,meta=build_vectors(data,world,out)
+    raster_count=len(hashes)-1
+    hashes.update(vectors)
+    (out/"manifest.json").write_text(json.dumps({"legacy_sha256":EXPECTED,"labels":91,"maxzoom":MAX_Z,"files":hashes,**meta},indent=2)+"\n")
     print("Verified source SHA-256; generated",len(hashes)-1,"raster tiles and",len(labels),"labels")
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("--legacy-geography",type=Path)
+    p.add_argument("--legacy-worldtiles",type=Path)
     p.add_argument("--output",type=Path,default=ROOT/"apps/web/public/physical")
     args=p.parse_args()
+    if bool(args.legacy_geography)!=bool(args.legacy_worldtiles):
+        p.error('supply both original files or neither')
     if args.legacy_geography:
-        build(args.legacy_geography,args.output)
+        build(args.legacy_geography,args.legacy_worldtiles,args.output)
     else:
         with tempfile.TemporaryDirectory() as d:
             tmp=Path(d)
             (tmp/"data").mkdir()
             shutil.copyfile(ROOT/"pipelines/legacy_geography/prepare_geography.py",tmp/"prepare_geography.py")
             subprocess.run([sys.executable,str(tmp/"prepare_geography.py")],check=True)
-            build(tmp/"data/geography.json",args.output)
+            shutil.copyfile(ROOT/"pipelines/legacy_geography/prepare_world.py",tmp/"prepare_world.py")
+            subprocess.run([sys.executable,str(tmp/"prepare_world.py")],check=True)
+            build(tmp/"data/geography.json",tmp/"data/worldtiles.json",args.output)
 
 if __name__=="__main__":
     main()
