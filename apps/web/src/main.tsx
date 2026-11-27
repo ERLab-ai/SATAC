@@ -33,6 +33,21 @@ function App(){
 
  const [allReleases,setAllReleases]=useState<Release[]>([]),[release,setRelease]=useState(''),[releaseError,setReleaseError]=useState('');
  const [panel,setPanel]=useState<'search'|'detail'|'encyclopedia'|'network'|'directory'|'routes'|'territories'|'geology'|'cells'|'extended'|'layers'|null>(null);
+ const previousPanel=useRef<string|null>(null),returnFocus=useRef<HTMLElement|null>(null);
+ useEffect(()=>{
+  if(previousPanel.current===panel)return;
+  if(panel){
+   if(previousPanel.current===null) returnFocus.current=document.activeElement instanceof HTMLElement?document.activeElement:null;
+   const heading=Array.from(appRef.current?.querySelectorAll<HTMLElement>('aside.floating-panel h2')??[]).find(el=>!el.closest('[hidden]'));
+   if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});}
+  }else{
+   const target=returnFocus.current;
+   if(target?.isConnected&&!target.closest('[hidden]')&&target.getClientRects().length&&target!==document.body)target.focus({preventScroll:true});
+   else appRef.current?.querySelector<HTMLElement>('.header-actions button')?.focus({preventScroll:true});
+   returnFocus.current=null;
+  }
+  previousPanel.current=panel;
+ },[panel]);
  const [theme,setTheme]=useState('all');
  const [articleRows,setArticleRows]=useState<ArticleSummary[]>([]),[articleSelected,setArticleSelected]=useState<string|null>(null),[articleLayer,setArticleLayer]=useState(false);
  const [network,setNetwork]=useState<EditorialNetwork|null>(null),[networkError,setNetworkError]=useState(''),[showLinks,setShowLinks]=useState(false),[journey,setJourney]=useState<number|null>(null),[journeyStep,setJourneyStep]=useState(0);
@@ -168,8 +183,9 @@ function App(){
  const places=[...new Map(visibleData.features.map(f=>[f.properties.subject_id,f.properties])).values()];
  const currentName=entity?.names.find(n=>n.lang==='ar')?.name??entity?.names[0]?.name;
  return <div ref={appRef} className="app">
+ <a className="skip-link" href="#atlas-search" onClick={e=>{e.preventDefault();document.getElementById('search')?.focus();}}>انتقل إلى البحث</a>
  <header className="masthead"><div className="brand"><span className="mark">S</span><div><span className="eyebrow">SATAC · نموذج تأسيسي v0.14</span><h1>السعودية عبر الزمن، عبر القارات</h1></div></div><button className="fullscreen-toggle" aria-label={full?'إنهاء ملء الشاشة':'ملء الشاشة'} aria-pressed={full} onClick={toggleFull}>{full?'↙':'⛶'}</button><nav className="header-actions" aria-label="أدوات الأطلس"><button aria-expanded={panel==='search'} onClick={()=>setPanel(p=>p==='search'?null:'search')}>استكشف</button><button aria-expanded={panel==='detail'} onClick={()=>setPanel(p=>p==='detail'?null:'detail')}>المعرفة</button><button aria-expanded={panel==='encyclopedia'} onClick={()=>{setPanel(p=>p==='encyclopedia'?null:'encyclopedia');setArticleLayer(true);}}>الموسوعة</button><button aria-expanded={panel==='network'} onClick={()=>{setPanel(p=>p==='network'?null:'network');setShowLinks(true);}}>العلاقات</button><button aria-expanded={panel==='directory'} onClick={()=>{setPanel(p=>p==='directory'?null:'directory');setDirectoryLayer(true);}}>المعجم</button><button aria-expanded={panel==='routes'} onClick={()=>{setPanel(p=>p==='routes'?null:'routes');setRouteLayer(true);}}>الطرق</button><button aria-expanded={panel==='territories'} onClick={()=>{setPanel(p=>p==='territories'?null:'territories');setTerritoryLayer(true);}}>النطاقات</button><button aria-expanded={panel==='geology'} onClick={()=>{setPanel(p=>p==='geology'?null:'geology');setGeoLayer(true);}}>الجيولوجيا</button><button aria-expanded={panel==='cells'} onClick={()=>{setPanel(p=>p==='cells'?null:'cells');setCellLayer(true);}}>التحليل</button><button aria-expanded={panel==='layers'} onClick={()=>setPanel(p=>p==='layers'?null:'layers')}>الطبقات</button><button onClick={()=>setPanel(null)}>الخريطة</button></nav></header>
- <main data-panel={panel??'none'}><section className="toolbar" aria-label="أدوات البحث والإصدار">
+ <main data-panel={panel??'none'}><section id="atlas-search" className="toolbar" aria-label="أدوات البحث والإصدار">
  <label>الإصدار المعرفي<select aria-label="الإصدار المعرفي" value={release} onChange={e=>{setRelease(e.target.value);setGeoSelected(null);resetSelection();}}>{!release&&<option value="">تحميل الإصدارات</option>}{allReleases.map(r=><option key={r.release_id} value={r.release_id}>{r.is_current?'الإصدار الحالي':r.created_at.slice(0,10)} · {r.release_id.slice(0,8)}</option>)}</select></label>
  <form className="search" onSubmit={e=>{e.preventDefault();setAfter(undefined);setSubmitted(q.trim());setRefKind('all');setPanel('search');}}><label htmlFor="search">البحث عن موضع أو اسم</label><div className="search-row"><input id="search" value={q} onChange={e=>setQ(e.target.value)} placeholder="موضع، مقال، جيولوجيا..." maxLength={120}/><button disabled={!release}>بحث</button></div></form>
  <label>الخلفية<select aria-label="الخلفية الجغرافية" value={physical} onChange={e=>setPhysical(e.target.value as 'relief'|'etopo'|'flat'|'hex')}><option value="relief">التضاريس</option><option value="etopo">الارتفاعات والأعماق</option><option value="flat">الخريطة المبسطة</option><option value="hex">الشبكة السداسية</option></select></label>

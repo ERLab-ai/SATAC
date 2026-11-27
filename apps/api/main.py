@@ -18,6 +18,18 @@ YEAR = re.compile(r"^-?[0-9]{1,31}$")
 MAX_YEAR = 10**30
 
 
+@app.middleware('http')
+async def public_response_headers(request: Request, call_next):
+    response = await call_next(request)
+    # An immutable release can still be subject to later withdrawal or access masking.
+    response.headers['Cache-Control'] = 'no-store'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['Referrer-Policy'] = 'no-referrer'
+    response.headers['Cross-Origin-Resource-Policy'] = 'same-origin'
+    return response
+
+
 @app.exception_handler(RequestValidationError)
 def invalid_request(request: Request, exc: RequestValidationError):
     return JSONResponse(status_code=422, content={"error": {"code": "invalid_request", "message": "Invalid query parameters"}})
@@ -50,8 +62,9 @@ def reader():
                 pg_has_role(current_user,'satac_publisher','MEMBER') AS publisher,
                 pg_has_role(current_user,'satac_curator','MEMBER') AS curator,
                 has_schema_privilege(current_user,'knowledge','USAGE') AS private_access,
+                EXISTS (SELECT 1 FROM pg_roles WHERE left(rolname,3)='pg_' AND pg_has_role(current_user,oid,'MEMBER')) AS predefined_role,
                 (SELECT rolsuper OR rolcreaterole OR rolcreatedb OR rolbypassrls FROM pg_roles WHERE rolname=current_user) AS elevated""").fetchone()
-            if not privileges["reader"] or any(privileges[k] for k in ("publisher","curator","private_access","elevated")):
+            if not privileges["reader"] or any(privileges[k] for k in ("publisher","curator","private_access","predefined_role","elevated")):
                 raise HTTPException(503, "reader_configuration_invalid")
             yield conn
 

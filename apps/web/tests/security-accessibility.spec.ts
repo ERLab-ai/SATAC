@@ -1,0 +1,31 @@
+import {test,expect} from '@playwright/test';
+test('preview security headers and local map assets under CSP',async({page})=>{
+ await page.addInitScript(()=>{(window as any).__satacCsp=[];document.addEventListener('securitypolicyviolation',e=>(window as any).__satacCsp.push(e.violatedDirective+': '+e.blockedURI));});
+ const response=await page.goto('/');
+ const headers=response!.headers();
+ expect(headers['content-security-policy']).toContain("frame-ancestors 'none'");
+ expect(headers['content-security-policy']).toContain("worker-src 'self' blob:");
+ expect(headers['x-content-type-options']).toBe('nosniff');
+ await expect(page.getByTestId('map')).toHaveAttribute('data-ready','true',{timeout:20000});
+ await expect(page.getByTestId('map')).toHaveAttribute('data-gazetteer-glyphs','ready');
+ await expect(page.getByTestId('feature-count')).toHaveText('3 مواضع');
+ await page.getByRole('button',{name:'الجيولوجيا',exact:true}).click();
+ await expect(page.getByTestId('geology-map-legend')).toBeVisible();
+ expect(await page.evaluate(()=>(window as any).__satacCsp)).toEqual([]);
+});
+test('keyboard skip link, panel focus and Escape restoration',async({page})=>{
+ await page.goto('/');
+ await expect(page.getByTestId('map')).toHaveAttribute('data-ready','true',{timeout:20000});
+ await page.keyboard.press('Tab');
+ const skip=page.getByRole('link',{name:'انتقل إلى البحث'});
+ await expect(skip).toBeFocused();
+ await page.keyboard.press('Enter');
+ await expect(page.getByLabel('البحث عن موضع أو اسم')).toBeFocused();
+ const trigger=page.getByRole('button',{name:'الطبقات',exact:true});
+ await trigger.focus();await page.keyboard.press('Enter');
+ const panel=page.getByRole('complementary',{name:'إدارة الطبقات'});
+ await expect(panel.getByRole('heading',{name:'إدارة الطبقات'})).toBeFocused();
+ await page.keyboard.press('Escape');
+ await expect(panel).toBeHidden();
+ await expect(trigger).toBeFocused();
+});
