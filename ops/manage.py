@@ -99,18 +99,24 @@ def publish_initial(conn,args):
     ids=[UUID(x) for x in proposal["version_ids"]]
     if len(ids)!=3309 or ids!=sorted(set(ids)):
         raise ValueError("invalid initial membership")
-    with conn.transaction():
-        conn.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ")
-        conn.execute("SELECT pg_advisory_xact_lock(716032)")
-        if conn.execute("SELECT EXISTS(SELECT 1 FROM knowledge.release)").fetchone()[0]:
-            raise RuntimeError("initial publication only")
-        if digest_projection(conn,ids)!=proposal["projection_sha256"]:
-            raise ValueError("staged projection changed")
-        conn.execute("SET LOCAL ROLE satac_publisher")
-        digest=conn.execute("SELECT knowledge.publish(%s,%s)",(args.release,ids)).fetchone()[0]
-        if digest!=proposal["projection_sha256"] or conn.execute("SELECT knowledge.verify_release(%s)",(args.release,)).fetchone()[0] is not True:
-            raise RuntimeError("publication digest mismatch")
-        return {"release_id":str(args.release),"manifest_sha256":digest,"members":len(ids)}
+    # Acquire the session lock before taking a repeatable-read snapshot.
+    conn.autocommit=True
+    conn.execute("SELECT pg_advisory_lock(716032)")
+    try:
+        with conn.transaction():
+            conn.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ")
+            if conn.execute("SELECT EXISTS(SELECT 1 FROM knowledge.release)").fetchone()[0]:
+                raise RuntimeError("initial publication only")
+            if digest_projection(conn,ids)!=proposal["projection_sha256"]:
+                raise ValueError("staged projection changed")
+            conn.execute("SET LOCAL ROLE satac_publisher")
+            digest=conn.execute("SELECT knowledge.publish(%s,%s)",(args.release,ids)).fetchone()[0]
+            if digest!=proposal["projection_sha256"] or conn.execute("SELECT knowledge.verify_release(%s)",(args.release,)).fetchone()[0] is not True:
+                raise RuntimeError("publication digest mismatch")
+            return {"release_id":str(args.release),"manifest_sha256":digest,"members":len(ids)}
+    finally:
+        conn.execute("SELECT pg_advisory_unlock(716032)")
+
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)

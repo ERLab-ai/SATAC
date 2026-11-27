@@ -8,7 +8,7 @@ FROM base AS runtime
 COPY apps/api/main.py apps/api/main.py
 USER 10001:10001
 EXPOSE 8000
-CMD ["python","-m","uvicorn","apps.api.main:app","--host","0.0.0.0","--port","8000","--no-proxy-headers","--limit-concurrency","32","--timeout-keep-alive","5"]
+CMD ["python","-m","uvicorn","apps.api.main:app","--host","0.0.0.0","--port","8000","--no-proxy-headers","--no-access-log","--limit-concurrency","32","--timeout-keep-alive","5"]
 FROM base AS administration
 COPY ops/manage.py ops/manage.py
 COPY db/migrations db/migrations

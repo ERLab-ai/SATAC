@@ -39,3 +39,5 @@ CI drill restores archive into separate DB in same disposable cluster with --exi
 
 ## CI
 Separate operational job after verified web build downloads only dist artifact, builds images, checks schema/startup, no release by default, migration rerun, identical staged proposals, rejected invalid approval, explicit disposable publication, rejected second initial release, HTTP data/counts/security, backup and restore. Unique Compose project, generated secrets and no production endpoints. CI pending. Vulnerability scans, hash-locked wheels, digest pins all images, comprehensive security/accessibility/visual acceptance and production deployment not complete.
+
+Follow-up: initial publication takes the session advisory lock before the repeatable-read snapshot. Uvicorn access logging disabled in runtime (gateway path-only access log remains); operational destructive cleanup requires GitHub Actions and no pre-existing project containers or volumes. A vulnerability inventory workflow reports findings separately; actual results not yet evaluated.

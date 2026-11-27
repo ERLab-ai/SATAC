@@ -3,6 +3,10 @@
 set -euo pipefail
 test "${SATAC_OPERATIONAL_SMOKE:-}" = 1
 export COMPOSE_PROJECT_NAME="satac_ops_ci_${GITHUB_RUN_ID:-local}_${GITHUB_RUN_ATTEMPT:-1}"
+test "${GITHUB_ACTIONS:-}" = true
+# Never reuse a previous CI project or its volume.
+test -z "$(docker ps -aq --filter label=com.docker.compose.project=$COMPOSE_PROJECT_NAME)"
+test -z "$(docker volume ls -q --filter label=com.docker.compose.project=$COMPOSE_PROJECT_NAME)"
 export SATAC_SECRET_DIR="$(mktemp -d)"
 export SATAC_PORT=18080
 umask 077
