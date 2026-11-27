@@ -23,9 +23,9 @@ jobs:
         run: |
           gh run download 46042401540 --repo ERLab-ai/SATAC --name web-build-and-lock --dir "$RUNNER_TEMP/map-failed"
           mkdir -p apps/web/public/physical
-cp -r "$RUNNER_TEMP/map-failed/apps/web/dist/physical/." apps/web/public/physical/
-mkdir -p apps/web/dist
-cp -r "$RUNNER_TEMP/map-failed/apps/web/dist/physical" apps/web/dist/
+          cp -r "$RUNNER_TEMP/map-failed/apps/web/dist/physical/." apps/web/public/physical/
+          mkdir -p apps/web/dist
+          cp -r "$RUNNER_TEMP/map-failed/apps/web/dist/physical" apps/web/dist/
           python pipelines/verify_web_assets.py --root apps/web/dist/physical
       - name: Install test harness
         working-directory: apps/web
