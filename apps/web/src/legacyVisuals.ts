@@ -6,3 +6,6 @@ const artNames=new Set(["tomb","rock","oasis","port","route","fort","globe","dam
 export function artwork(name:string){return '/legacy-art/'+(artNames.has(name)?name:'globe')+'.svg';}
 export function categoryIcon(category:string){const name=categoryFiles[category];return name?'/legacy-art/'+name+'.svg':null;}
 export function sourceEraAllows(collection:'historical'|'modern',theme:string){return theme==='all'||(collection==='historical'?theme==='islamic':theme==='modern');}
+
+const gazKinds=new Set(["metropoles","capitals","towns","waystations","villages","regions","sites","waters"]);
+export function gazetteerIcon(kind:string|undefined){return kind&&gazKinds.has(kind)?'/legacy-art/gaz-'+kind+'.svg':null;}

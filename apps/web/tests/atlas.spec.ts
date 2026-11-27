@@ -344,3 +344,22 @@ test('original symbolic artwork and shared thematic timeline',async({page})=>{
  await page.getByRole('button',{name:'كل العصور',exact:true}).click();
  await expect(page.getByTestId('article-count')).toHaveText('50 مقالات');
 });
+
+test('thematic eligibility of reference directory and geosites',async({page})=>{
+ await page.goto('/');
+ await expect(page.getByTestId('map')).toHaveAttribute('data-ready','true',{timeout:20000});
+ await page.getByRole('button',{name:'المعجم',exact:true}).click();
+ await expect(page.getByTestId('directory-map-count')).toContainText('190');
+ await expect(page.getByRole('complementary',{name:'المعجم الجغرافي'}).locator('.legacy-gaz-icon').first()).toBeVisible();
+ await page.getByRole('button',{name:'المملكة والعالم',exact:true}).click();
+ await expect(page.getByTestId('directory-map-count')).toHaveCount(0);
+ await page.getByLabel('مجموعة المعجم').selectOption('modern');
+ await expect(page.getByTestId('directory-map-count')).toContainText('323');
+ await page.getByRole('button',{name:'الموسوعة',exact:true}).click();
+ await page.getByRole('button',{name:'الموضوعات الإضافية (7)',exact:true}).click();
+ await expect(page.locator('.extended-marker.geosite')).toHaveCount(2);
+ await expect(page.locator('.extended-marker.story')).toHaveCount(0);
+ await page.getByRole('button',{name:'العصور الإسلامية',exact:true}).click();
+ await expect(page.locator('.extended-marker.geosite')).toHaveCount(0);
+ await expect(page.locator('.extended-marker.story')).toHaveCount(5);
+});
