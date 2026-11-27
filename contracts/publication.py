@@ -39,6 +39,7 @@ class Claim:
     synthetic: bool = False
     restricted: bool = False
     correction_status: str = "none"
+    conflict_group_id: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -94,6 +95,8 @@ class PolicyStore:
             raise ValueError("invalid visibility")
         if not isinstance(c.references, tuple) or any(not isinstance(r, Reference) or r.source_version_id not in self._sources or (r.locator is not None and not nonblank(r.locator)) for r in c.references):
             raise ValueError("invalid source reference")
+        if c.conflict_group_id is not None and not nonblank(c.conflict_group_id):
+            raise ValueError("invalid conflict group")
         if any(v is not None and not nonblank(v) for v in (c.scientific_note, c.justification)):
             raise ValueError("invalid text")
 
@@ -130,6 +133,8 @@ class PolicyStore:
     def _projection(self, c):
         result = {"claim_id": c.claim_id, "version_id": c.version_id, "subject_id": c.subject_id,
                   "predicate": c.predicate, "object_id": c.object_id}
+        if c.conflict_group_id is not None:
+            result["conflict_group_id"] = c.conflict_group_id
         if c.scientific_note is not None:
             result["scientific_note"] = c.scientific_note
         if c.references:
@@ -151,6 +156,13 @@ class PolicyStore:
             raise ValueError("multiple versions of one claim")
         if any(not self._eligible(c) or self._latest[c.claim_id] != c.version_id for c in records):
             raise ValueError("ineligible or superseded member")
+        # Explicit editorial groups only; coincident subject/predicate is not evidence of conflict.
+        groups = {}
+        for c in records:
+            if c.conflict_group_id is not None:
+                scope = (c.subject_id, c.predicate)
+                if groups.setdefault(c.conflict_group_id, scope) != scope:
+                    raise ValueError("conflict group mixes subjects or predicates")
         release = Release(release_id, ids, digest([self._projection(c) for c in records]))
         self._releases[release_id] = release
         self._current = release_id
@@ -160,6 +172,24 @@ class PolicyStore:
         release = self._releases[release_id if release_id is not None else self._current]
         return {"release_id": release.release_id, "claims": [
             self._projection(self._versions[v]) for v in release.members if self._eligible(self._versions[v])
+        ]}
+
+    def read_conflicts(self, release_id=None):
+        """Release-scoped alternatives, using only the currently public projection.
+
+        Group IDs are explicitly assigned in staging, not inferred from differing
+        values or review status. A group with fewer than two visible claims is
+        not presented as a conflict. No winner, confidence score, or merging.
+        """
+        public = self.read(release_id)
+        groups = {}
+        for claim in public["claims"]:
+            group = claim.get("conflict_group_id")
+            if group is not None:
+                groups.setdefault(group, []).append(claim)
+        return {"release_id": public["release_id"], "conflicts": [
+            {"group_id": group, "alternatives": claims}
+            for group, claims in sorted(groups.items()) if len(claims) >= 2
         ]}
 
     def manifest(self, release_id, *, role):
@@ -197,6 +227,14 @@ class PolicyStore:
                 raise ValueError("current release contains another superseded record")
         elif release_id is not None:
             raise ValueError("release ID only for active published correction")
+        if active and new.conflict_group_id is not None:
+            for member in members:
+                if member == new.version_id:
+                    continue
+                other = self._versions[member]
+                if (other.conflict_group_id == new.conflict_group_id and
+                        (other.subject_id, other.predicate) != (new.subject_id, new.predicate)):
+                    raise ValueError("conflict group mixes subjects or predicates")
         self._versions[new.version_id] = new
         self._latest[new.claim_id] = new.version_id
         self._suppressed.add(version_id)
