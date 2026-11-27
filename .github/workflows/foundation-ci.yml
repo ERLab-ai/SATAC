@@ -175,6 +175,22 @@ jobs:
         env:
           SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
         run: npm test
+      - name: Reference API performance baseline
+        env:
+          SATAC_BENCHMARK_ONLY: '1'
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+        run: python pipelines/benchmark_api.py --output benchmark-results/reference.json
+      - name: A13 isolated 10000-claim performance baseline
+        env:
+          SATAC_BENCHMARK_ONLY: '1'
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac_benchmark
+        run: |
+          set -euo pipefail
+          DB="${{ job.services.db.id }}"
+          docker exec "$DB" createdb -U satac -T satac satac_benchmark
+          trap 'docker exec "$DB" dropdb -U satac --force satac_benchmark' EXIT
+          (printf "SET satac.benchmark_only='on';\n"; cat db/tests/performance_fixture.sql) | docker exec -i "$DB" psql -U satac -d satac_benchmark -v ON_ERROR_STOP=1
+          python pipelines/benchmark_api.py --scale --output benchmark-results/a13.json
       - name: Public access revocation HTTP integration
         env:
           SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
@@ -188,4 +204,5 @@ jobs:
             apps/web/dist
             apps/web/package-lock.json
             apps/web/test-results
+            benchmark-results
           if-no-files-found: warn
