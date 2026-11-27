@@ -29,6 +29,8 @@ jobs:
           POSTGRES_USER: satac
           POSTGRES_PASSWORD: disposable-ci-only
           POSTGRES_DB: satac
+        ports:
+          - 5432/tcp
         options: >-
           --health-cmd "pg_isready -U satac -d satac"
           --health-interval 5s
@@ -42,3 +44,16 @@ jobs:
         run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0001_knowledge.sql
       - name: Database integration tests
         run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/tests/knowledge.sql
+      - name: Install public API migration
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0002_public_api.sql
+      - name: Load disposable API fixtures
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/tests/api_fixture.sql
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.5'
+      - run: python -m pip install -r apps/api/requirements.txt
+      - name: HTTP integration tests
+        env:
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+          SATAC_ADMIN_TEST_DSN: postgresql://satac:disposable-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+        run: python -m unittest discover -s apps/api/tests -v
