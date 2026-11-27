@@ -18,7 +18,7 @@ CREATE FUNCTION knowledge.validate_editorial(p text,a jsonb) RETURNS void LANGUA
  END LOOP;
  IF a->'record'->>0 !~ '^[a-z0-9_]+$' OR a->'record'->>1 !~ '^[a-z0-9_]+$' OR a->'record'->>0=a->'record'->>1 THEN RAISE EXCEPTION 'invalid link endpoints' USING ERRCODE='23514'; END IF;
  ELSIF p='EDITORIAL_JOURNEY' THEN
- IF a-ARRAY['ordinal','record']<>'{}'::jsonb OR jsonb_typeof(a->'record') IS DISTINCT FROM 'object' OR a->'record'-ARRAY['title','subtitle','art','ids']<>'{}'::jsonb THEN RAISE EXCEPTION 'invalid journey' USING ERRCODE='23514'; END IF;
+ IF a-ARRAY['ordinal','record']<>'{}'::jsonb OR jsonb_typeof(a->'record') IS DISTINCT FROM 'object' OR (a->'record')-ARRAY['title','subtitle','art','ids']<>'{}'::jsonb THEN RAISE EXCEPTION 'invalid journey' USING ERRCODE='23514'; END IF;
  FOREACH k IN ARRAY ARRAY['title','subtitle','art'] LOOP
  IF jsonb_typeof(a->'record'->k) IS DISTINCT FROM 'string' OR btrim(a->'record'->>k)='' THEN RAISE EXCEPTION 'invalid journey text' USING ERRCODE='23514'; END IF;
  END LOOP;
