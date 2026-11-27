@@ -232,6 +232,11 @@ jobs:
           SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
           SATAC_ADMIN_TEST_DSN: postgresql://satac:disposable-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
         run: python -m unittest discover -s apps/api/tests -p test_access_revocation.py -v
+      - name: Embedded source access HTTP regression
+        env:
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+          SATAC_ADMIN_TEST_DSN: postgresql://satac:disposable-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+        run: python -m unittest discover -s apps/api/tests -p test_embedded_source_access.py -v
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -132,11 +132,20 @@ def main():
     activate.add_argument("--manifest-sha256",required=True)
     activate.add_argument("--reason",required=True)
     activate.add_argument("--actor",required=True)
+    embedded=sub.add_parser("revoke-embedded-source")
+    embedded.add_argument("--source",required=True,type=UUID)
+    embedded.add_argument("--reason",required=True)
+    embedded.add_argument("--actor",required=True)
     a=p.parse_args()
     with connection() as conn:
         if a.command=="migrate":result=migrate(conn)
         elif a.command=="stage":result=stage(conn)
         elif a.command=="publish-initial":result=publish_initial(conn,a)
+        elif a.command=="revoke-embedded-source":
+            with conn.transaction():
+                conn.execute("SET LOCAL ROLE satac_curator")
+                conn.execute("SELECT knowledge.revoke_embedded_source(%s,%s,%s)",(a.source,a.reason,a.actor))
+                result={"recorded":True,"operation":a.command}
         else:
             with conn.transaction():
                 conn.execute("SET LOCAL ROLE satac_publisher")
