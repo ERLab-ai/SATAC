@@ -43,7 +43,10 @@ BEGIN
  IF (SELECT payload FROM public_read.release_claims WHERE release_id=r2 AND version_id=v) IS DISTINCT FROM visible THEN RAISE EXCEPTION 'release inconsistency'; END IF;
  IF (SELECT payload FROM public_read.release_claims WHERE release_id=r1 AND version_id=v2) ? 'references' THEN RAISE EXCEPTION 'source leaked in second claim'; END IF;
  IF (SELECT count(*) FROM public_read.entity_names WHERE release_id=r1 AND version_id IN(v,v2))<>2 THEN RAISE EXCEPTION 'name search unnecessarily withheld'; END IF;
- IF knowledge.publish(r3,ARRAY[v,v2])<>hash1 OR (SELECT payload FROM public_read.release_claims WHERE release_id=r3 AND version_id=v) IS DISTINCT FROM visible THEN RAISE EXCEPTION 'carry-forward resurrected restricted material'; END IF;
+ -- Separate volatile publication from the subsequent SELECT snapshot.
+ hash2:=knowledge.publish(r3,ARRAY[v,v2]);
+ IF hash2<>hash1 THEN RAISE EXCEPTION 'carry-forward changed archived digest'; END IF;
+ IF (SELECT payload FROM public_read.release_claims WHERE release_id=r3 AND version_id=v) IS DISTINCT FROM visible THEN RAISE EXCEPTION 'carry-forward resurrected restricted material'; END IF;
  IF (SELECT payload FROM knowledge.release_member WHERE release_id=r1 AND version_id=v) IS DISTINCT FROM archived OR knowledge.verify_release(r1) IS DISTINCT FROM true OR knowledge.verify_release(r3) IS DISTINCT FROM true THEN RAISE EXCEPTION 'archive changed'; END IF;
  PERFORM knowledge.revoke_source(s2,'second access decision','fixture curator');
  PERFORM knowledge.revoke_geometry(r1,v,3,'second geometry decision','fixture curator');

@@ -1,0 +1,34 @@
+name: Recover verified npm lock
+on:
+  push:
+    branches: ['foundation/p0-domain-contracts']
+    paths: ['.github/workflows/lock-bootstrap.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  recover:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: web-build-and-lock
+          run-id: '46023832001'
+          github-token: ${{ github.token }}
+          path: /tmp/satac-prior
+      - name: Verify and emit exact public registry lock
+        run: |
+          python - <<'PY'
+          import base64, hashlib, json
+          from pathlib import Path
+          b = Path('/tmp/satac-prior/package-lock.json').read_bytes()
+          assert hashlib.sha256(b).hexdigest() == 'd8fc9df705bd8d880856b399843b93b67ca4ff0edc7e6dd0b0280ac022fa7349'
+          d = json.loads(b)
+          assert len(d['packages']) == 164 and d['lockfileVersion'] == 3
+          assert all(v.get('integrity') and v.get('resolved','').startswith('https://registry.npmjs.org/') for k,v in d['packages'].items() if k)
+          s = base64.b64encode(b).decode('ascii')
+          for i in range(0,len(s),1000):
+              print('LOCKCHUNK:%04d:%s' % (i//1000,s[i:i+1000]))
+          print('LOCKEND:%d' % len(s))
+          PY
