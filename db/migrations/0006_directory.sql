@@ -92,7 +92,7 @@ CREATE OR REPLACE FUNCTION knowledge.project(v uuid) RETURNS jsonb LANGUAGE sql 
 
 CREATE VIEW public_read.directory WITH (security_barrier=true) AS
  SELECT release_id,version_id,(payload->>'subject_id')::uuid AS entity_id,payload->'directory' AS directory,
- coalesce(payload->'references','[]'::jsonb) AS references
+ coalesce(payload->'references','[]'::jsonb) AS source_references
  FROM public_read.release_claims WHERE payload->>'predicate'='DIRECTORY_ENTRY';
 GRANT SELECT ON public_read.directory TO satac_reader;
 COMMIT;

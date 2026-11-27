@@ -318,5 +318,5 @@ def directory(release: UUID | None=None,collection: Literal["historical","modern
             key=conn.execute("SELECT public_read.search_key(%s) AS key",(q,)).fetchone()["key"]
             if not key: raise HTTPException(422,"empty_search")
             filters.append("strpos(public_read.search_key(concat_ws(' ',directory->'record'->>'name',directory->'record'->>'en')),%s)>0");args.append(key)
-        rows=conn.execute("SELECT entity_id,directory,references FROM public_read.directory WHERE "+" AND ".join(filters)+" ORDER BY directory->>'collection',directory->'record'->>'name',entity_id LIMIT 2001",args).fetchall()
-    return {"release_id":str(rid),"entries":[{"entity_id":str(r["entity_id"]),**r["directory"],"references":r["references"]} for r in rows[:2000]],"truncated":len(rows)>2000}
+        rows=conn.execute("SELECT entity_id,directory,source_references FROM public_read.directory WHERE "+" AND ".join(filters)+" ORDER BY directory->>'collection',directory->'record'->>'name',entity_id LIMIT 2001",args).fetchall()
+    return {"release_id":str(rid),"entries":[{"entity_id":str(r["entity_id"]),**r["directory"],"references":r["source_references"]} for r in rows[:2000]],"truncated":len(rows)>2000}

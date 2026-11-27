@@ -65,12 +65,12 @@ function App(){
  return ()=>c.abort();
  },[release]);
  useEffect(()=>{
- setDirectory([]);setDirectorySelected(null);setDirectoryError('');
+ setDirectory([]);setDirectorySelected(null);setDirectoryError('');setDirectoryRegion('');
  if(!release)return;const c=new AbortController();
  get<{entries:DirectoryEntry[];truncated:boolean}>('/api/v1/directory',{release},c.signal).then(r=>{if(!c.signal.aborted){setDirectory(r.entries);if(r.truncated)setDirectoryError('توجد سجلات إضافية غير معروضة.');}}).catch(()=>{if(!c.signal.aborted)setDirectoryError('تعذر تحميل المعجم.');});
  return ()=>c.abort();
  },[release]);
- const directoryRows=directory.filter(x=>x.collection===directoryCollection&&(!directoryRegion||x.region_label===directoryRegion)&&(!directoryQuery||searchKey(x.record.name+' '+(x.record.en??'')).includes(searchKey(directoryQuery))));
+ const directoryRows=directory.filter(x=>x.collection===directoryCollection&&(!directoryRegion||x.region_label===directoryRegion)&&(!directoryQuery||(!!searchKey(directoryQuery)&&searchKey(x.record.name+' '+(x.record.en??'')).includes(searchKey(directoryQuery)))));
  function chooseDirectory(id:string|null){setDirectorySelected(id);setPanel('directory');}
  function resetSelection(){setSelected(null);setEntity(null);setClaim(null);setAfter(undefined);setArticleSelected(null);setDirectorySelected(null);setPanel(p=>p==='detail'?null:p);}
  function choose(id:string){setSelected(id);setPanel('detail');}
@@ -108,7 +108,7 @@ function App(){
  <label className="layer-toggle"><input type="checkbox" checked={geoLabels} onChange={e=>setGeoLabels(e.target.checked)}/> التسميات الجغرافية</label>
  <label className="layer-toggle"><input type="checkbox" checked={showLocations} onChange={e=>setShowLocations(e.target.checked)}/> المواضع</label>
  {releaseError&&<p role="alert">{releaseError}</p>}</section>
- <section className="main-map"><AtlasMap data={visibleData} selected={selected} onSelect={choose} physical={physical} geoLabels={geoLabels} dated={!!time.as_of} articles={articleLayer&&!time.as_of?articleRows:[]} selectedArticle={articleSelected} onArticleSelect={chooseArticle} network={!time.as_of?network:null} showLinks={showLinks} journey={journey} focus={panel==='network'?focus:undefined} directory={directoryLayer&&!time.as_of?directoryRows:[]} directorySelected={directorySelected} onDirectorySelect={chooseDirectory}/></section>
+ <section className="main-map"><AtlasMap data={visibleData} selected={selected} onSelect={choose} physical={physical} geoLabels={geoLabels} dated={!!time.as_of} articles={articleLayer&&!time.as_of?articleRows:[]} selectedArticle={articleSelected} onArticleSelect={chooseArticle} network={!time.as_of?network:null} showLinks={showLinks} journey={journey} focus={panel==='network'?focus:undefined} directory={directoryLayer&&!time.as_of?directoryRows:[]} directorySelected={panel==='directory'?directorySelected:null} onDirectorySelect={chooseDirectory}/></section>
  <section className="map-status" aria-label="حالة الخريطة"><p role="status" data-testid="feature-count">{mapLoading?'جارٍ تحميل المعالم…':places.length+' مواضع'}</p>
  {mapError&&<p role="alert">{mapError}</p>}{truncated&&<p>عُرضت أول 2000 سجل؛ نتائج إضافية غير معروضة.</p>}{time.as_of&&<p>التأريخ: {timeLabel} · لا تظهر السجلات غير المؤرخة.</p>}
  {!mapLoading&&!mapError&&!places.length&&<p>لا توجد مواضع مطابقة.</p>}</section>

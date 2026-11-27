@@ -12,3 +12,5 @@
 .network-endpoints{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0}.network-endpoints button{flex:1;font-size:12px}.editorial-legend{position:absolute;bottom:42px;right:12px;background:#152f36ed;border:1px solid #d1af72;border-radius:5px;color:#f2d099;padding:5px 8px;font-size:11px;z-index:3}.encyclopedia ol button{text-align:start;margin:3px 0}.header-actions{flex-wrap:wrap}@media(max-width:760px){.editorial-legend{max-width:65%;font-size:9px}.header-actions{max-width:55%}}
 
 .directory-legend{position:absolute;bottom:78px;right:12px;background:#152f36ed;border:1px solid #d1af72;border-radius:5px;padding:5px 8px;font-size:11px;z-index:3}.encyclopedia input{width:100%}.encyclopedia article a{color:#f2d099}@media(max-width:760px){.directory-legend{font-size:9px;max-width:65%}}
+
+@media(max-width:760px){.brand{min-width:0;flex:1}.brand>div{min-width:0}.header-actions{flex:none;max-width:57%;justify-content:flex-end}.header-actions button{white-space:nowrap}}

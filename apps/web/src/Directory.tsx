@@ -6,7 +6,7 @@ export default function Directory({entries,collection,onCollection,region,onRegi
  const [page,setPage]=useState(0);
  const pool=entries.filter(x=>x.collection===collection);
  const regions=[...new Set(pool.map(x=>x.region_label))].sort();
- const rows=pool.filter(x=>(!region||x.region_label===region)&&(!q||searchKey(x.record.name+' '+(x.record.en??'')).includes(searchKey(q))));
+ const rows=pool.filter(x=>(!region||x.region_label===region)&&(!q||(!!searchKey(q)&&searchKey(x.record.name+' '+(x.record.en??'')).includes(searchKey(q)))));
  const active=rows.find(x=>x.entity_id===selected);
  const pages=Math.max(1,Math.ceil(rows.length/30)),p=Math.min(page,pages-1);
  return <aside className="encyclopedia floating-panel" aria-label="المعجم الجغرافي"><button className="panel-close" aria-label="إغلاق المعجم" onClick={onClose}>×</button><h2>المعجم الجغرافي</h2>
