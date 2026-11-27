@@ -121,7 +121,7 @@ def query_claims(conn, release, after, limit, bounds, certainty, entity=None, di
         conditions.append("version_id>%s")
         args.append(after)
     if entity is not None:
-        conditions.append("payload->>'predicate' NOT IN ('NAME','ARTICLE','EDITORIAL_LINK','EDITORIAL_JOURNEY','DIRECTORY_ENTRY','ROUTE_SEGMENT','HISTORICAL_SNAPSHOT','GEOLOGY_RECORD')")
+        conditions.append("payload->>'predicate' NOT IN ('NAME','ARTICLE','EDITORIAL_LINK','EDITORIAL_JOURNEY','DIRECTORY_ENTRY','ROUTE_SEGMENT','HISTORICAL_SNAPSHOT','GEOLOGY_RECORD','CELL_METRIC')")
         if direction == "out":
             conditions.append("payload->>'subject_id'=%s")
             args.append(str(entity))
@@ -379,3 +379,14 @@ def geology(release: UUID | None=None):
           FROM v LEFT JOIN p ON public.ST_Covers(p.geom,v.geom) GROUP BY v.id
         """,(rid,)).fetchall()
     return {"release_id":str(rid),"semantics":"present_reference_not_past_reconstruction","records":[r["geology"] for r in rows],"volcano_provinces":{r["id"]:r["ids"] for r in links}}
+
+
+@app.get("/api/v1/cells")
+def cells(release: UUID | None=None):
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        rows=conn.execute("SELECT cell FROM public_read.cells WHERE release_id=%s ORDER BY (cell->>'c')::int,(cell->>'t')::int,version_id LIMIT 5001",(rid,)).fetchall()
+        provinces=[r["record"] for r in conn.execute("SELECT geology->'record' AS record FROM public_read.geology WHERE release_id=%s AND geology->>'type'='province' ORDER BY (geology->'record'->>'id')::int",(rid,))]
+    ids={p["id"] for p in provinces}
+    result=[{**r["cell"],"province_ids":[i for i in r["cell"]["province_ids"] if i in ids]} for r in rows[:5000]]
+    return {"release_id":str(rid),"semantics":"legacy_reference_metrics_not_resource_availability","cells":result,"provinces":[{"id":p["id"],"name":p["name"]} for p in provinces],"truncated":len(rows)>5000}

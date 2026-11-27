@@ -238,6 +238,16 @@
       "languages": [
         "ar"
       ]
+    },
+    "CELL_METRIC": {
+      "domain": [
+        "Place"
+      ],
+      "range": [],
+      "literal_type": "cell_metric",
+      "languages": [
+        "ar"
+      ]
     }
   },
   "publication_status": [

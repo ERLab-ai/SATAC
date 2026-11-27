@@ -25,3 +25,5 @@ Route candidate: 145 original segments, 135 source graph nodes; source-weight Di
 Historical snapshots candidate: 27 original polygons (five source years) and four original event points; explicit source-year temporal normalization, independent comparison and linked detail. No interpolated boundaries. Corrected prior release variable ordering build failure; browser validation pending.
 
 Geology candidate: 44 original valid provinces and 12 volcanic sites, reference layers, original colors and filters, PostGIS point/polygon associations, retained source files. Cell intersection reader and resource metrics pending. No historical geological reconstruction.
+
+Cell metric candidate: all 2480 original measured records, 1847 pinned geological links, four reference lenses, selectable cell reader and map overlay. Local source geometry cross-check passed; integration pending. Geosite stories and full parity review remain pending.

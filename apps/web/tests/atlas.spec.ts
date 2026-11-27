@@ -263,3 +263,23 @@ test('released geology, independent filters, source details and dated reference'
  await page.getByRole('button',{name:'إغلاق الجيولوجيا'}).click();
  await expect(page.getByTestId('geology-map-legend')).toHaveCount(0);
 });
+
+test('analytical grid exact metrics and reference lenses',async({page})=>{
+ await page.goto('/');
+ await expect(page.getByTestId('map')).toHaveAttribute('data-ready','true',{timeout:20000});
+ await page.getByRole('button',{name:'التحليل',exact:true}).click();
+ await expect(page.getByTestId('cell-count')).toHaveText('2480 خلية');
+ await page.getByLabel('معرف الخلية').selectOption('554,126');
+ await expect(page.getByTestId('cell-area')).toContainText('1800.4');
+ await expect(page.getByTestId('cell-water')).toContainText('77.44');
+ await expect(page.getByRole('heading',{name:'الأقاليم الجيولوجية المتقاطعة'})).toBeVisible();
+ await page.getByLabel('عدسة التحليل').selectOption('articles');
+ await expect(page.getByTestId('cell-map-legend')).toContainText('الموضوعات الموسوعية');
+ await page.getByLabel('عدسة التحليل').selectOption('water');
+ await page.getByLabel('السنة التاريخية').fill('550');
+ await page.getByRole('button',{name:'تطبيق الزمن'}).click();
+ await expect(page.getByTestId('cell-map-legend')).toBeVisible();
+ await expect(page.getByTestId('cell-water')).toContainText('77.44');
+ await page.getByRole('button',{name:'إغلاق التحليل'}).click();
+ await expect(page.getByTestId('cell-map-legend')).toHaveCount(0);
+});

@@ -45,3 +45,6 @@ export type Snapshot={type:'territory';year:number;record:{id:string;name:string
 
 export type GeologyRecord={type:'province';reference:string;simplification_deg:number;record:{id:number;name:string;en:string;kind:'shield'|'basin'|'volcanic'|'structure'|'other';ring:[number,number][];anchor:[number,number]}}|{type:'volcano';record:{id:string;name:string;en:string;lon:number;lat:number;elevation:number|null;period:'holocene'|'pleistocene';last:string;summary:string;source:string}};
 export type GeologyData={release_id:string;records:GeologyRecord[];volcano_provinces:Record<string,number[]>};
+
+export type CellMetric={id:string;c:number;t:number;radius:number;area_km2:number;water_km:number;province_ids:number[]};
+export type CellData={release_id:string;cells:CellMetric[];provinces:{id:number;name:string}[];truncated:boolean};
