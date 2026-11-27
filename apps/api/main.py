@@ -2,6 +2,7 @@
 import json
 import os
 import re
+from pathlib import Path
 from contextlib import contextmanager
 from decimal import Decimal
 from typing import Literal
@@ -51,7 +52,17 @@ def reader():
     dsn = os.environ.get("SATAC_READER_DSN")
     if not dsn:
         raise HTTPException(503, "database_unavailable")
-    with psycopg.connect(dsn, row_factory=dict_row, connect_timeout=5) as conn:
+    options = {}
+    password_file = os.environ.get("SATAC_READER_PASSWORD_FILE")
+    if password_file:
+        try:
+            password = Path(password_file).read_text(encoding="utf-8").rstrip("\r\n")
+        except (OSError, UnicodeError):
+            raise HTTPException(503, "database_unavailable") from None
+        if not password:
+            raise HTTPException(503, "database_unavailable")
+        options["password"] = password
+    with psycopg.connect(dsn, row_factory=dict_row, connect_timeout=5, **options) as conn:
         with conn.transaction():
             conn.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
             conn.execute("SET LOCAL statement_timeout = '5s'")
@@ -178,6 +189,14 @@ def health():
     with reader() as conn:
         conn.execute("SELECT 1").fetchone()
     return {"status":"ok"}
+
+
+@app.get("/ready")
+def ready():
+    with reader() as conn:
+        if not conn.execute("SELECT 1 FROM public_read.releases WHERE is_current").fetchone():
+            raise HTTPException(503, "no_active_release")
+    return {"status":"ready"}
 
 
 @app.get("/api/v1/releases")

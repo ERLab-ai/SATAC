@@ -1,0 +1,6 @@
+.satac-secrets/
+proposal.json
+*.dump
+*.dump.sha256
+__pycache__/
+*.pyc

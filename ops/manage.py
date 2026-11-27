@@ -1,0 +1,131 @@
+"""Privileged one-shot operations; never shipped in public API image."""
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import re
+import sys
+from uuid import UUID
+import psycopg
+from psycopg import sql
+
+ROOT=Path(__file__).resolve().parents[1]
+
+def secret(name):
+    value=Path("/run/secrets",name).read_text(encoding="utf-8").rstrip("\r\n")
+    if len(value)<32 or any(c in value for c in "\r\n\x00"):
+        raise ValueError("invalid deployment secret")
+    return value
+
+def connection():
+    return psycopg.connect(host="db",dbname="satac",user="satac_admin",
+                           password=secret("admin_password"),connect_timeout=10)
+
+def migrations():
+    result=[]
+    for path in sorted((ROOT/"db/migrations").glob("*.sql")):
+        raw=path.read_bytes()
+        s=raw.decode("utf-8")
+        if not re.match(r"\A(?:--[^\n]*\n|\s)*BEGIN;\s*",s) or not re.search(r"\nCOMMIT;\s*\Z",s):
+            raise ValueError("migration transaction wrapper mismatch: "+path.name)
+        body=re.sub(r"\A(?:--[^\n]*\n|\s)*BEGIN;\s*","",s,count=1)
+        body=re.sub(r"\nCOMMIT;\s*\Z","",body,count=1)
+        result.append((path.name,hashlib.sha256(raw).hexdigest(),body))
+    if not result or [int(x[0][:4]) for x in result]!=list(range(1,len(result)+1)):
+        raise ValueError("migration sequence gap")
+    return result
+
+def migrate(conn):
+    planned=migrations()
+    conn.autocommit=True
+    conn.execute("SELECT pg_advisory_lock(716050)")
+    try:
+        with conn.transaction():
+            if conn.execute("SELECT to_regclass('satac_ops.schema_migrations')").fetchone()[0] is None:
+                if conn.execute("SELECT to_regnamespace('knowledge')").fetchone()[0] is not None:
+                    raise RuntimeError("existing untracked schema")
+                conn.execute("CREATE SCHEMA satac_ops")
+                conn.execute("REVOKE ALL ON SCHEMA satac_ops FROM PUBLIC")
+                conn.execute("CREATE TABLE satac_ops.schema_migrations(name text PRIMARY KEY,sha256 text NOT NULL,applied_at timestamptz NOT NULL DEFAULT clock_timestamp())")
+        existing=conn.execute("SELECT name,sha256 FROM satac_ops.schema_migrations ORDER BY name").fetchall()
+        if existing!=[(n,h) for n,h,_ in planned[:len(existing)]]:
+            raise RuntimeError("migration history drift or downgrade")
+        for name,digest,body in planned[len(existing):]:
+            with conn.transaction():
+                conn.execute(body,prepare=False)
+                conn.execute("INSERT INTO satac_ops.schema_migrations(name,sha256) VALUES(%s,%s)",(name,digest))
+        with conn.transaction():
+            role=conn.execute("SELECT rolcanlogin,rolsuper,rolcreaterole,rolcreatedb,rolreplication,rolbypassrls,rolinherit FROM pg_roles WHERE rolname='satac_runtime'").fetchone()
+            if role is None:
+                conn.execute("CREATE ROLE satac_runtime LOGIN INHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS")
+            elif role!=(True,False,False,False,False,False,True):
+                raise RuntimeError("unexpected runtime role attributes")
+            conn.execute("GRANT satac_reader TO satac_runtime")
+            memberships=conn.execute("SELECT rolname FROM pg_roles WHERE rolname<>'satac_runtime' AND pg_has_role('satac_runtime',oid,'MEMBER') ORDER BY rolname").fetchall()
+            if memberships!=[("satac_reader",)] or conn.execute("SELECT has_schema_privilege('satac_runtime','knowledge','USAGE')").fetchone()[0]:
+                raise RuntimeError("unexpected runtime privileges")
+            conn.execute(sql.SQL("ALTER ROLE satac_runtime PASSWORD {}").format(sql.Literal(secret("reader_password"))))
+        return {"applied":len(planned),"new":len(planned)-len(existing)}
+    finally:
+        conn.execute("SELECT pg_advisory_unlock(716050)")
+
+def digest_projection(conn,ids):
+    value=conn.execute("""SELECT encode(public.digest(convert_to(jsonb_agg(knowledge.project(x) ORDER BY x)::text,'UTF8'),'sha256'),'hex')
+        FROM unnest(%s::uuid[]) x""",(ids,)).fetchone()[0]
+    if not value: raise ValueError("empty proposal")
+    return value
+
+def stage(conn):
+    from pipelines.import_genesis_places import import_sample
+    from pipelines import import_encyclopedia,import_editorial_network,import_directory,import_routes,import_snapshots,import_geology,import_cells,import_extended_topics
+    ids=[]
+    with conn.transaction():
+        for importer in (import_sample,import_encyclopedia.stage,import_editorial_network.stage,import_directory.stage,
+                         import_routes.stage,import_snapshots.stage,import_geology.stage,import_cells.stage,import_extended_topics.stage):
+            ids.extend(importer(conn))
+        ids=sorted(ids)
+        if len(ids)!=3309 or len(set(ids))!=len(ids):
+            raise ValueError("unexpected restored candidate membership")
+        return {"format":"satac-initial-proposal-v1","version_ids":[str(x) for x in ids],
+                "projection_sha256":digest_projection(conn,ids)}
+
+def publish_initial(conn,args):
+    raw=sys.stdin.buffer.read(2_000_001)
+    if len(raw)>2_000_000 or hashlib.sha256(raw).hexdigest()!=args.manifest_sha256:
+        raise ValueError("proposal digest mismatch")
+    proposal=json.loads(raw)
+    if proposal.get("format")!="satac-initial-proposal-v1":
+        raise ValueError("invalid proposal")
+    ids=[UUID(x) for x in proposal["version_ids"]]
+    if len(ids)!=3309 or ids!=sorted(set(ids)):
+        raise ValueError("invalid initial membership")
+    with conn.transaction():
+        conn.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ")
+        conn.execute("SELECT pg_advisory_xact_lock(716032)")
+        if conn.execute("SELECT EXISTS(SELECT 1 FROM knowledge.release)").fetchone()[0]:
+            raise RuntimeError("initial publication only")
+        if digest_projection(conn,ids)!=proposal["projection_sha256"]:
+            raise ValueError("staged projection changed")
+        conn.execute("SET LOCAL ROLE satac_publisher")
+        digest=conn.execute("SELECT knowledge.publish(%s,%s)",(args.release,ids)).fetchone()[0]
+        if digest!=proposal["projection_sha256"] or conn.execute("SELECT knowledge.verify_release(%s)",(args.release,)).fetchone()[0] is not True:
+            raise RuntimeError("publication digest mismatch")
+        return {"release_id":str(args.release),"manifest_sha256":digest,"members":len(ids)}
+
+def main():
+    p=argparse.ArgumentParser(description=__doc__)
+    sub=p.add_subparsers(dest="command",required=True)
+    sub.add_parser("migrate")
+    sub.add_parser("stage")
+    pub=sub.add_parser("publish-initial")
+    pub.add_argument("--manifest-sha256",required=True)
+    pub.add_argument("--release",required=True,type=UUID)
+    a=p.parse_args()
+    with connection() as conn:
+        if a.command=="migrate":result=migrate(conn)
+        elif a.command=="stage":result=stage(conn)
+        else:result=publish_initial(conn,a)
+    print(json.dumps(result,ensure_ascii=False,sort_keys=True,separators=(",",":")))
+
+if __name__=="__main__":
+    main()
