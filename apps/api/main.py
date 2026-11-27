@@ -121,7 +121,7 @@ def query_claims(conn, release, after, limit, bounds, certainty, entity=None, di
         conditions.append("version_id>%s")
         args.append(after)
     if entity is not None:
-        conditions.append("payload->>'predicate' NOT IN ('NAME','ARTICLE','EDITORIAL_LINK','EDITORIAL_JOURNEY','DIRECTORY_ENTRY')")
+        conditions.append("payload->>'predicate' NOT IN ('NAME','ARTICLE','EDITORIAL_LINK','EDITORIAL_JOURNEY','DIRECTORY_ENTRY','ROUTE_SEGMENT')")
         if direction == "out":
             conditions.append("payload->>'subject_id'=%s")
             args.append(str(entity))
@@ -320,3 +320,33 @@ def directory(release: UUID | None=None,collection: Literal["historical","modern
             filters.append("strpos(public_read.search_key(concat_ws(' ',directory->'record'->>'name',directory->'record'->>'en')),%s)>0");args.append(key)
         rows=conn.execute("SELECT entity_id,directory,source_references FROM public_read.directory WHERE "+" AND ".join(filters)+" ORDER BY directory->>'collection',directory->'record'->>'name',entity_id LIMIT 2001",args).fetchall()
     return {"release_id":str(rid),"entries":[{"entity_id":str(r["entity_id"]),**r["directory"],"references":r["source_references"]} for r in rows[:2000]],"truncated":len(rows)>2000}
+
+
+from contracts.route_graph import shortest
+
+def released_segments(conn,rid):
+    return [r["segment"] for r in conn.execute("SELECT segment FROM public_read.route_segments WHERE release_id=%s ORDER BY segment->>'id'",(rid,))]
+
+@app.get("/api/v1/routes")
+def routes(release: UUID | None=None):
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        edges=released_segments(conn,rid)
+        rows=conn.execute("SELECT directory->'record' AS record FROM public_read.directory WHERE release_id=%s AND directory->>'collection'='historical'",(rid,)).fetchall()
+    names={r["record"]["id"]:r["record"]["name"] for r in rows}
+    uris={r["record"]["source_uri"]:r["record"]["name"] for r in rows if "source_uri" in r["record"]}
+    ids=sorted({e[k] for e in edges for k in ("from_id","to_id")})
+    nodes=[{"id":n,"name":uris.get(n,names.get(re.sub(r"_[A-Z]{4}$","",n),n))} for n in ids]
+    return {"release_id":str(rid),"segments":edges,"nodes":nodes,"semantics":"undirected_source_weight_network"}
+
+@app.get("/api/v1/routes/path")
+def route_path(start: str=Query(...,min_length=1,max_length=120),end: str=Query(...,min_length=1,max_length=120),release: UUID | None=None):
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        edges=released_segments(conn,rid)
+    try:
+        result=shortest(edges,start,end)
+    except KeyError:
+        raise HTTPException(404,"route_node_not_found")
+    if result is None: raise HTTPException(404,"route_not_connected")
+    return {"release_id":str(rid),"semantics":"undirected_source_weight_network",**result}

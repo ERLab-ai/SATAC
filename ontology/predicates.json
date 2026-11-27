@@ -208,6 +208,16 @@
       "languages": [
         "ar"
       ]
+    },
+    "ROUTE_SEGMENT": {
+      "domain": [
+        "Route"
+      ],
+      "range": [],
+      "literal_type": "route_segment",
+      "languages": [
+        "ar"
+      ]
     }
   },
   "publication_status": [

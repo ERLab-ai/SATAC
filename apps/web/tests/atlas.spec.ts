@@ -193,3 +193,22 @@ test('historical and modern directory reference layers',async({page})=>{
  await page.getByRole('button',{name:'كل الأزمنة'}).click();
  await expect(page.getByTestId('directory-map-count')).toContainText('1');
 });
+
+test('released route network and shortest source-weight path',async({page})=>{
+ page.on('console',m=>{if(m.type()==='error')console.log(m.text());});
+ await page.goto('/');
+ await expect(page.getByTestId('map')).toHaveAttribute('data-ready','true',{timeout:20000});
+ await page.getByRole('button',{name:'الطرق',exact:true}).click();
+ await expect(page.getByTestId('route-count')).toHaveText('145 مقطع · 135 عقدة');
+ await expect(page.getByTestId('route-map-count')).toContainText('145');
+ await page.getByLabel('بداية الطريق').selectOption('MAKKA_398E213N_S_JAZI');
+ await page.getByLabel('نهاية الطريق').selectOption('MADINA_396E244N_S_JAZI');
+ await page.getByRole('button',{name:'احسب المسار'}).click();
+ await expect(page.getByTestId('route-distance')).toContainText('كم وفق المصدر');
+ await page.getByLabel('إظهار الطرق').uncheck();
+ await expect(page.getByTestId('route-map-count')).toHaveCount(0);
+ await page.getByLabel('إظهار الطرق').check();
+ await page.getByLabel('السنة التاريخية').fill('550');
+ await page.getByRole('button',{name:'تطبيق الزمن'}).click();
+ await expect(page.getByTestId('route-map-count')).toHaveCount(0);
+});

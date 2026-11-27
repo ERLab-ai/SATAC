@@ -14,3 +14,5 @@
 .directory-legend{position:absolute;bottom:78px;right:12px;background:#152f36ed;border:1px solid #d1af72;border-radius:5px;padding:5px 8px;font-size:11px;z-index:3}.encyclopedia input{width:100%}.encyclopedia article a{color:#f2d099}@media(max-width:760px){.directory-legend{font-size:9px;max-width:65%}}
 
 @media(max-width:760px){.brand{min-width:0;flex:1}.brand>div{min-width:0}.header-actions{flex:none;max-width:57%;justify-content:flex-end}.header-actions button{white-space:nowrap}}
+
+.route-legend{position:absolute;bottom:112px;right:12px;background:#152f36ed;border:1px solid #d1af72;border-radius:5px;padding:5px 8px;font-size:11px;z-index:3}.encyclopedia select{max-width:100%}@media(max-width:760px){.route-legend{font-size:9px}}
