@@ -35,3 +35,5 @@ export type ArticleSummary={id:string;title:string;subtitle:string;category:stri
 export type ArticleDetail=ArticleSummary & {sections:{title:string;text:string}[];bibliography:{id:string;title:string;url:string}[];related:string[]};
 
 export type EditorialNetwork={release_id:string;geometry_semantics:'editorial_connections_not_routes';articles:Pick<ArticleSummary,'id'|'title'|'location'|'art'>[];links:{ordinal:number;record:[string,string,string,string?]}[];journeys:{ordinal:number;record:{title:string;subtitle:string;art:string;ids:string[]}}[]};
+
+export type DirectoryEntry={entity_id:string;collection:'historical'|'modern';region_label:string;record:{id:string|number;name:string;en?:string;lon:number;lat:number;region:string|number;kind?:string;source_certainty?:string;source_url?:string;source_uri?:string;source_blob_sha?:string;rank?:number};references:{source_version_id:string;title:string;locator?:string}[]};

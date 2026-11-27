@@ -3,7 +3,8 @@ import {createRoot} from 'react-dom/client';
 import AtlasMap from './AtlasMap';
 import Encyclopedia from './Encyclopedia';
 import Network from './Network';
-import {get,releases,mapFeatures,emptyFeatures,type Release,type Features,type TimeFilter,type SearchResult,type Entity,type Claim,type ArticleSummary,type EditorialNetwork} from './api';
+import Directory,{searchKey} from './Directory';
+import {get,releases,mapFeatures,emptyFeatures,type Release,type Features,type TimeFilter,type SearchResult,type Entity,type Claim,type ArticleSummary,type EditorialNetwork,type DirectoryEntry} from './api';
 import './style.css';
 
 function yearValue(value:string,era:string){
@@ -18,9 +19,10 @@ function yearValue(value:string,era:string){
 const YEAR_LIMIT=10n**30n;
 function displayYear(a:bigint){return a<=0n?{year:(1n-a).toString(),era:'BCE'}:{year:a.toString(),era:'CE'};}
 function App(){
- const [panel,setPanel]=useState<'search'|'detail'|'encyclopedia'|'network'|null>(null);
+ const [panel,setPanel]=useState<'search'|'detail'|'encyclopedia'|'network'|'directory'|null>(null);
  const [articleRows,setArticleRows]=useState<ArticleSummary[]>([]),[articleSelected,setArticleSelected]=useState<string|null>(null),[articleLayer,setArticleLayer]=useState(false);
  const [network,setNetwork]=useState<EditorialNetwork|null>(null),[networkError,setNetworkError]=useState(''),[showLinks,setShowLinks]=useState(false),[journey,setJourney]=useState<number|null>(null),[journeyStep,setJourneyStep]=useState(0);
+ const [directory,setDirectory]=useState<DirectoryEntry[]>([]),[directoryError,setDirectoryError]=useState(''),[directoryCollection,setDirectoryCollection]=useState<'historical'|'modern'>('historical'),[directoryRegion,setDirectoryRegion]=useState(''),[directoryQuery,setDirectoryQuery]=useState(''),[directorySelected,setDirectorySelected]=useState<string|null>(null),[directoryLayer,setDirectoryLayer]=useState(false);
  const [playing,setPlaying]=useState(false),[step,setStep]=useState('100');
  const [showLocations,setShowLocations]=useState(true);
  const [physical,setPhysical]=useState<'relief'|'etopo'|'flat'|'hex'>('relief');
@@ -62,7 +64,15 @@ function App(){
  get<EditorialNetwork>('/api/v1/editorial-network',{release},c.signal).then(r=>{if(!c.signal.aborted)setNetwork(r);}).catch(()=>{if(!c.signal.aborted)setNetworkError('تعذر تحميل العلاقات والرحلات.');});
  return ()=>c.abort();
  },[release]);
- function resetSelection(){setSelected(null);setEntity(null);setClaim(null);setAfter(undefined);setArticleSelected(null);setPanel(p=>p==='detail'?null:p);}
+ useEffect(()=>{
+ setDirectory([]);setDirectorySelected(null);setDirectoryError('');
+ if(!release)return;const c=new AbortController();
+ get<{entries:DirectoryEntry[];truncated:boolean}>('/api/v1/directory',{release},c.signal).then(r=>{if(!c.signal.aborted){setDirectory(r.entries);if(r.truncated)setDirectoryError('توجد سجلات إضافية غير معروضة.');}}).catch(()=>{if(!c.signal.aborted)setDirectoryError('تعذر تحميل المعجم.');});
+ return ()=>c.abort();
+ },[release]);
+ const directoryRows=directory.filter(x=>x.collection===directoryCollection&&(!directoryRegion||x.region_label===directoryRegion)&&(!directoryQuery||searchKey(x.record.name+' '+(x.record.en??'')).includes(searchKey(directoryQuery))));
+ function chooseDirectory(id:string|null){setDirectorySelected(id);setPanel('directory');}
+ function resetSelection(){setSelected(null);setEntity(null);setClaim(null);setAfter(undefined);setArticleSelected(null);setDirectorySelected(null);setPanel(p=>p==='detail'?null:p);}
  function choose(id:string){setSelected(id);setPanel('detail');}
  function chooseArticle(id:string|null){setArticleSelected(id);setPanel('encyclopedia');setArticleLayer(true);}
  function selectJourney(id:number|null){setJourney(id);setJourneyStep(0);}
@@ -90,7 +100,7 @@ function App(){
  const places=[...new Map(visibleData.features.map(f=>[f.properties.subject_id,f.properties])).values()];
  const currentName=entity?.names.find(n=>n.lang==='ar')?.name??entity?.names[0]?.name;
  return <div className="app">
- <header className="masthead"><div className="brand"><span className="mark">S</span><div><span className="eyebrow">SATAC · نموذج تأسيسي v0.14</span><h1>السعودية عبر الزمن، عبر القارات</h1></div></div><nav className="header-actions" aria-label="أدوات الأطلس"><button aria-expanded={panel==='search'} onClick={()=>setPanel(p=>p==='search'?null:'search')}>استكشف</button><button aria-expanded={panel==='detail'} onClick={()=>setPanel(p=>p==='detail'?null:'detail')}>المعرفة</button><button aria-expanded={panel==='encyclopedia'} onClick={()=>{setPanel(p=>p==='encyclopedia'?null:'encyclopedia');setArticleLayer(true);}}>الموسوعة</button><button aria-expanded={panel==='network'} onClick={()=>{setPanel(p=>p==='network'?null:'network');setShowLinks(true);}}>العلاقات</button><button onClick={()=>setPanel(null)}>الخريطة</button></nav></header>
+ <header className="masthead"><div className="brand"><span className="mark">S</span><div><span className="eyebrow">SATAC · نموذج تأسيسي v0.14</span><h1>السعودية عبر الزمن، عبر القارات</h1></div></div><nav className="header-actions" aria-label="أدوات الأطلس"><button aria-expanded={panel==='search'} onClick={()=>setPanel(p=>p==='search'?null:'search')}>استكشف</button><button aria-expanded={panel==='detail'} onClick={()=>setPanel(p=>p==='detail'?null:'detail')}>المعرفة</button><button aria-expanded={panel==='encyclopedia'} onClick={()=>{setPanel(p=>p==='encyclopedia'?null:'encyclopedia');setArticleLayer(true);}}>الموسوعة</button><button aria-expanded={panel==='network'} onClick={()=>{setPanel(p=>p==='network'?null:'network');setShowLinks(true);}}>العلاقات</button><button aria-expanded={panel==='directory'} onClick={()=>{setPanel(p=>p==='directory'?null:'directory');setDirectoryLayer(true);}}>المعجم</button><button onClick={()=>setPanel(null)}>الخريطة</button></nav></header>
  <main><section className="toolbar" aria-label="أدوات البحث والإصدار">
  <label>الإصدار المعرفي<select aria-label="الإصدار المعرفي" value={release} onChange={e=>{setRelease(e.target.value);resetSelection();}}>{!release&&<option value="">تحميل الإصدارات</option>}{allReleases.map(r=><option key={r.release_id} value={r.release_id}>{r.is_current?'الإصدار الحالي':r.created_at.slice(0,10)} · {r.release_id.slice(0,8)}</option>)}</select></label>
  <form className="search" onSubmit={e=>{e.preventDefault();setAfter(undefined);setSubmitted(q.trim());setPanel('search');}}><label htmlFor="search">البحث عن موضع أو اسم</label><div className="search-row"><input id="search" value={q} onChange={e=>setQ(e.target.value)} placeholder="الحِجر، البتراء..." maxLength={120}/><button disabled={!release}>بحث</button></div></form>
@@ -98,7 +108,7 @@ function App(){
  <label className="layer-toggle"><input type="checkbox" checked={geoLabels} onChange={e=>setGeoLabels(e.target.checked)}/> التسميات الجغرافية</label>
  <label className="layer-toggle"><input type="checkbox" checked={showLocations} onChange={e=>setShowLocations(e.target.checked)}/> المواضع</label>
  {releaseError&&<p role="alert">{releaseError}</p>}</section>
- <section className="main-map"><AtlasMap data={visibleData} selected={selected} onSelect={choose} physical={physical} geoLabels={geoLabels} dated={!!time.as_of} articles={articleLayer&&!time.as_of?articleRows:[]} selectedArticle={articleSelected} onArticleSelect={chooseArticle} network={!time.as_of?network:null} showLinks={showLinks} journey={journey} focus={panel==='network'?focus:undefined}/></section>
+ <section className="main-map"><AtlasMap data={visibleData} selected={selected} onSelect={choose} physical={physical} geoLabels={geoLabels} dated={!!time.as_of} articles={articleLayer&&!time.as_of?articleRows:[]} selectedArticle={articleSelected} onArticleSelect={chooseArticle} network={!time.as_of?network:null} showLinks={showLinks} journey={journey} focus={panel==='network'?focus:undefined} directory={directoryLayer&&!time.as_of?directoryRows:[]} directorySelected={directorySelected} onDirectorySelect={chooseDirectory}/></section>
  <section className="map-status" aria-label="حالة الخريطة"><p role="status" data-testid="feature-count">{mapLoading?'جارٍ تحميل المعالم…':places.length+' مواضع'}</p>
  {mapError&&<p role="alert">{mapError}</p>}{truncated&&<p>عُرضت أول 2000 سجل؛ نتائج إضافية غير معروضة.</p>}{time.as_of&&<p>التأريخ: {timeLabel} · لا تظهر السجلات غير المؤرخة.</p>}
  {!mapLoading&&!mapError&&!places.length&&<p>لا توجد مواضع مطابقة.</p>}</section>
@@ -120,6 +130,6 @@ function App(){
  {detailLoading&&<p role="status">جارٍ تحميل التفاصيل…</p>}{detailError&&<p role="alert">{detailError}</p>}
  {entity&&<article><p className="eyebrow">أسماء منشورة في الإصدار</p><h3>{currentName}</h3><ul className="names">{entity.names.map(n=><li key={n.version_id} lang={n.lang} dir="auto">{n.name}</li>)}</ul>
  {claim?.scientific_note&&<p className="note">{claim.scientific_note}</p>}
- {!!claim?.references?.length&&<section><h3>المراجع المتاحة</h3><ul>{claim.references.map((r,i)=><li key={r.source_version_id+i}>{r.title}{r.locator&&<small>{r.locator}</small>}</li>)}</ul></section>}</article>}</aside><div hidden={panel!=='encyclopedia'}><Encyclopedia release={release} selected={articleSelected} onSelect={chooseArticle} onClose={()=>setPanel(null)} onAnchors={setArticleRows} dated={!!time.as_of} showAnchors={articleLayer} setShowAnchors={setArticleLayer}/></div><div hidden={panel!=='network'}><Network data={network} journey={journey} step={journeyStep} onJourney={selectJourney} onStep={setJourneyStep} onArticle={chooseArticle} links={showLinks} onLinks={setShowLinks} dated={!!time.as_of} onClose={()=>setPanel(null)} error={networkError}/></div></main></div>;
+ {!!claim?.references?.length&&<section><h3>المراجع المتاحة</h3><ul>{claim.references.map((r,i)=><li key={r.source_version_id+i}>{r.title}{r.locator&&<small>{r.locator}</small>}</li>)}</ul></section>}</article>}</aside><div hidden={panel!=='encyclopedia'}><Encyclopedia release={release} selected={articleSelected} onSelect={chooseArticle} onClose={()=>setPanel(null)} onAnchors={setArticleRows} dated={!!time.as_of} showAnchors={articleLayer} setShowAnchors={setArticleLayer}/></div><div hidden={panel!=='network'}><Network data={network} journey={journey} step={journeyStep} onJourney={selectJourney} onStep={setJourneyStep} onArticle={chooseArticle} links={showLinks} onLinks={setShowLinks} dated={!!time.as_of} onClose={()=>setPanel(null)} error={networkError}/></div><div hidden={panel!=='directory'}><Directory entries={directory} collection={directoryCollection} onCollection={setDirectoryCollection} region={directoryRegion} onRegion={setDirectoryRegion} q={directoryQuery} onQ={setDirectoryQuery} selected={directorySelected} onSelect={chooseDirectory} dated={!!time.as_of} error={directoryError} onClose={()=>{setPanel(null);setDirectoryLayer(false);}}/></div></main></div>;
 }
 createRoot(document.getElementById('root')!).render(<App/>);

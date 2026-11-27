@@ -13,3 +13,5 @@ Executable P0 reference: [publication and correction contract](docs/inception/pu
 [Encyclopedia candidate](docs/inception/encyclopedia-candidate.md): 50 original main articles, article-level bibliography, release-scoped thematic search and map navigation.
 
 [Editorial network candidate](docs/inception/editorial-network-candidate.md): original 13 connections and 8 ordered journeys, release-scoped schematic map layers.
+
+[Directory candidate](docs/inception/directory-candidate.md): original 190 historical and 323 modern records, release-scoped reference directory.

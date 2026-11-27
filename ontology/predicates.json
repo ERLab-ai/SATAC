@@ -198,6 +198,16 @@
       "languages": [
         "ar"
       ]
+    },
+    "DIRECTORY_ENTRY": {
+      "domain": [
+        "Place"
+      ],
+      "range": [],
+      "literal_type": "directory_entry",
+      "languages": [
+        "ar"
+      ]
     }
   },
   "publication_status": [

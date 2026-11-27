@@ -121,7 +121,7 @@ def query_claims(conn, release, after, limit, bounds, certainty, entity=None, di
         conditions.append("version_id>%s")
         args.append(after)
     if entity is not None:
-        conditions.append("payload->>'predicate' NOT IN ('NAME','ARTICLE','EDITORIAL_LINK','EDITORIAL_JOURNEY')")
+        conditions.append("payload->>'predicate' NOT IN ('NAME','ARTICLE','EDITORIAL_LINK','EDITORIAL_JOURNEY','DIRECTORY_ENTRY')")
         if direction == "out":
             conditions.append("payload->>'subject_id'=%s")
             args.append(str(entity))
@@ -302,3 +302,21 @@ def editorial_network(release: UUID | None=None):
         elif row["kind"]=="EDITORIAL_JOURNEY" and all(x in nodes for x in rec["ids"]):
             journeys.append(item)
     return {"release_id":str(rid),"geometry_semantics":"editorial_connections_not_routes","articles":list(nodes.values()),"links":links,"journeys":journeys}
+
+
+@app.get("/api/v1/directory")
+def directory(release: UUID | None=None,collection: Literal["historical","modern","all"]="all",
+              region: str | None=Query(None,max_length=120),q: str | None=Query(None,max_length=120)):
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        filters=["release_id=%s"];args=[rid]
+        if collection!="all":
+            filters.append("directory->>'collection'=%s");args.append(collection)
+        if region is not None:
+            filters.append("directory->>'region_label'=%s");args.append(region)
+        if q is not None:
+            key=conn.execute("SELECT public_read.search_key(%s) AS key",(q,)).fetchone()["key"]
+            if not key: raise HTTPException(422,"empty_search")
+            filters.append("strpos(public_read.search_key(concat_ws(' ',directory->'record'->>'name',directory->'record'->>'en')),%s)>0");args.append(key)
+        rows=conn.execute("SELECT entity_id,directory,references FROM public_read.directory WHERE "+" AND ".join(filters)+" ORDER BY directory->>'collection',directory->'record'->>'name',entity_id LIMIT 2001",args).fetchall()
+    return {"release_id":str(rid),"entries":[{"entity_id":str(r["entity_id"]),**r["directory"],"references":r["references"]} for r in rows[:2000]],"truncated":len(rows)>2000}

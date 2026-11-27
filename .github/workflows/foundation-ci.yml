@@ -78,6 +78,13 @@ jobs:
           SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
           SATAC_ADMIN_TEST_DSN: postgresql://satac:disposable-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
         run: python -m unittest discover -s apps/api/tests -p test_network.py -v
+      - name: Install directory migration
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0006_directory.sql
+      - name: Directory import and integration
+        env:
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+          SATAC_ADMIN_TEST_DSN: postgresql://satac:disposable-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+        run: python -m unittest discover -s apps/api/tests -p test_directory.py -v
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'

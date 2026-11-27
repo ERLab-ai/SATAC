@@ -172,3 +172,24 @@ test('editorial relations and ordered journeys, not dated routes',async({page})=
  await expect(page.getByTestId('editorial-legend')).toBeVisible();
  await page.screenshot({path:'test-results/editorial-network.png'});
 });
+
+test('historical and modern directory reference layers',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('button',{name:'المعجم',exact:true}).click();
+ await expect(page.getByTestId('directory-count')).toHaveText('190 مواضع');
+ await expect(page.getByTestId('directory-map-count')).toContainText('190');
+ await page.getByLabel('مجموعة المعجم').selectOption('modern');
+ await expect(page.getByTestId('directory-count')).toHaveText('323 مواضع');
+ await page.getByLabel('البحث في المعجم').fill('Riyadh');
+ await expect(page.getByTestId('directory-count')).toHaveText('1 مواضع');
+ await page.getByRole('complementary',{name:'المعجم الجغرافي'}).getByRole('button',{name:/الرياض/}).click();
+ await expect(page.getByRole('complementary',{name:'المعجم الجغرافي'}).getByText('Riyadh',{exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'إغلاق المعجم'}).click();
+ await expect(page.getByTestId('directory-map-count')).toHaveCount(0);
+ await page.getByRole('button',{name:'المعجم',exact:true}).click();
+ await page.getByLabel('السنة التاريخية').fill('550');
+ await page.getByRole('button',{name:'تطبيق الزمن'}).click();
+ await expect(page.getByTestId('directory-map-count')).toHaveCount(0);
+ await page.getByRole('button',{name:'كل الأزمنة'}).click();
+ await expect(page.getByTestId('directory-map-count')).toContainText('1');
+});
