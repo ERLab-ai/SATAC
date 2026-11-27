@@ -186,6 +186,8 @@ jobs:
         run: |
           npm run build
           python ../../pipelines/verify_web_assets.py --root dist/physical
+      - name: Classify web distribution files
+        run: python pipelines/verify_distribution.py --output benchmark-results/distribution-inventory.json
       - name: Verify repeatable web build
         run: |
           (cd apps/web/dist && find . -type f -print0 | sort -z | xargs -0 sha256sum) > "$RUNNER_TEMP/build-first.sha256"
@@ -278,6 +280,8 @@ jobs:
           path: apps/web/dist
       - name: Verify deployment geographic assets
         run: python pipelines/verify_web_assets.py --root apps/web/dist/physical
+      - name: Verify distribution access classification
+        run: python pipelines/verify_distribution.py
       - name: Isolated operational rehearsal
         env:
           SATAC_OPERATIONAL_SMOKE: '1'
