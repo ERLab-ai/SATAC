@@ -13,7 +13,12 @@ function yearValue(value:string,era:string){
  if(a>10n**30n||a<-(10n**30n))throw new Error('السنة خارج نطاق التخزين.');
  return a.toString();
 }
+const YEAR_LIMIT=10n**30n;
+function displayYear(a:bigint){return a<=0n?{year:(1n-a).toString(),era:'BCE'}:{year:a.toString(),era:'CE'};}
 function App(){
+ const [panel,setPanel]=useState<'search'|'detail'|null>(null);
+ const [playing,setPlaying]=useState(false),[step,setStep]=useState('100');
+ const [showLocations,setShowLocations]=useState(true);
  const [allReleases,setAllReleases]=useState<Release[]>([]),[release,setRelease]=useState(''),[releaseError,setReleaseError]=useState('');
  const [year,setYear]=useState(''),[era,setEra]=useState('CE'),[certainty,setCertainty]=useState('any'),[time,setTime]=useState<TimeFilter>({}),[timeLabel,setTimeLabel]=useState(''),[timeError,setTimeError]=useState('');
  const [data,setData]=useState<Features>(emptyFeatures),[mapLoading,setMapLoading]=useState(false),[mapError,setMapError]=useState(''),[truncated,setTruncated]=useState(false);
@@ -44,37 +49,58 @@ function App(){
  (async()=>{const e=await get<Entity>('/api/v1/entities/'+selected,{release},c.signal);const n=e.names.find(n=>n.lang==='ar')??e.names[0];const d=n?(await get<{claim:Claim}>('/api/v1/claims/'+n.claim_id,{release},c.signal)).claim:null;if(!c.signal.aborted){setEntity(e);setClaim(d);}})().catch(()=>{if(!c.signal.aborted)setDetailError('لا تتوفر تفاصيل هذا الكيان في الإصدار المحدد.');}).finally(()=>{if(!c.signal.aborted)setDetailLoading(false);});
  return ()=>c.abort();
  },[release,selected]);
- function resetSelection(){setSelected(null);setEntity(null);setClaim(null);setAfter(undefined);}
- function applyTime(e:FormEvent){e.preventDefault();try{const as_of=yearValue(year,era);setTime({as_of,certainty});setTimeLabel(year.trim()+(era==='BCE'?' ق.م':' م'));setTimeError('');resetSelection();}catch(err){setTimeError((err as Error).message);}}
- function clearTime(){setTime({});setYear('');setTimeLabel('');setTimeError('');resetSelection();}
- const places=[...new Map(data.features.map(f=>[f.properties.subject_id,f.properties])).values()];
+ function resetSelection(){setSelected(null);setEntity(null);setClaim(null);setAfter(undefined);setPanel(p=>p==='detail'?null:p);}
+ function choose(id:string){setSelected(id);setPanel('detail');}
+ function applyTime(e:FormEvent){e.preventDefault();setPlaying(false);try{const as_of=yearValue(year,era);setTime({as_of,certainty});setTimeLabel(year.trim()+(era==='BCE'?' ق.م':' م'));setTimeError('');resetSelection();}catch(err){setTimeError((err as Error).message);}}
+ function clearTime(){setPlaying(false);setTime({});setYear('');setTimeLabel('');setTimeError('');resetSelection();}
+ function moveTime(delta:bigint){
+ if(!time.as_of)return;
+ const a=BigInt(time.as_of)+delta;
+ if(a>YEAR_LIMIT||a< -YEAR_LIMIT){setPlaying(false);setTimeError('السنة خارج نطاق التخزين.');return;}
+ const d=displayYear(a);setYear(d.year);setEra(d.era);setTimeLabel(d.year+(d.era==='BCE'?' ق.م':' م'));setTimeError('');
+ setTime({as_of:a.toString(),certainty:time.certainty??'any'});resetSelection();
+ }
+ useEffect(()=>{
+ if(!playing||!time.as_of||mapLoading)return;
+ const timer=window.setTimeout(()=>moveTime(BigInt(step)),1800);
+ return ()=>window.clearTimeout(timer);
+ },[playing,time,step,mapLoading]);
+ useEffect(()=>{
+ const close=(e:KeyboardEvent)=>{if(e.key==='Escape'){setPanel(null);setPlaying(false);}};
+ window.addEventListener('keydown',close);return ()=>window.removeEventListener('keydown',close);
+ },[]);
+ const visibleData=showLocations?data:{...data,features:data.features.filter(f=>f.properties.role!=='location')};
+ const places=[...new Map(visibleData.features.map(f=>[f.properties.subject_id,f.properties])).values()];
  const currentName=entity?.names.find(n=>n.lang==='ar')?.name??entity?.names[0]?.name;
  return <div className="app">
- <header className="masthead"><div className="brand"><span className="mark">S</span><div><span className="eyebrow">SATAC · نموذج تأسيسي v0.14</span><h1>السعودية عبر الزمن، عبر القارات</h1></div></div><span className="edition">الأطلس المعرفي</span></header>
- <main><section className="filters" aria-label="مرشحات الأطلس">
+ <header className="masthead"><div className="brand"><span className="mark">S</span><div><span className="eyebrow">SATAC · نموذج تأسيسي v0.14</span><h1>السعودية عبر الزمن، عبر القارات</h1></div></div><nav className="header-actions" aria-label="أدوات الأطلس"><button aria-expanded={panel==='search'} onClick={()=>setPanel(p=>p==='search'?null:'search')}>استكشف</button><button aria-expanded={panel==='detail'} onClick={()=>setPanel(p=>p==='detail'?null:'detail')}>المعرفة</button><button onClick={()=>setPanel(null)}>الخريطة</button></nav></header>
+ <main><section className="toolbar" aria-label="أدوات البحث والإصدار">
  <label>الإصدار المعرفي<select aria-label="الإصدار المعرفي" value={release} onChange={e=>{setRelease(e.target.value);resetSelection();}}>{!release&&<option value="">تحميل الإصدارات</option>}{allReleases.map(r=><option key={r.release_id} value={r.release_id}>{r.is_current?'الإصدار الحالي':r.created_at.slice(0,10)} · {r.release_id.slice(0,8)}</option>)}</select></label>
+ <form className="search" onSubmit={e=>{e.preventDefault();setAfter(undefined);setSubmitted(q.trim());setPanel('search');}}><label htmlFor="search">البحث عن موضع أو اسم</label><div className="search-row"><input id="search" value={q} onChange={e=>setQ(e.target.value)} placeholder="الحِجر، البتراء..." maxLength={120}/><button disabled={!release}>بحث</button></div></form>
+ <label className="layer-toggle"><input type="checkbox" checked={showLocations} onChange={e=>setShowLocations(e.target.checked)}/> المواضع</label>
+ {releaseError&&<p role="alert">{releaseError}</p>}</section>
+ <section className="main-map"><AtlasMap data={visibleData} selected={selected} onSelect={choose}/></section>
+ <section className="map-status" aria-label="حالة الخريطة"><p role="status" data-testid="feature-count">{mapLoading?'جارٍ تحميل المعالم…':places.length+' مواضع'}</p>
+ {mapError&&<p role="alert">{mapError}</p>}{truncated&&<p>عُرضت أول 2000 سجل؛ نتائج إضافية غير معروضة.</p>}{time.as_of&&<p>التأريخ: {timeLabel} · لا تظهر السجلات غير المؤرخة.</p>}
+ {!mapLoading&&!mapError&&!places.length&&<p>لا توجد مواضع مطابقة.</p>}</section>
+ <section className="timeline" aria-label="الشريط الزمني">
+ <div className="time-heading"><strong>{timeLabel||'كل الأزمنة'}</strong><div className="time-navigation"><button aria-label="الزمن السابق" disabled={!time.as_of||mapLoading} onClick={()=>{setPlaying(false);moveTime(-BigInt(step));}}>←</button><button disabled={!time.as_of} aria-pressed={playing} onClick={()=>setPlaying(p=>!p)}>{playing?'إيقاف':'تشغيل'}</button><button aria-label="الزمن التالي" disabled={!time.as_of||mapLoading} onClick={()=>{setPlaying(false);moveTime(BigInt(step));}}>→</button><label>الخطوة<select value={step} onChange={e=>setStep(e.target.value)}><option value="1">سنة</option><option value="10">10 سنوات</option><option value="100">100 سنة</option><option value="1000">1000 سنة</option></select></label></div></div>
  <form className="time-form" onSubmit={applyTime}><label>السنة التاريخية<input aria-label="السنة التاريخية" inputMode="numeric" value={year} onChange={e=>setYear(e.target.value)} placeholder="مثال: 550"/></label>
  <label>التقويم<select aria-label="التقويم" value={era} onChange={e=>setEra(e.target.value)}><option value="CE">ميلادي</option><option value="BCE">قبل الميلاد</option></select></label>
  <label>التطابق<select value={certainty} onChange={e=>setCertainty(e.target.value)}><option value="any">مؤكد ومحتمل</option><option value="certain">مؤكد فقط</option><option value="possible">محتمل فقط</option></select></label>
  <button type="submit" disabled={!release}>تطبيق الزمن</button><button className="secondary" type="button" onClick={clearTime}>كل الأزمنة</button></form>
- {timeError&&<p role="alert">{timeError}</p>}{releaseError&&<p role="alert">{releaseError}</p>}</section>
- <div className="workspace">
- <aside aria-label="البحث والمواضع" className="sidebar"><h2>استكشف المعرفة</h2>
- <form className="search" onSubmit={e=>{e.preventDefault();setAfter(undefined);setSubmitted(q.trim());}}><label htmlFor="search">البحث عن موضع أو اسم</label><div className="search-row"><input id="search" value={q} onChange={e=>setQ(e.target.value)} placeholder="الحِجر، البتراء..." maxLength={120}/><button disabled={!release}>بحث</button></div></form>
+ {timeError&&<p role="alert">{timeError}</p>}</section>
+ <aside aria-label="البحث والمواضع" className="sidebar floating-panel" hidden={panel!=='search'}><button className="panel-close" aria-label="إغلاق البحث" onClick={()=>setPanel(null)}>×</button><h2>استكشف المعرفة</h2>
  {submitted&&<section aria-label="نتائج البحث"><h3>نتائج البحث</h3><p role="status">{searchLoading?'جارٍ البحث…':results.length+' نتائج'}</p>{searchError&&<p role="alert">{searchError}</p>}
- <ul className="items">{results.map(r=><li key={r.version_id}><button aria-pressed={selected===r.entity_id} onClick={()=>setSelected(r.entity_id)}>{r.name}<small>{r.lang==='ar'?'العربية':'English'}</small></button></li>)}</ul>
+ <ul className="items">{results.map(r=><li key={r.version_id}><button aria-pressed={selected===r.entity_id} onClick={()=>choose(r.entity_id)}>{r.name}<small>{r.lang==='ar'?'العربية':'English'}</small></button></li>)}</ul>
  {next&&<button className="secondary" onClick={()=>setAfter(next)}>الصفحة التالية</button>}{after&&<button className="secondary" onClick={()=>setAfter(undefined)}>الصفحة الأولى</button>}</section>}
- <section aria-label="المواضع الظاهرة"><h3>المواضع الظاهرة على الخريطة</h3><p role="status" data-testid="feature-count">{mapLoading?'جارٍ تحميل المعالم…':places.length+' مواضع'}</p>
- {mapError&&<p role="alert">{mapError}</p>}{truncated&&<p>عُرضت أول 2000 سجل؛ نتائج إضافية غير معروضة.</p>}{time.as_of&&<p className="muted">التأريخ: {timeLabel} · لا تظهر السجلات غير المؤرخة.</p>}
- {!mapLoading&&!mapError&&!places.length&&<p>لا توجد مواضع مطابقة.</p>}
- <ul className="items">{places.map(p=><li key={p.subject_id}><button aria-pressed={selected===p.subject_id} onClick={()=>setSelected(p.subject_id)}>{p.name??p.subject_id}<small>{p.precision}</small></button></li>)}</ul></section></aside>
- <section className="main-map"><AtlasMap data={data} selected={selected} onSelect={setSelected}/></section>
- <aside className="detail" aria-label="تفاصيل الكيان"><h2>بطاقة المعرفة</h2>
+ <section aria-label="المواضع الظاهرة"><h3>المواضع الظاهرة على الخريطة</h3>
+ <ul className="items">{places.map(p=><li key={p.subject_id}><button aria-pressed={selected===p.subject_id} onClick={()=>choose(p.subject_id)}>{p.name??p.subject_id}<small>{p.precision}</small></button></li>)}</ul></section></aside>
+ <aside className="detail floating-panel" hidden={panel!=='detail'} aria-label="تفاصيل الكيان"><button className="panel-close" aria-label="إغلاق المعرفة" onClick={()=>setPanel(null)}>×</button><h2>بطاقة المعرفة</h2>
  {!selected&&<p className="muted">اختر موضعًا من الخريطة أو نتائج البحث لاستعراض أسمائه ومراجعه المتاحة.</p>}
  {detailLoading&&<p role="status">جارٍ تحميل التفاصيل…</p>}{detailError&&<p role="alert">{detailError}</p>}
  {entity&&<article><p className="eyebrow">أسماء منشورة في الإصدار</p><h3>{currentName}</h3><ul className="names">{entity.names.map(n=><li key={n.version_id} lang={n.lang} dir="auto">{n.name}</li>)}</ul>
  {claim?.scientific_note&&<p className="note">{claim.scientific_note}</p>}
- {!!claim?.references?.length&&<section><h3>المراجع المتاحة</h3><ul>{claim.references.map((r,i)=><li key={r.source_version_id+i}>{r.title}{r.locator&&<small>{r.locator}</small>}</li>)}</ul></section>}</article>}</aside></div></main>
- <footer>أطلس تأسيسي · المحتوى الحالي من الإصدار المعرفي المحدد · الإحداثيات بحسب دقتها المسجلة.</footer></div>;
+ {!!claim?.references?.length&&<section><h3>المراجع المتاحة</h3><ul>{claim.references.map((r,i)=><li key={r.source_version_id+i}>{r.title}{r.locator&&<small>{r.locator}</small>}</li>)}</ul></section>}</article>}</aside></main></div>;
 }
 createRoot(document.getElementById('root')!).render(<App/>);

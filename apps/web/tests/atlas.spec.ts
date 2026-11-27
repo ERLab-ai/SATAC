@@ -13,7 +13,7 @@ test('actual API atlas, Arabic search, details and dates',async({page})=>{
  await expect(page.getByRole('complementary',{name:'تفاصيل الكيان'}).getByRole('heading',{name:'الحِجر',exact:true})).toBeVisible();
  await expect(page.getByText('Hegra / Al-Hijr',{exact:true})).toBeVisible();
  await expect(page.getByRole('heading',{name:'المراجع المتاحة'})).toBeVisible();
- await expect(page.getByText('موضع عام تقريبي',{exact:true}).first()).toBeVisible();
+ await expect(page.getByRole('complementary',{name:'تفاصيل الكيان'}).getByText('موضع عام تقريبي',{exact:true})).toBeVisible();
  await page.getByLabel('السنة التاريخية').fill('550');
  await page.getByRole('button',{name:'تطبيق الزمن'}).click();
  await expect(page.getByTestId('feature-count')).toHaveText('0 مواضع');
@@ -29,4 +29,32 @@ test('mobile layout and historical no-year-zero guard',async({page})=>{
  await page.getByRole('button',{name:'تطبيق الزمن'}).click();
  await expect(page.getByText('لا توجد سنة صفر في التأريخ التاريخي.')).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBeTruthy();
+});
+
+test('immersive shell, floating panels and timeline navigation',async({page})=>{
+ await page.goto('/');
+ await expect(page.getByTestId('feature-count')).toHaveText('3 مواضع');
+ await expect(page.getByRole('complementary',{name:'البحث والمواضع'})).toBeHidden();
+ const map=await page.getByTestId('map').boundingBox();
+ expect(map!.width).toBeGreaterThan(0.95*(await page.evaluate(()=>innerWidth)));
+ await page.getByRole('button',{name:'استكشف',exact:true}).click();
+ await expect(page.getByRole('complementary',{name:'البحث والمواضع'})).toBeVisible();
+ await page.keyboard.press('Escape');
+ await expect(page.getByRole('complementary',{name:'البحث والمواضع'})).toBeHidden();
+ await page.getByLabel('المواضع',{exact:true}).uncheck();
+ await expect(page.getByTestId('feature-count')).toHaveText('0 مواضع');
+ await page.getByLabel('المواضع',{exact:true}).check();
+ await expect(page.getByTestId('feature-count')).toHaveText('3 مواضع');
+ await page.getByLabel('السنة التاريخية').fill('1');await page.getByLabel('التقويم').selectOption('BCE');
+ await page.getByRole('button',{name:'تطبيق الزمن'}).click();
+ await expect(page.getByTestId('feature-count')).toHaveText('0 مواضع');
+ await page.getByLabel('الخطوة',{exact:true}).selectOption('1');
+ await page.getByRole('button',{name:'الزمن التالي'}).click();
+ await expect(page.getByLabel('السنة التاريخية')).toHaveValue('1');
+ await expect(page.getByLabel('التقويم')).toHaveValue('CE');
+ await page.getByRole('button',{name:'تشغيل',exact:true}).click();
+ await expect(page.getByLabel('السنة التاريخية')).toHaveValue('2',{timeout:10000});
+ await page.getByRole('button',{name:'إيقاف',exact:true}).click();
+ await page.getByRole('button',{name:'كل الأزمنة'}).click();
+ await expect(page.getByTestId('feature-count')).toHaveText('3 مواضع');
 });

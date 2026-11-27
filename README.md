@@ -7,3 +7,5 @@ Executable P0 reference: [publication and correction contract](docs/inception/pu
 [Entity names and Arabic search candidate](docs/inception/entity-search-candidate.md): three-place legacy sample, stage-only importer and release-scoped search.
 
 [Web atlas candidate](docs/inception/web-atlas-candidate.md): Arabic React/MapLibre interface, read-only API, actual sample and browser integration.
+
+[Legacy visual and feature parity register](docs/inception/atlas-parity.md): owner-approved product direction, incremental recovery; not replacement release.
