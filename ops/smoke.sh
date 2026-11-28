@@ -55,6 +55,28 @@ test "$(curl -sI -o /dev/null -w '%{http_code}' http://127.0.0.1:18080/physical/
 test "$(curl -s -H 'Range: bytes=0-5' -o /dev/null -w '%{http_code}' http://127.0.0.1:18080/physical/labels.json)" = 403
 test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18080/physical/relief/0/0/0.webp)" = 200
 test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18080/_asset_access)" = 404
+# Internal identity and review CLI rehearsal using disposable unpublished records.
+ea="eeee0000-0000-4000-8000-000000000001"
+eb="eeee0000-0000-4000-8000-000000000002"
+es="eeee0000-0000-4000-8000-000000000003"
+ec="eeee0000-0000-4000-8000-000000000004"
+ev="eeee0000-0000-4000-8000-000000000005"
+docker compose exec -T db psql -U satac_admin -d satac -v ON_ERROR_STOP=1 <<SQL
+INSERT INTO knowledge.entity VALUES('$ea','Place'),('$eb','Place');
+INSERT INTO knowledge.source_version(id,title) VALUES('$es','Disposable identity source');
+INSERT INTO knowledge.claim VALUES('$ec');
+INSERT INTO knowledge.claim_version(id,claim_id,subject_id,predicate,object_text,language)
+VALUES('$ev','$ec','$ea','NAME','Disposable review fixture','en');
+SQL
+assertion="$(docker compose run --rm -T --no-deps ops assert-external-identity --entity "$ea" --namespace fixture --external-id 42 --source "$es" --locator 'p. 1' --actor 'fixture curator' | python -c 'import sys,json;print(json.load(sys.stdin)["id"])')"
+test "$assertion" = "$(docker compose run --rm -T --no-deps ops assert-external-identity --entity "$ea" --namespace fixture --external-id 42 --source "$es" --locator 'p. 1' --actor 'fixture curator' | python -c 'import sys,json;print(json.load(sys.stdin)["id"])')"
+candidate="$(docker compose run --rm -T --no-deps ops propose-identity --entity-a "$ea" --entity-b "$eb" --reason 'fixture proposal' --actor 'fixture curator' | python -c 'import sys,json;print(json.load(sys.stdin)["id"])')"
+decision="$(docker compose run --rm -T --no-deps ops decide-identity --candidate "$candidate" --decision same_entity --reason 'fixture comparison' --reviewer 'fixture curator' --source "$es" --locator 'p. 1' | python -c 'import sys,json;print(json.load(sys.stdin)["id"])')"
+docker compose run --rm -T --no-deps ops decide-identity --candidate "$candidate" --expected "$decision" --decision undetermined --reason 'fixture reconsideration' --reviewer 'fixture curator'
+review="$(docker compose run --rm -T --no-deps ops record-claim-review --version "$ev" --decision verified --reason 'fixture review' --reviewer 'fixture curator' | python -c 'import sys,json;print(json.load(sys.stdin)["id"])')"
+docker compose run --rm -T --no-deps ops record-claim-review --version "$ev" --expected "$review" --decision disputed --reason 'fixture further review' --reviewer 'fixture curator'
+test "$(docker compose exec -T db psql -U satac_admin -d satac -At -v ON_ERROR_STOP=1 -c "SELECT (SELECT count(*) FROM knowledge.identity_decision WHERE candidate_id='$candidate')=2 AND (SELECT verification_status FROM knowledge.claim_review_state WHERE version_id='$ev')='disputed' AND NOT EXISTS(SELECT 1 FROM public_read.release_claims WHERE version_id='$ev');")" = t
+echo 'PASS: internal identity/review CLI, idempotent assertions, decision history and unpublished isolation'
 # Backup/restore drill in separate database of disposable cluster.
 docker compose exec -T db pg_dump -U satac_admin -d satac -Fc > "$work/backup.dump"
 test -s "$work/backup.dump"
@@ -64,6 +86,7 @@ check="SELECT (SELECT count(*) FROM satac_ops.schema_migrations)=20 AND (SELECT 
 test "$(docker compose exec -T db psql -U satac_admin -d satac_restore -At -v ON_ERROR_STOP=1 -c "$check")" = t
 test "$(docker compose exec -T db psql -U satac_admin -d satac_restore -At -v ON_ERROR_STOP=1 -c "SET ROLE satac_runtime; SELECT count(*) FROM public_read.release_claims;" | tail -n1)" = 3309
 test "$(docker compose exec -T db psql -U satac_admin -d satac_restore -At -v ON_ERROR_STOP=1 -c "SET ROLE satac_runtime; SELECT NOT public_read.asset_allowed('/physical/labels.json') AND public_read.asset_allowed('/physical/relief/0/0/0.webp');" | tail -n1)" = t
+test "$(docker compose exec -T db psql -U satac_admin -d satac_restore -At -v ON_ERROR_STOP=1 -c "SELECT (SELECT count(*) FROM knowledge.identity_decision WHERE candidate_id='$candidate')=2 AND (SELECT verification_status FROM knowledge.claim_review_state WHERE version_id='$ev')='disputed';")" = t
 docker compose exec -T db dropdb -U satac_admin satac_restore
 echo 'PASS: live asset withholding at gateway and restored access decisions'
 echo 'PASS: isolated compose startup, migration ledger, stage idempotence, explicit release, gateway, backup and restore'

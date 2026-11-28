@@ -144,11 +144,53 @@ def main():
     url.add_argument("--url",required=True)
     url.add_argument("--reason",required=True)
     url.add_argument("--actor",required=True)
+    identity=sub.add_parser("assert-external-identity")
+    identity.add_argument("--entity",required=True,type=UUID)
+    identity.add_argument("--namespace",required=True)
+    identity.add_argument("--external-id",required=True)
+    identity.add_argument("--source",required=True,type=UUID)
+    identity.add_argument("--locator")
+    identity.add_argument("--actor",required=True)
+    proposal=sub.add_parser("propose-identity")
+    proposal.add_argument("--entity-a",required=True,type=UUID)
+    proposal.add_argument("--entity-b",required=True,type=UUID)
+    proposal.add_argument("--reason",required=True)
+    proposal.add_argument("--actor",required=True)
+    decision=sub.add_parser("decide-identity")
+    decision.add_argument("--candidate",required=True,type=UUID)
+    decision.add_argument("--expected",type=UUID)
+    decision.add_argument("--decision",required=True,choices=("same_entity","distinct_entities","undetermined"))
+    decision.add_argument("--reason",required=True)
+    decision.add_argument("--reviewer",required=True)
+    decision.add_argument("--source",type=UUID)
+    decision.add_argument("--locator")
+    review=sub.add_parser("record-claim-review")
+    review.add_argument("--version",required=True,type=UUID)
+    review.add_argument("--expected",type=UUID)
+    review.add_argument("--decision",required=True,choices=("verified","review_required","disputed","known_incorrect"))
+    review.add_argument("--reason",required=True)
+    review.add_argument("--reviewer",required=True)
     a=p.parse_args()
     with connection() as conn:
         if a.command=="migrate":result=migrate(conn)
         elif a.command=="stage":result=stage(conn)
         elif a.command=="publish-initial":result=publish_initial(conn,a)
+        elif a.command in ("assert-external-identity","propose-identity","decide-identity","record-claim-review"):
+            with conn.transaction():
+                conn.execute("SET LOCAL ROLE satac_curator")
+                if a.command=="assert-external-identity":
+                    value=conn.execute("SELECT knowledge.assert_external_identity(%s,%s,%s,%s,%s,%s)",
+                        (a.entity,a.namespace,a.external_id,a.source,a.locator,a.actor)).fetchone()[0]
+                elif a.command=="propose-identity":
+                    value=conn.execute("SELECT knowledge.propose_identity(%s,%s,%s,%s)",
+                        (a.entity_a,a.entity_b,a.reason,a.actor)).fetchone()[0]
+                elif a.command=="decide-identity":
+                    value=conn.execute("SELECT knowledge.decide_identity(%s,%s,%s,%s,%s,%s,%s)",
+                        (a.candidate,a.expected,a.decision,a.reason,a.reviewer,a.source,a.locator)).fetchone()[0]
+                else:
+                    value=conn.execute("SELECT knowledge.record_claim_review(%s,%s,%s,%s,%s)",
+                        (a.version,a.expected,a.decision,a.reason,a.reviewer)).fetchone()[0]
+                result={"operation":a.command,"id":str(value)}
         elif a.command=="revoke-embedded-url":
             with conn.transaction():
                 conn.execute("SET LOCAL ROLE satac_curator")
