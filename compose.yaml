@@ -1,0 +1,98 @@
+name: satac
+services:
+  db:
+    image: postgis/postgis:16-3.4@sha256:44126d872ac91993766c341e369c539e8196614321765d36a6f1bab0419a5fa5
+    environment:
+      POSTGRES_USER: satac_admin
+      POSTGRES_DB: satac
+      POSTGRES_PASSWORD_FILE: /run/secrets/admin_password
+    secrets: [admin_password]
+    volumes:
+      - database:/var/lib/postgresql/data
+    networks: [data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U satac_admin -d satac -h 127.0.0.1"]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+    restart: unless-stopped
+  migrate:
+    build:
+      context: .
+      dockerfile: ops/Dockerfile.api
+      target: administration
+    command: ["migrate"]
+    secrets: [admin_password, reader_password]
+    networks: [data]
+    depends_on:
+      db:
+        condition: service_healthy
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: "no"
+  api:
+    build:
+      context: .
+      dockerfile: ops/Dockerfile.api
+      target: runtime
+    environment:
+      SATAC_READER_DSN: "host=db port=5432 dbname=satac user=satac_runtime"
+      SATAC_READER_PASSWORD_FILE: /run/secrets/reader_password
+    secrets: [reader_password]
+    networks: [data, edge]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD","python","-c","import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/health',timeout=5).close()"]
+      interval: 10s
+      timeout: 6s
+      retries: 12
+    restart: unless-stopped
+  web:
+    build:
+      context: .
+      dockerfile: ops/Dockerfile.web
+    ports:
+      - "127.0.0.1:${SATAC_PORT:-8080}:8080"
+    networks: [edge]
+    depends_on:
+      api:
+        condition: service_healthy
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped
+  ops:
+    profiles: [tools]
+    build:
+      context: .
+      dockerfile: ops/Dockerfile.api
+      target: administration
+    secrets: [admin_password, reader_password]
+    networks: [data]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+volumes:
+  database:
+networks:
+  data:
+    internal: true
+  edge:
+secrets:
+  admin_password:
+    file: ${SATAC_SECRET_DIR:-./.satac-secrets}/admin_password
+  reader_password:
+    file: ${SATAC_SECRET_DIR:-./.satac-secrets}/reader_password

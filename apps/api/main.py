@@ -1,0 +1,603 @@
+"""SATAC public read API candidate. Never connects as database owner."""
+import json
+import os
+import re
+from pathlib import Path
+from contextlib import contextmanager
+from decimal import Decimal
+from typing import Literal
+from uuid import UUID
+
+import psycopg
+from psycopg.rows import dict_row
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse, Response
+
+app = FastAPI(title="SATAC Public API", version="0.14.0-dev", description="Release-scoped public knowledge; astronomical years are decimal strings.")
+YEAR = re.compile(r"^-?[0-9]{1,31}$")
+MAX_YEAR = 10**30
+
+
+@app.middleware('http')
+async def public_response_headers(request: Request, call_next):
+    response = await call_next(request)
+    # An immutable release can still be subject to later withdrawal or access masking.
+    response.headers['Cache-Control'] = 'no-store'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['Referrer-Policy'] = 'no-referrer'
+    response.headers['Cross-Origin-Resource-Policy'] = 'same-origin'
+    return response
+
+
+@app.exception_handler(RequestValidationError)
+def invalid_request(request: Request, exc: RequestValidationError):
+    return JSONResponse(status_code=422, content={"error": {"code": "invalid_request", "message": "Invalid query parameters"}})
+
+
+@app.exception_handler(HTTPException)
+def http_error(request: Request, exc: HTTPException):
+    return JSONResponse(status_code=exc.status_code, content={"error": {"code": str(exc.detail)}})
+
+
+@app.exception_handler(psycopg.Error)
+def database_error(request: Request, exc: psycopg.Error):
+    return JSONResponse(status_code=503, content={"error": {"code": "database_unavailable"}})
+
+
+@contextmanager
+def reader():
+    # Separate login inheriting only satac_reader; DB role assertions prevent owner connections.
+    dsn = os.environ.get("SATAC_READER_DSN")
+    if not dsn:
+        raise HTTPException(503, "database_unavailable")
+    options = {}
+    password_file = os.environ.get("SATAC_READER_PASSWORD_FILE")
+    if password_file:
+        try:
+            password = Path(password_file).read_text(encoding="utf-8").rstrip("\r\n")
+        except (OSError, UnicodeError):
+            raise HTTPException(503, "database_unavailable") from None
+        if not password:
+            raise HTTPException(503, "database_unavailable")
+        options["password"] = password
+    with psycopg.connect(dsn, row_factory=dict_row, connect_timeout=5, **options) as conn:
+        with conn.transaction():
+            conn.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
+            conn.execute("SET LOCAL statement_timeout = '5s'")
+            # Short, bounded public reads: avoid per-statement LLVM compilation.
+            # Keep this transaction-local, not a server-wide setting.
+            conn.execute("SET LOCAL jit = off")
+            privileges = conn.execute("""SELECT pg_has_role(current_user,'satac_reader','USAGE') AS reader,
+                pg_has_role(current_user,'satac_publisher','MEMBER') AS publisher,
+                pg_has_role(current_user,'satac_curator','MEMBER') AS curator,
+                has_schema_privilege(current_user,'knowledge','USAGE') AS private_access,
+                EXISTS (SELECT 1 FROM pg_roles WHERE left(rolname,3)='pg_' AND pg_has_role(current_user,oid,'MEMBER')) AS predefined_role,
+                (SELECT rolsuper OR rolcreaterole OR rolcreatedb OR rolbypassrls FROM pg_roles WHERE rolname=current_user) AS elevated""").fetchone()
+            if not privileges["reader"] or any(privileges[k] for k in ("publisher","curator","private_access","predefined_role","elevated")):
+                raise HTTPException(503, "reader_configuration_invalid")
+            yield conn
+
+
+def resolve_release(conn, release):
+    row = conn.execute(
+        "SELECT release_id FROM public_read.releases WHERE " + ("release_id=%s" if release is not None else "is_current"),
+        (release,) if release is not None else (),
+    ).fetchone()
+    if row is None:
+        raise HTTPException(404, "release_not_found")
+    return row["release_id"]
+
+
+def parse_year(value):
+    if not YEAR.fullmatch(value) or abs(int(value)) > MAX_YEAR:
+        raise HTTPException(422, "invalid_year")
+    return Decimal(value)
+
+
+def time_range(as_of, start, end, certainty):
+    if as_of is not None and (start is not None or end is not None):
+        raise HTTPException(422, "conflicting_time_filters")
+    if (start is None) != (end is None):
+        raise HTTPException(422, "both_time_bounds_required")
+    if as_of is None and start is None:
+        if certainty != "any":
+            raise HTTPException(422, "certainty_requires_time")
+        return None
+    lo, hi = (parse_year(as_of), parse_year(as_of)) if as_of is not None else (parse_year(start), parse_year(end))
+    if lo > hi:
+        raise HTTPException(422, "invalid_time_range")
+    return lo, hi
+
+
+def decode_payload(raw):
+    # Preserve all 31-digit year values, including numeric values with trailing decimal zeros.
+    precise = json.loads(raw, parse_float=Decimal)
+    result = json.loads(raw)
+    if "temporal" in result:
+        for key in ("start_low","start_high","end_low","end_high"):
+            if key in precise["temporal"]:
+                result["temporal"][key] = str(int(precise["temporal"][key]))
+    return result
+
+
+def parse_bbox(value):
+    try:
+        west, south, east, north = map(float, value.split(","))
+    except (ValueError, TypeError):
+        raise HTTPException(422, "invalid_bbox")
+    if not (-180 <= west <= 180 and -180 <= east <= 180 and -90 <= south < north <= 90 and west != east):
+        raise HTTPException(422, "invalid_bbox")
+    # Split a viewport crossing the antimeridian; geometries themselves must already be normalized.
+    if west < east:
+        return [(west,south,east,north)]
+    parts = [(w,south,e,north) for w,e in ((west,180),(-180,east)) if w < e]
+    if not parts:
+        raise HTTPException(422, "invalid_bbox")
+    return parts
+
+
+def query_claims(conn, release, after, limit, bounds, certainty, entity=None, direction="both", predicate=None, bbox=None, lens=None):
+    if after is not None and release is None:
+        raise HTTPException(422, "pagination_requires_release")
+    rid = resolve_release(conn, release)
+    conditions = ["release_id=%s"]
+    args = [rid]
+    if after is not None:
+        conditions.append("version_id>%s")
+        args.append(after)
+    if entity is not None:
+        conditions.append("payload->>'predicate' NOT IN ('NAME','ARTICLE','EDITORIAL_LINK','EDITORIAL_JOURNEY','DIRECTORY_ENTRY','ROUTE_SEGMENT','HISTORICAL_SNAPSHOT','GEOLOGY_RECORD','CELL_METRIC','EXTENDED_TOPIC')")
+        if direction == "out":
+            conditions.append("payload->>'subject_id'=%s")
+            args.append(str(entity))
+        elif direction == "in":
+            conditions.append("payload->>'object_id'=%s")
+            args.append(str(entity))
+        else:
+            conditions.append("(payload->>'subject_id'=%s OR payload->>'object_id'=%s)")
+            args.extend([str(entity),str(entity)])
+    if predicate is not None:
+        conditions.append("payload->>'predicate'=%s")
+        args.append(predicate)
+    if bounds is not None:
+        conditions.append("public_read.temporal_match(payload->'temporal',%s,%s)=ANY(%s::text[])")
+        args.extend([*bounds, ["possible","certain"] if certainty == "any" else [certainty]])
+    if bbox is not None:
+        boxes = parse_bbox(bbox)
+        clauses = ["public.ST_Intersects(public.ST_GeomFromGeoJSON(g->'geometry'),public.ST_MakeEnvelope(%s,%s,%s,%s,4326))" for _ in boxes]
+        geom_filter = "(g ? 'geometry') AND ("+" OR ".join(clauses)+")"
+        geom_args = [x for box in boxes for x in box]
+        if lens is not None:
+            geom_filter += " AND g->>'role'=%s"
+            geom_args.append(lens)
+        # Only matching, already-public snapshot geometries; no join to private tables.
+        selected = "(SELECT jsonb_agg(g ORDER BY ord) FROM jsonb_array_elements(coalesce(payload->'geometries','[]'::jsonb)) WITH ORDINALITY AS a(g,ord) WHERE "+geom_filter+")"
+        sql = "SELECT version_id,payload::text AS raw,matched FROM (SELECT version_id,payload,"+selected+" AS matched FROM public_read.release_claims WHERE "+" AND ".join(conditions)+") s WHERE matched IS NOT NULL ORDER BY version_id LIMIT %s"
+        params = [*geom_args,*args,limit+1]
+    else:
+        sql = "SELECT version_id,payload::text AS raw FROM public_read.release_claims WHERE "+" AND ".join(conditions)+" ORDER BY version_id LIMIT %s"
+        params = [*args,limit+1]
+    rows = conn.execute(sql,params).fetchall()
+    page = rows[:limit]
+    return rid,page,(str(page[-1]["version_id"]) if len(rows)>limit else None)
+
+
+@app.get("/_asset-access", include_in_schema=False)
+def asset_access(request: Request):
+    """Internal gateway authorization, with no private audit metadata."""
+    path=request.headers.get("X-SATAC-Asset","")
+    if len(path)>240:
+        raise HTTPException(403,"asset_unavailable")
+    with reader() as conn:
+        allowed=conn.execute("SELECT public_read.asset_allowed(%s) AS allowed",(path,)).fetchone()["allowed"]
+    if not allowed:
+        raise HTTPException(403,"asset_unavailable")
+    return Response(status_code=204)
+
+
+@app.get("/health")
+def health():
+    with reader() as conn:
+        conn.execute("SELECT 1").fetchone()
+    return {"status":"ok"}
+
+
+@app.get("/ready")
+def ready():
+    with reader() as conn:
+        if not conn.execute("SELECT 1 FROM public_read.releases WHERE is_current").fetchone():
+            raise HTTPException(503, "no_active_release")
+    return {"status":"ready"}
+
+
+@app.get("/api/v1/releases")
+def releases(after: UUID | None = None, limit: int = Query(50,ge=1,le=200)):
+    with reader() as conn:
+        rows = conn.execute("SELECT * FROM public_read.releases "+("WHERE release_id>%s " if after else "")+"ORDER BY release_id LIMIT %s",([after,limit+1] if after else [limit+1])).fetchall()
+    page=rows[:limit]
+    return {"releases":page,"next_after":str(page[-1]["release_id"]) if len(rows)>limit else None}
+
+
+@app.get("/api/v1/claims/{claim_id}")
+def claim(claim_id: UUID, release: UUID | None = None):
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        row=conn.execute("SELECT payload::text AS raw FROM public_read.release_claims WHERE release_id=%s AND payload->>'claim_id'=%s",(rid,str(claim_id))).fetchone()
+    if row is None:
+        raise HTTPException(404,"claim_not_found")
+    return {"release_id":str(rid),"claim":decode_payload(row["raw"])}
+
+
+@app.get("/api/v1/export/claims")
+def export_claims(release: UUID, after: UUID | None=None,
+                  limit: int=Query(25,ge=1,le=50)):
+    """Live, paginated JSON export of already public claim projections.
+
+    Pin the release; never export private stored snapshots. Withdrawals and
+    access masks are evaluated at each request, including archived releases.
+    """
+    with reader() as conn:
+        rid,rows,cursor=query_claims(conn,release,after,limit,None,"any")
+    return {"format":"satac-public-claims-v1","release_id":str(rid),
+            "claims":[decode_payload(r["raw"]) for r in rows],"next_after":cursor}
+
+
+@app.get("/api/v1/conflicts")
+def scientific_conflicts(entity_id: UUID, release: UUID | None=None,
+                         after: UUID | None=None, limit: int=Query(20,ge=1,le=50),
+                         group_id: UUID | None=None, alternative_after: UUID | None=None):
+    """Explicit scientific alternatives only; never infer conflict from differing claims."""
+    if (after is not None or alternative_after is not None) and release is None:
+        raise HTTPException(422,"pagination_requires_release")
+    if (alternative_after is not None and group_id is None) or (group_id is not None and after is not None):
+        raise HTTPException(422,"invalid_conflict_cursor")
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        # Read only the live access-masked release projection. A withdrawn member
+        # cannot establish group visibility or contribute an alternative.
+        groups=conn.execute("""
+            SELECT (payload->>'conflict_group_id')::uuid AS group_id, count(*) AS alternative_count
+            FROM public_read.release_claims
+            WHERE release_id=%s AND payload->>'subject_id'=%s AND payload ? 'conflict_group_id'
+              AND (%s::uuid IS NULL OR (payload->>'conflict_group_id')::uuid>%s::uuid)
+              AND (%s::uuid IS NULL OR (payload->>'conflict_group_id')::uuid=%s::uuid)
+            GROUP BY 1 HAVING count(*)>=2 ORDER BY 1 LIMIT %s
+        """,(rid,str(entity_id),after,after,group_id,group_id,limit+1)).fetchall()
+        if group_id is not None and not groups:
+            raise HTTPException(404,"conflict_not_found")
+        result=[]
+        for group in groups[:limit]:
+            gid=group["group_id"]
+            rows=conn.execute("""
+                SELECT c.version_id,c.payload::text AS raw,
+                  (SELECT n.name FROM public_read.entity_names n
+                   WHERE n.release_id=c.release_id AND n.entity_id=(c.payload->>'object_id')::uuid
+                   ORDER BY CASE n.lang WHEN 'ar' THEN 0 ELSE 1 END,n.version_id LIMIT 1) AS object_name
+                FROM public_read.release_claims c
+                WHERE c.release_id=%s AND c.payload->>'subject_id'=%s
+                  AND c.payload->>'conflict_group_id'=%s
+                  AND (%s::uuid IS NULL OR c.version_id>%s::uuid)
+                ORDER BY c.version_id LIMIT 51
+            """,(rid,str(entity_id),str(gid),alternative_after,alternative_after)).fetchall()
+            alternatives=[]
+            for row in rows[:50]:
+                alternative=decode_payload(row["raw"])
+                if row["object_name"] is not None:
+                    alternative["object_name"]=row["object_name"]
+                alternatives.append(alternative)
+            result.append({"group_id":str(gid),"alternative_count":group["alternative_count"],
+                           "alternatives":alternatives,
+                           "next_alternative_after":str(rows[49]["version_id"]) if len(rows)>50 else None})
+    return {"release_id":str(rid),"conflicts":result,
+            "next_after":str(groups[limit-1]["group_id"]) if len(groups)>limit else None}
+
+
+@app.get("/api/v1/relations")
+def relations(entity_id: UUID, direction: Literal["in","out","both"]="both", predicate: str | None=Query(None,max_length=64),
+              release: UUID | None=None, after: UUID | None=None, limit: int=Query(50,ge=1,le=200),
+              as_of: str | None=Query(None,max_length=32), start: str | None=Query(None,alias="from",max_length=32),
+              end: str | None=Query(None,alias="to",max_length=32), certainty: Literal["any","possible","certain"]="any",
+              max_depth: int=Query(1,ge=1,le=1)):
+    bounds=time_range(as_of,start,end,certainty)
+    with reader() as conn:
+        rid,rows,cursor=query_claims(conn,release,after,limit,bounds,certainty,entity_id,direction,predicate)
+    return {"release_id":str(rid),"claims":[decode_payload(r["raw"]) for r in rows],"next_after":cursor}
+
+
+@app.get("/api/v1/map/features")
+def map_features(bbox: str=Query(...,max_length=120), release: UUID | None=None, after: UUID | None=None,
+                 limit: int=Query(50,ge=1,le=200), as_of: str | None=Query(None,max_length=32),
+                 start: str | None=Query(None,alias="from",max_length=32),end: str | None=Query(None,alias="to",max_length=32),
+                 certainty: Literal["any","possible","certain"]="any",
+                 lens: Literal["location","sovereignty","administration","influence","claim","trade","distribution"] | None=None):
+    bounds=time_range(as_of,start,end,certainty)
+    with reader() as conn:
+        rid,rows,cursor=query_claims(conn,release,after,limit,bounds,certainty,bbox=bbox,lens=lens)
+    features=[]
+    for row in rows:
+        p=decode_payload(row["raw"])
+        for g in row["matched"]:
+            features.append({"type":"Feature","geometry":g["geometry"],"properties":{
+                "claim_id":p["claim_id"],"version_id":p["version_id"],"subject_id":p["subject_id"],
+                "predicate":p["predicate"],**({"object_id":p["object_id"]} if "object_id" in p else {"name":p["object_text"]}),"role":g["role"],
+                "precision":g["precision"],**({"uncertainty_m":g["uncertainty_m"]} if "uncertainty_m" in g else {})}})
+    return {"type":"FeatureCollection","release_id":str(rid),"features":features,"next_after":cursor}
+
+
+@app.get("/api/v1/entities/{entity_id}/canonical")
+def canonical_identity(entity_id: UUID, release: UUID):
+    """Resolve only an explicitly published, currently visible identity pair."""
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        row=conn.execute("""
+            SELECT payload::text AS raw FROM public_read.release_claims
+            WHERE release_id=%s AND payload->>'predicate'='CANONICAL_IDENTITY'
+              AND (payload->>'subject_id'=%s OR payload->>'object_id'=%s)
+        """,(rid,str(entity_id),str(entity_id))).fetchone()
+        if row is None:
+            if not conn.execute("SELECT 1 FROM public_read.entity_names WHERE release_id=%s AND entity_id=%s LIMIT 1",(rid,entity_id)).fetchone():
+                raise HTTPException(404,"entity_not_found")
+            return {"release_id":str(rid),"entity_id":str(entity_id),"canonical_id":str(entity_id),"link":None}
+        link=decode_payload(row["raw"])
+        return {"release_id":str(rid),"entity_id":str(entity_id),"canonical_id":link["object_id"],"link":link}
+
+
+@app.get("/api/v1/entities/{entity_id}")
+def entity_detail(entity_id: UUID, release: UUID | None=None):
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        rows=conn.execute("""SELECT claim_id,version_id,name,lang,kind FROM public_read.entity_names
+            WHERE release_id=%s AND entity_id=%s ORDER BY CASE lang WHEN 'ar' THEN 0 ELSE 1 END,version_id LIMIT 200""",(rid,entity_id)).fetchall()
+    if not rows:
+        raise HTTPException(404,"entity_not_found")
+    return {"release_id":str(rid),"entity_id":str(entity_id),"kind":rows[0]["kind"],
+            "names":[{k:v for k,v in r.items() if k!="kind"} for r in rows]}
+
+
+@app.get("/api/v1/search")
+def search(q: str=Query(...,min_length=1,max_length=120),lang: Literal["ar","en","any"]="any",
+           kind: str | None=Query(None,alias="type",max_length=40),release: UUID | None=None,
+           after: UUID | None=None,limit: int=Query(50,ge=1,le=200),
+           as_of: str | None=Query(None,max_length=32),start: str | None=Query(None,alias="from",max_length=32),
+           end: str | None=Query(None,alias="to",max_length=32),certainty: Literal["any","possible","certain"]="any"):
+    bounds=time_range(as_of,start,end,certainty)
+    if after is not None and release is None:
+        raise HTTPException(422,"pagination_requires_release")
+    with reader() as conn:
+        key=conn.execute("SELECT public_read.search_key(%s) AS key",(q,)).fetchone()["key"]
+        if not key:
+            raise HTTPException(422,"empty_search")
+        rid=resolve_release(conn,release)
+        filters=["release_id=%s","strpos(public_read.search_key(name),%s)>0"]
+        args=[rid,key]
+        if lang!="any":
+            filters.append("lang=%s");args.append(lang)
+        if kind is not None:
+            filters.append("kind=%s");args.append(kind)
+        if after is not None:
+            filters.append("version_id>%s");args.append(after)
+        if bounds is not None:
+            filters.append("public_read.temporal_match(temporal,%s,%s)=ANY(%s::text[])")
+            args.extend([*bounds,["possible","certain"] if certainty=="any" else [certainty]])
+        rows=conn.execute("SELECT entity_id,claim_id,version_id,name,lang,kind FROM public_read.entity_names WHERE "+" AND ".join(filters)+" ORDER BY version_id LIMIT %s",[*args,limit+1]).fetchall()
+    page=rows[:limit]
+    return {"release_id":str(rid),"results":page,"next_after":str(page[-1]["version_id"]) if len(rows)>limit else None}
+
+
+@app.get("/api/v1/articles")
+def articles(release: UUID | None=None,q: str | None=Query(None,max_length=120),
+             era: Literal["all","deep","ancient","islamic","states","modern"]="all"):
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        filters=["release_id=%s"];args=[rid]
+        if era!="all":
+            filters.append("article->'eras' ? %s");args.append(era)
+        if q is not None:
+            key=conn.execute("SELECT public_read.search_key(%s) AS key",(q,)).fetchone()["key"]
+            if not key: raise HTTPException(422,"empty_search")
+            filters.append("strpos(public_read.search_key(concat_ws(' ',article->>'title',article->>'subtitle',article->>'summary',article->>'keywords',article->>'sections')),%s)>0");args.append(key)
+        rows=conn.execute("SELECT article FROM public_read.articles WHERE "+" AND ".join(filters)+" ORDER BY article->>'id' LIMIT 200",args).fetchall()
+    keys=("id","title","subtitle","category","art","eras","location","summary","short_name","heritage_status")
+    return {"release_id":str(rid),"articles":[{k:r["article"][k] for k in keys if k in r["article"]} for r in rows]}
+
+
+@app.get("/api/v1/articles/{slug}")
+def article(slug: str,release: UUID | None=None):
+    if not re.fullmatch(r"[a-z0-9_]{1,80}",slug): raise HTTPException(404,"article_not_found")
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        row=conn.execute("SELECT work_id,article FROM public_read.articles WHERE release_id=%s AND article->>'id'=%s",(rid,slug)).fetchone()
+        if row is None: raise HTTPException(404,"article_not_found")
+        titles={r["id"]:r["title"] for r in conn.execute("SELECT article->>'id' AS id,article->>'title' AS title FROM public_read.articles WHERE release_id=%s",(rid,))}
+    a=row["article"]
+    a["related"]=[s for s in a["related"] if s in titles]
+    return {"release_id":str(rid),"work_id":str(row["work_id"]),"article":a,"related_topics":[{"id":s,"title":titles[s]} for s in a["related"]]}
+
+
+@app.get("/api/v1/editorial-network")
+def editorial_network(release: UUID | None=None):
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        articles=[r["article"] for r in conn.execute("SELECT article FROM public_read.articles WHERE release_id=%s ORDER BY article->>'id'",(rid,))]
+        nodes={a["id"]:{k:a[k] for k in ("id","title","location","art","eras")} for a in articles}
+        rows=conn.execute("SELECT kind,editorial FROM public_read.editorial_network WHERE release_id=%s ORDER BY (editorial->>'ordinal')::int,version_id",(rid,)).fetchall()
+    links=[];journeys=[]
+    for row in rows:
+        item=row["editorial"]
+        rec=item["record"]
+        if row["kind"]=="EDITORIAL_LINK" and all(x in nodes for x in rec[:2]):
+            links.append(item)
+        elif row["kind"]=="EDITORIAL_JOURNEY" and all(x in nodes for x in rec["ids"]):
+            journeys.append(item)
+    return {"release_id":str(rid),"geometry_semantics":"editorial_connections_not_routes","articles":list(nodes.values()),"links":links,"journeys":journeys}
+
+
+@app.get("/api/v1/directory")
+def directory(release: UUID | None=None,collection: Literal["historical","modern","all"]="all",
+              region: str | None=Query(None,max_length=120),q: str | None=Query(None,max_length=120)):
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        filters=["release_id=%s"];args=[rid]
+        if collection!="all":
+            filters.append("directory->>'collection'=%s");args.append(collection)
+        if region is not None:
+            filters.append("directory->>'region_label'=%s");args.append(region)
+        if q is not None:
+            key=conn.execute("SELECT public_read.search_key(%s) AS key",(q,)).fetchone()["key"]
+            if not key: raise HTTPException(422,"empty_search")
+            filters.append("strpos(public_read.search_key(concat_ws(' ',directory->'record'->>'name',directory->'record'->>'en')),%s)>0");args.append(key)
+        rows=conn.execute("SELECT entity_id,directory,source_references FROM public_read.directory WHERE "+" AND ".join(filters)+" ORDER BY directory->>'collection',directory->'record'->>'name',entity_id LIMIT 2001",args).fetchall()
+    return {"release_id":str(rid),"entries":[{"entity_id":str(r["entity_id"]),**r["directory"],"references":r["source_references"]} for r in rows[:2000]],"truncated":len(rows)>2000}
+
+
+from contracts.route_graph import shortest
+
+def released_segments(conn,rid):
+    return [r["segment"] for r in conn.execute("SELECT segment FROM public_read.route_segments WHERE release_id=%s ORDER BY segment->>'id'",(rid,))]
+
+@app.get("/api/v1/routes")
+def routes(release: UUID | None=None):
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        edges=released_segments(conn,rid)
+        rows=conn.execute("SELECT directory->'record' AS record FROM public_read.directory WHERE release_id=%s AND directory->>'collection'='historical'",(rid,)).fetchall()
+    names={r["record"]["id"]:r["record"]["name"] for r in rows}
+    uris={r["record"]["source_uri"]:r["record"]["name"] for r in rows if "source_uri" in r["record"]}
+    ids=sorted({e[k] for e in edges for k in ("from_id","to_id")})
+    nodes=[{"id":n,"name":uris.get(n,names.get(re.sub(r"_[A-Z]{4}$","",n),n))} for n in ids]
+    return {"release_id":str(rid),"segments":edges,"nodes":nodes,"semantics":"undirected_source_weight_network"}
+
+@app.get("/api/v1/routes/path")
+def route_path(start: str=Query(...,min_length=1,max_length=120),end: str=Query(...,min_length=1,max_length=120),release: UUID | None=None):
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        edges=released_segments(conn,rid)
+    try:
+        result=shortest(edges,start,end)
+    except KeyError:
+        raise HTTPException(404,"route_node_not_found")
+    if result is None: raise HTTPException(404,"route_not_connected")
+    return {"release_id":str(rid),"semantics":"undirected_source_weight_network",**result}
+
+
+@app.get("/api/v1/snapshots")
+def snapshots(release: UUID | None=None,as_of: str | None=Query(None,max_length=32)):
+    bounds=time_range(as_of,None,None,"any")
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        sql="SELECT snapshot FROM public_read.snapshots WHERE release_id=%s"
+        args=[rid]
+        if bounds is not None:
+            sql+=" AND public_read.temporal_match(temporal,%s,%s) IN ('certain','possible')"
+            args.extend(bounds)
+        rows=conn.execute(sql+" ORDER BY (snapshot->>'year')::int,version_id",args).fetchall()
+    return {"release_id":str(rid),"semantics":"approximate_source_snapshots_not_validity_intervals","snapshots":[r["snapshot"] for r in rows]}
+
+
+@app.get("/api/v1/geology")
+def geology(release: UUID | None=None):
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        rows=conn.execute("SELECT geology FROM public_read.geology WHERE release_id=%s ORDER BY geology->>'type',geology->'record'->>'id',version_id",(rid,)).fetchall()
+        links=conn.execute("""
+          WITH records AS (SELECT geology->>'type' AS kind, geology->'record' AS r FROM public_read.geology WHERE release_id=%s),
+          p AS (SELECT (r->>'id')::int AS id, public.ST_GeomFromGeoJSON(jsonb_build_object('type','Polygon','coordinates',jsonb_build_array(r->'ring'))) AS geom FROM records WHERE kind='province'),
+          v AS (SELECT r->>'id' AS id,public.ST_SetSRID(public.ST_MakePoint((r->>'lon')::float8,(r->>'lat')::float8),4326) AS geom FROM records WHERE kind='volcano')
+          SELECT v.id,coalesce(array_agg(p.id ORDER BY p.id) FILTER(WHERE p.id IS NOT NULL),ARRAY[]::int[]) AS ids
+          FROM v LEFT JOIN p ON public.ST_Covers(p.geom,v.geom) GROUP BY v.id
+        """,(rid,)).fetchall()
+    return {"release_id":str(rid),"semantics":"present_reference_not_past_reconstruction","records":[r["geology"] for r in rows],"volcano_provinces":{r["id"]:r["ids"] for r in links}}
+
+
+@app.get("/api/v1/cells")
+def cells(release: UUID | None=None):
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        rows=conn.execute("SELECT cell FROM public_read.cells WHERE release_id=%s ORDER BY (cell->>'c')::int,(cell->>'t')::int,version_id LIMIT 5001",(rid,)).fetchall()
+        provinces=[r["record"] for r in conn.execute("SELECT geology->'record' AS record FROM public_read.geology WHERE release_id=%s AND geology->>'type'='province' ORDER BY (geology->'record'->>'id')::int",(rid,))]
+    ids={p["id"] for p in provinces}
+    result=[{**r["cell"],"province_ids":[i for i in r["cell"]["province_ids"] if i in ids]} for r in rows[:5000]]
+    return {"release_id":str(rid),"semantics":"legacy_reference_metrics_not_resource_availability","cells":result,"provinces":[{"id":p["id"],"name":p["name"]} for p in provinces],"truncated":len(rows)>5000}
+
+
+@app.get("/api/v1/extended-topics")
+def extended_topics(release: UUID | None=None):
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        rows=conn.execute("SELECT topic FROM public_read.extended_topics WHERE release_id=%s ORDER BY topic->>'type',topic->>'id',version_id",(rid,)).fetchall()
+        directory={r["record"]["id"]:r for r in conn.execute("SELECT entity_id,directory->'record' AS record FROM public_read.directory WHERE release_id=%s AND directory->>'collection'='historical'",(rid,))}
+    result=[]
+    for row in rows:
+        t=row["topic"];d=directory.get(t["id"]) if t["type"]=="story" else None
+        record=t["record"] if t["type"]=="geosite" else d["record"] if d else None
+        result.append({**t,"location":[record["lon"],record["lat"]] if record else None,"directory_entity_id":str(d["entity_id"]) if d else None})
+    return {"release_id":str(rid),"semantics":"editorial_reference_anchors_not_historical_extents","topics":result}
+
+
+@app.get("/api/v1/explore")
+def explore(q: str=Query(...,min_length=1,max_length=120),release: UUID | None=None,
+            after: UUID | None=None,limit: int=Query(25,ge=1,le=100),
+            as_of: str | None=Query(None,max_length=32),certainty: Literal["any","possible","certain"]="any"):
+    """One release-consistent search. Reference hits are not temporal assertions."""
+    bounds=time_range(as_of,None,None,certainty)
+    if after is not None and release is None:
+        raise HTTPException(422,"pagination_requires_release")
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        key=conn.execute("SELECT public_read.search_key(%s) AS key",(q,)).fetchone()["key"]
+        if not key: raise HTTPException(422,"empty_search")
+        filters=["release_id=%s","strpos(public_read.search_key(name),%s)>0"]
+        args=[rid,key]
+        if after is not None:
+            filters.append("version_id>%s");args.append(after)
+        if bounds is not None:
+            filters.append("public_read.temporal_match(temporal,%s,%s)=ANY(%s::text[])")
+            args.extend([*bounds,["possible","certain"] if certainty=="any" else [certainty]])
+        names=conn.execute("SELECT entity_id,claim_id,version_id,name,lang,kind FROM public_read.entity_names WHERE "+" AND ".join(filters)+" ORDER BY version_id LIMIT %s",[*args,limit+1]).fetchall()
+        refs=conn.execute("""
+          WITH released AS MATERIALIZED (
+            SELECT payload FROM public_read.release_claims
+            WHERE release_id=%s AND payload->>'predicate' IN
+              ('ARTICLE','DIRECTORY_ENTRY','GEOLOGY_RECORD','EXTENDED_TOPIC','HISTORICAL_SNAPSHOT')
+          ), candidates AS (
+            SELECT 'article' AS kind,article->>'id' AS id,article->>'title' AS title,
+              article->>'category' AS subtitle,concat_ws(' ',article->>'subtitle',article->>'summary',article->>'keywords') AS extra,NULL::int AS year
+            FROM (SELECT payload->'article' AS article FROM released
+                  WHERE payload->>'predicate'='ARTICLE' AND payload ? 'article') a
+            UNION ALL
+            SELECT directory->>'collection',entity_id::text,directory->'record'->>'name',
+              directory->>'region_label',directory->'record'->>'en',NULL::int
+            FROM (SELECT (payload->>'subject_id')::uuid AS entity_id,payload->'directory' AS directory
+                  FROM released WHERE payload->>'predicate'='DIRECTORY_ENTRY') d
+            UNION ALL
+            SELECT 'geology',(geology->>'type')||':'||(geology->'record'->>'id'),
+              geology->'record'->>'name',geology->'record'->>'en',NULL,NULL::int
+            FROM (SELECT payload->'geology' AS geology FROM released
+                  WHERE payload->>'predicate'='GEOLOGY_RECORD') g
+            UNION ALL
+            SELECT 'topic',(topic->>'type')||':'||(topic->>'id'),
+              coalesce(topic->'record'->>'title',topic->'record'->>'name'),
+              CASE WHEN topic->>'type'='story' THEN 'المعجم التاريخي' ELSE 'التراث الجيولوجي' END,
+              coalesce(topic->'record'->>'lead',topic->'record'->>'summary'),NULL::int
+            FROM (SELECT payload->'topic' AS topic FROM released
+                  WHERE payload->>'predicate'='EXTENDED_TOPIC') t
+            UNION ALL
+            SELECT 'snapshot',coalesce(snapshot->'record'->>'id','milestone:'||(snapshot->>'year')),
+              coalesce(snapshot->'record'->>'name',snapshot->'record'->>'title'),
+              snapshot->>'year',snapshot->'record'->>'source_name',(snapshot->>'year')::int
+            FROM (SELECT payload->'snapshot' AS snapshot FROM released
+                  WHERE payload->>'predicate'='HISTORICAL_SNAPSHOT') s
+          ), matched AS (
+            SELECT kind,id,title,subtitle,year,
+              CASE WHEN public_read.search_key(title)=%s THEN 0
+                   WHEN strpos(public_read.search_key(title),%s)>0 THEN 1 ELSE 2 END AS rank
+            FROM candidates WHERE strpos(public_read.search_key(concat_ws(' ',title,subtitle,extra)),%s)>0
+          )
+          SELECT kind,id,title,subtitle,year FROM matched ORDER BY rank,kind,title,id LIMIT 101
+        """, [rid,key,key,key]).fetchall()
+    page=names[:limit]
+    return {"release_id":str(rid),"results":page,"next_after":str(page[-1]["version_id"]) if len(names)>limit else None,
+            "references":refs[:100],"references_truncated":len(refs)>100,
+            "reference_semantics":"context_not_temporal_matches"}

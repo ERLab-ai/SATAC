@@ -1,0 +1,305 @@
+name: Foundation reference checks
+on:
+  push:
+    branches: ['foundation/**']
+  pull_request:
+    branches: ['foundation/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  reference:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.5'
+      - run: python -m unittest discover -s tests -v
+  database:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      db:
+        image: postgis/postgis:16-3.4@sha256:44126d872ac91993766c341e369c539e8196614321765d36a6f1bab0419a5fa5
+        env:
+          POSTGRES_USER: satac
+          POSTGRES_PASSWORD: disposable-ci-only
+          POSTGRES_DB: satac
+        ports:
+          - 5432/tcp
+        options: >-
+          --health-cmd "pg_isready -U satac -d satac"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install migration
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0001_knowledge.sql
+      - name: Database integration tests
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/tests/knowledge.sql
+      - name: Install public API migration
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0002_public_api.sql
+      - name: Load disposable API fixtures
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/tests/api_fixture.sql
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.5'
+      - run: |
+          python -m pip install pip==26.3
+          python -m pip install --no-deps -r apps/api/requirements.lock.txt
+          python -m pip check
+      - name: HTTP integration tests
+        env:
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+          SATAC_ADMIN_TEST_DSN: postgresql://satac:disposable-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+        run: python -m unittest discover -s apps/api/tests -p test_api.py -v
+      - name: Install entity names migration
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0003_entity_names.sql
+      - name: Legacy sample and Arabic search integration
+        env:
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+          SATAC_ADMIN_TEST_DSN: postgresql://satac:disposable-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+        run: python -m unittest discover -s apps/api/tests -p test_names.py -v
+      - name: Install encyclopedia migration
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0004_encyclopedia.sql
+      - name: Encyclopedia import and HTTP integration
+        env:
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+          SATAC_ADMIN_TEST_DSN: postgresql://satac:disposable-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+        run: python -m unittest discover -s apps/api/tests -p test_articles.py -v
+      - name: Install editorial network migration
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0005_editorial_network.sql
+      - name: Editorial network integration
+        env:
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+          SATAC_ADMIN_TEST_DSN: postgresql://satac:disposable-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+        run: python -m unittest discover -s apps/api/tests -p test_network.py -v
+      - name: Install directory migration
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0006_directory.sql
+      - name: Directory import and integration
+        env:
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+          SATAC_ADMIN_TEST_DSN: postgresql://satac:disposable-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+        run: python -m unittest discover -s apps/api/tests -p test_directory.py -v
+      - name: Install historical route migration
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0007_routes.sql
+      - name: Route network integration
+        env:
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+          SATAC_ADMIN_TEST_DSN: postgresql://satac:disposable-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+        run: python -m unittest discover -s apps/api/tests -p test_routes.py -v
+      - name: Install historical snapshot migration
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0008_snapshots.sql
+      - name: Historical snapshot integration
+        env:
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+          SATAC_ADMIN_TEST_DSN: postgresql://satac:disposable-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+        run: python -m unittest discover -s apps/api/tests -p test_snapshots.py -v
+      - name: Install geology migration
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0009_geology.sql
+      - name: Geology import and integration
+        env:
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+          SATAC_ADMIN_TEST_DSN: postgresql://satac:disposable-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+        run: python -m unittest discover -s apps/api/tests -p test_geology.py -v
+      - name: Install cell metric migration
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0010_cells.sql
+      - name: Cell metric integration
+        env:
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+          SATAC_ADMIN_TEST_DSN: postgresql://satac:disposable-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+        run: python -m unittest discover -s apps/api/tests -p test_cells.py -v
+      - name: Install extended topic migration
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0011_extended_topics.sql
+      - name: Extended topic integration
+        env:
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+          SATAC_ADMIN_TEST_DSN: postgresql://satac:disposable-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+        run: python -m unittest discover -s apps/api/tests -p test_topics.py -v
+      - name: Install release integrity migration
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0012_release_integrity.sql
+      - name: Release integrity regression
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/tests/release_integrity.sql
+      - name: Install selective access migration
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0013_access_revocation.sql
+      - name: Selective access regression
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/tests/access_revocation.sql
+      - name: Install audited release activation
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0014_release_activation.sql
+      - name: Release activation regression
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/tests/release_activation.sql
+      - name: Install scientific conflict migration
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0015_scientific_conflicts.sql
+      - name: Scientific conflict SQL regression
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/tests/scientific_conflicts.sql
+      - name: Scientific conflict HTTP regression and isolated browser fixture
+        env:
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+          SATAC_ADMIN_TEST_DSN: postgresql://satac:disposable-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+        run: python -m unittest discover -s apps/api/tests -p test_scientific_conflicts.py -v
+      - name: Install embedded source access migration
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0016_embedded_source_access.sql
+      - name: Install static asset access migration
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0017_static_asset_access.sql
+      - name: Static asset access SQL regression
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/tests/static_asset_access.sql
+      - name: Install embedded URL access migration
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0018_embedded_url_access.sql
+      - name: Install canonical identity migration
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0019_canonical_identity.sql
+      - name: Canonical identity SQL regression
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/tests/canonical_identity.sql
+      - name: Install review lifecycle migration
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0020_review_lifecycle.sql
+      - name: Review lifecycle SQL regression
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/tests/review_lifecycle.sql
+      - name: Install canonical resolution migration
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/migrations/0021_canonical_resolution.sql
+      - name: Canonical resolution SQL regression
+        run: docker exec -i ${{ job.services.db.id }} psql -U satac -d satac -v ON_ERROR_STOP=1 < db/tests/canonical_resolution.sql
+      - name: Unified exploration integration
+        env:
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+          SATAC_ADMIN_TEST_DSN: postgresql://satac:disposable-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+        run: python -m unittest discover -s apps/api/tests -p test_explore.py -v
+      - name: Public reader and HTTP security regression
+        env:
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+          SATAC_ADMIN_TEST_DSN: postgresql://satac:disposable-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+        run: python -m unittest discover -s apps/api/tests -p test_security.py -v
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Install web dependencies
+        working-directory: apps/web
+        run: |
+          test "$(node --version)" = v22.16.0
+          test "$(npm --version)" = 10.9.2
+          echo '0cb81ca77931f5a6a6a061281024804d4cb47697eebb0a94d75ecef93e61fd84  package-lock.json' | sha256sum -c -
+          npm ci --no-audit --no-fund
+          git diff --exit-code -- package-lock.json
+      - name: Rebuild verified legacy physical assets
+        run: |
+          python -m venv /tmp/satac-geography
+          /tmp/satac-geography/bin/pip install pip==26.3
+          /tmp/satac-geography/bin/pip install --no-deps -r pipelines/legacy_geography/requirements.txt
+          /tmp/satac-geography/bin/pip check
+          /tmp/satac-geography/bin/python pipelines/prepare_web_geography.py
+          python pipelines/verify_web_assets.py
+      - name: Build web atlas
+        working-directory: apps/web
+        run: |
+          npm run build
+          python ../../pipelines/verify_web_assets.py --root dist/physical
+      - name: Classify web distribution files
+        run: python pipelines/verify_distribution.py --output benchmark-results/distribution-inventory.json
+      - name: Verify repeatable web build
+        run: |
+          (cd apps/web/dist && find . -type f -print0 | sort -z | xargs -0 sha256sum) > "$RUNNER_TEMP/build-first.sha256"
+          npm --prefix apps/web run build
+          (cd apps/web/dist && find . -type f -print0 | sort -z | xargs -0 sha256sum) > "$RUNNER_TEMP/build-second.sha256"
+          cmp "$RUNNER_TEMP/build-first.sha256" "$RUNNER_TEMP/build-second.sha256"
+          sha256sum "$RUNNER_TEMP/build-first.sha256"
+      - name: Install browser
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+      - name: Map startup readiness gate and diagnostics
+        working-directory: apps/web
+        env:
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+        run: npx playwright test tests/map-startup.spec.ts
+      - name: Browser integration against PostGIS
+        working-directory: apps/web
+        env:
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+        run: npm test
+      - name: Checkout exact pre-optimization API for same-host comparison
+        uses: actions/checkout@v4
+        with:
+          ref: 'bdcc4c01990c54785783f9805739727881ef2a47'
+          path: .benchmark-baseline
+          persist-credentials: false
+      - name: Reference API performance baseline
+        env:
+          SATAC_BENCHMARK_ONLY: '1'
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+        run: |
+          python pipelines/benchmark_api.py --server-root .benchmark-baseline --output benchmark-results/reference-before.json
+          python pipelines/benchmark_api.py --output benchmark-results/reference.json
+          python pipelines/compare_performance.py benchmark-results/reference-before.json benchmark-results/reference.json benchmark-results/reference-comparison.json
+      - name: A13 isolated 10000-claim performance baseline
+        env:
+          SATAC_BENCHMARK_ONLY: '1'
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac_benchmark
+        run: |
+          set -euo pipefail
+          DB="${{ job.services.db.id }}"
+          docker exec "$DB" createdb -U satac -T satac satac_benchmark
+          trap 'docker exec "$DB" dropdb -U satac --force satac_benchmark' EXIT
+          (printf "SET satac.benchmark_only='on';\n"; cat db/tests/performance_fixture.sql) | docker exec -i "$DB" psql -U satac -d satac_benchmark -v ON_ERROR_STOP=1
+          python pipelines/benchmark_api.py --scale --server-root .benchmark-baseline --output benchmark-results/a13-before.json
+          python pipelines/benchmark_api.py --scale --output benchmark-results/a13.json
+          python pipelines/compare_performance.py benchmark-results/a13-before.json benchmark-results/a13.json benchmark-results/a13-comparison.json
+      - name: Public access revocation HTTP integration
+        env:
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+          SATAC_ADMIN_TEST_DSN: postgresql://satac:disposable-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+        run: python -m unittest discover -s apps/api/tests -p test_access_revocation.py -v
+      - name: Canonical resolution HTTP regression
+        env:
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+          SATAC_ADMIN_TEST_DSN: postgresql://satac:disposable-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+        run: python -m unittest discover -s apps/api/tests -p test_canonical_resolution.py -v
+      - name: Embedded URL access HTTP regression
+        env:
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+          SATAC_ADMIN_TEST_DSN: postgresql://satac:disposable-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+        run: python -m unittest discover -s apps/api/tests -p test_embedded_url_access.py -v
+      - name: Embedded source access HTTP regression
+        env:
+          SATAC_READER_DSN: postgresql://satac_api_test:disposable-api-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+          SATAC_ADMIN_TEST_DSN: postgresql://satac:disposable-ci-only@127.0.0.1:${{ job.services.db.ports[5432] }}/satac
+        run: python -m unittest discover -s apps/api/tests -p test_embedded_source_access.py -v
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: web-build-and-lock
+          path: |
+            apps/web/dist
+            apps/web/package-lock.json
+            apps/web/test-results
+            benchmark-results
+          if-no-files-found: warn
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: runtime-web-dist
+          path: apps/web/dist
+          if-no-files-found: error
+  operational:
+    needs: database
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: runtime-web-dist
+          path: apps/web/dist
+      - name: Verify deployment geographic assets
+        run: python pipelines/verify_web_assets.py --root apps/web/dist/physical
+      - name: Verify distribution access classification
+        run: python pipelines/verify_distribution.py
+      - name: Isolated operational rehearsal
+        env:
+          SATAC_OPERATIONAL_SMOKE: '1'
+        run: bash ops/smoke.sh

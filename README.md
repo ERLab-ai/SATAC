@@ -1,27 +1,23 @@
-# SATAC — السعودية عبر الزمن، عبر القارات
+# SATAC — P0 contract review candidate
 
-**Saudi Arabia: Across Time, Across Continents**
+Independent foundation track, not a P1 release. The owner-directed [knowledge publication and correction policy v1.2](docs/editorial/knowledge-publication-policy-v1.2-ar.md) supersedes conflicting source/review publication gates. [Revised inception v1.2](docs/SATAC_Inception_Strategy_Architecture_Roadmap_v1.2_AR.md). See [domain contracts](docs/inception/domain-contract.md), [proposed ADRs](docs/adr/ADR-001-to-009.md), [legacy inventory](docs/inception/legacy-inventory.md), and [predicate registry](ontology/predicates.json). Run the dependency-free reference checks using `python -m unittest discover -s tests -v` (Python 3.13.5 tested). The legacy app remains in its own branch. Owner review is required before closing P0 or beginning production P1.
 
-منصة معرفية حضارية مكانية وزمنية، عربية أولًا، تنطلق من جغرافية المملكة المعاصرة لدراسة تاريخ الأرض والإنسان وعلاقات المجتمعات والحضارات عبر القارات، وفق الأدلة المتاحة.
+Executable P0 reference: [publication and correction contract](docs/inception/publication-reference.md). Foundation CI runs the temporal and publication reference tests. Database candidate: [persistent knowledge core](docs/inception/database-candidate.md). [Public API candidate](docs/inception/api-candidate.md) — read-only, no production deployment.
 
-## حالة المشروع
+[Entity names and Arabic search candidate](docs/inception/entity-search-candidate.md): three-place legacy sample, stage-only importer and release-scoped search.
 
-- المرحلة: تأسيس P0 والتحضير لنواة P1؛ لم تُغلق أي منهما بعد.
-- الإصدار المرجعي السابق: Geology v0.13 (نموذج استكشافي، غير مستورد إلى هذا المستودع).
-- المعمارية المستهدفة المقترحة: React/TypeScript + MapLibre، FastAPI، PostgreSQL/PostGIS؛ modular monolith.
-- SATAC رمز تطوير داخلي؛ لا يمثل اعتمادًا حكوميًا أو علامة تجارية محققة.
+[Web atlas candidate](docs/inception/web-atlas-candidate.md): Arabic React/MapLibre interface, read-only API, actual sample and browser integration.
 
-## مبادئ العمل
+[Legacy visual and feature parity register](docs/inception/atlas-parity.md): owner-approved product direction, incremental recovery; not replacement release.
 
-- المكان والزمن والكيان والادعاء والدليل أجزاء من قاعدة معرفة واحدة.
-- نطاق زمني مفتوح، مع دعم BCE والتواريخ التقريبية والعميقة والمجهولة.
-- فصل الحدود المرجعية المعاصرة عن الكيانات والسيادة التاريخية.
-- لا نشر لادعاءات غير مراجعة، ولا استيراد أو توزيع لأصول مجهولة الحقوق.
-- الوكلاء يقترحون مسودات فقط؛ المنتج الأساسي يعمل دون LLM.
+[Encyclopedia candidate](docs/inception/encyclopedia-candidate.md): 50 original main articles, article-level bibliography, release-scoped thematic search and map navigation.
 
-## البدء
+[Editorial network candidate](docs/inception/editorial-network-candidate.md): original 13 connections and 8 ordered journeys, release-scoped schematic map layers.
 
-- [خطة الانتقال P0/P1](docs/inception/transition-plan.md)
-- [تعليمات الوكلاء والمساهمين](AGENTS.md)
+[Directory candidate](docs/inception/directory-candidate.md): original 190 historical and 323 modern records, release-scoped reference directory.
 
-لا يتضمن المستودع حتى الآن تطبيقًا قابلًا للتشغيل أو بيانات معتمدة. تراخيص الشيفرة والبيانات ستحدد منفصلة بعد المراجعة؛ لا يفترض أن إتاحة المستودع للعامة تمنح ترخيص إعادة الاستخدام.
+[Historical snapshots candidate](docs/inception/snapshots-candidate.md): original 27 approximate territories, four event markers, exact-year navigation and comparison.
+
+[Geology candidate](docs/inception/geology-candidate.md): original 44 geological provinces and 12 volcano reference records, release-scoped spatial associations.
+
+[Operational readiness candidate](docs/inception/operational-readiness-candidate.md): localhost Compose runtime, atomic migration ledger, explicit initial release proposal, isolated backup/restore drill. No public deployment.

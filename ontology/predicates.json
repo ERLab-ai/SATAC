@@ -1,0 +1,286 @@
+{
+  "status": "proposed",
+  "entity_types": [
+    "Place",
+    "Person",
+    "Community",
+    "Polity",
+    "Event",
+    "Route",
+    "Institution",
+    "Work",
+    "Manuscript",
+    "Artifact",
+    "Concept"
+  ],
+  "epistemic_status": [
+    "well_supported",
+    "plausible",
+    "disputed",
+    "uncertain",
+    "unsupported"
+  ],
+  "predicates": {
+    "LOCATED_IN": {
+      "domain": [
+        "Place",
+        "Institution",
+        "Artifact",
+        "Manuscript",
+        "Event"
+      ],
+      "range": [
+        "Place"
+      ]
+    },
+    "BORN_IN": {
+      "domain": [
+        "Person"
+      ],
+      "range": [
+        "Place"
+      ]
+    },
+    "LIVED_IN": {
+      "domain": [
+        "Person",
+        "Community"
+      ],
+      "range": [
+        "Place"
+      ]
+    },
+    "TRAVELED_TO": {
+      "domain": [
+        "Person",
+        "Community"
+      ],
+      "range": [
+        "Place"
+      ]
+    },
+    "TRADED_WITH": {
+      "domain": [
+        "Place",
+        "Community",
+        "Polity",
+        "Institution",
+        "Person"
+      ],
+      "range": [
+        "Place",
+        "Community",
+        "Polity",
+        "Institution",
+        "Person"
+      ]
+    },
+    "GOVERNED_BY": {
+      "domain": [
+        "Place",
+        "Community",
+        "Polity",
+        "Institution"
+      ],
+      "range": [
+        "Polity",
+        "Person",
+        "Institution"
+      ]
+    },
+    "AUTHORED": {
+      "domain": [
+        "Person",
+        "Community",
+        "Institution"
+      ],
+      "range": [
+        "Work"
+      ]
+    },
+    "FOUNDED": {
+      "domain": [
+        "Person",
+        "Community",
+        "Polity",
+        "Institution"
+      ],
+      "range": [
+        "Place",
+        "Polity",
+        "Institution"
+      ]
+    },
+    "STUDIED_UNDER": {
+      "domain": [
+        "Person"
+      ],
+      "range": [
+        "Person"
+      ]
+    },
+    "PARTICIPATED_IN": {
+      "domain": [
+        "Person",
+        "Community",
+        "Polity",
+        "Institution"
+      ],
+      "range": [
+        "Event"
+      ]
+    },
+    "CONNECTED_TO": {
+      "domain": [
+        "*"
+      ],
+      "range": [
+        "*"
+      ]
+    },
+    "INFLUENCED": {
+      "domain": [
+        "*"
+      ],
+      "range": [
+        "*"
+      ],
+      "requires_justification": true
+    },
+    "ATTESTED_BY": {
+      "domain": [
+        "*"
+      ],
+      "range": [
+        "Artifact",
+        "Manuscript",
+        "Work"
+      ],
+      "note": "SourceVersion evidence remains a separate record"
+    },
+    "NAME": {
+      "domain": [
+        "*"
+      ],
+      "range": [],
+      "literal_type": "text",
+      "languages": [
+        "ar",
+        "en"
+      ]
+    },
+    "ARTICLE": {
+      "domain": [
+        "Work"
+      ],
+      "range": [],
+      "literal_type": "editorial_article",
+      "languages": [
+        "ar"
+      ]
+    },
+    "EDITORIAL_LINK": {
+      "domain": [
+        "Work"
+      ],
+      "range": [],
+      "literal_type": "editorial_link",
+      "languages": [
+        "ar"
+      ]
+    },
+    "EDITORIAL_JOURNEY": {
+      "domain": [
+        "Work"
+      ],
+      "range": [],
+      "literal_type": "editorial_journey",
+      "languages": [
+        "ar"
+      ]
+    },
+    "DIRECTORY_ENTRY": {
+      "domain": [
+        "Place"
+      ],
+      "range": [],
+      "literal_type": "directory_entry",
+      "languages": [
+        "ar"
+      ]
+    },
+    "ROUTE_SEGMENT": {
+      "domain": [
+        "Route"
+      ],
+      "range": [],
+      "literal_type": "route_segment",
+      "languages": [
+        "ar"
+      ]
+    },
+    "HISTORICAL_SNAPSHOT": {
+      "domain": [
+        "Work"
+      ],
+      "range": [],
+      "literal_type": "historical_snapshot",
+      "languages": [
+        "ar"
+      ]
+    },
+    "GEOLOGY_RECORD": {
+      "domain": [
+        "Place"
+      ],
+      "range": [],
+      "literal_type": "geology_record",
+      "languages": [
+        "ar"
+      ]
+    },
+    "CELL_METRIC": {
+      "domain": [
+        "Place"
+      ],
+      "range": [],
+      "literal_type": "cell_metric",
+      "languages": [
+        "ar"
+      ]
+    },
+    "EXTENDED_TOPIC": {
+      "domain": [
+        "Work"
+      ],
+      "range": [],
+      "literal_type": "extended_topic",
+      "languages": [
+        "ar"
+      ]
+    }
+  },
+  "publication_status": [
+    "draft",
+    "published",
+    "withheld",
+    "withdrawn"
+  ],
+  "verification_status": [
+    "unreviewed",
+    "review_required",
+    "verified",
+    "disputed",
+    "known_incorrect"
+  ],
+  "source_status": [
+    "missing",
+    "incomplete",
+    "available"
+  ],
+  "correction_status": [
+    "none",
+    "pending",
+    "corrected"
+  ]
+}

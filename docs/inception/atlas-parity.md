@@ -1,0 +1,55 @@
+# Atlas parity — owner-approved direction, 2026-11-27
+
+v0.13 is the product/visual reference; v0.14 is the architectural reference. Acceptance requires restoring the legacy experience on the new architecture, not substituting a dashboard. Reference: baseline/v0.13 at 46a48ec5bd3656b2c514458d1637358a28664088, original archive src/atlas.html and docs/geology-preview.png, article.png, mobile.png. No phase closure implied.
+
+| Feature | Current implementation / next acceptance |
+|---|---|
+| Dark teal/gold visual identity, map-first workspace | Implemented candidate; browser visual review still required |
+| Floating controls, search and reader, mobile map-first | Implemented candidate; verify keyboard and responsive layout |
+| Timeline | Bottom exact year navigation and playback, no year zero; restore legacy six era selectors after era mappings and data migration |
+| Place symbols and names | Point labels for small datasets, generic markers; restore category-specific sigils; 91 geographic labels restored as scale-dependent reference labels |
+| Map tools | Region/world, scale, zoom; synchronized minimap and world reset added; dedicated fullscreen pending |
+| Layers and lenses | Location and geographic-label toggles; relief/ETOPO/flat/hex backdrop and reference river toggle; restore legacy atlas, historical places, density and thematic layers |
+| Terrain, elevation/bathymetry, hex grid | Relief and ETOPO reference imagery reprojected to Web Mercator raster tiles; 37,209 original regional visual hexagons restored; relief residual texture, analytical cells, true DEM and finer detail pending |
+| Encyclopedia | 50 main articles and original bibliography restored in candidate; thematic reader, search and editorial map anchors; legacy artwork and extended articles pending |
+| Historical gazetteer and settlements | 190 historical and 323 modern source records restored in directory candidate; separate reference overlay; reconciliation and exact temporal extents pending |
+| Relations, journeys, route network, historical political comparison | 13 editorial connections and 8 ordered thematic journeys restored as candidate; original route network and historical political comparison pending |
+| Resources, geology, volcanism, cells | Pending original dataset migration and visualization |
+| Offline use | Legacy standalone reference retained; new API requires server. Offline strategy pending |
+| Engineering | Keep policy v1.2, stable identities, release-scoped public reads, spatial/temporal precision and regression tests |
+
+No fake data, dummy buttons or historical boundary inference. Feature priority is not a change to formal P0/P1 gates. Require an explicit legacy-function regression matrix, comparable visual captures desktop/mobile, content inventory, API/database and browser tests before replacement release.
+
+Route candidate: 145 original segments, 135 source graph nodes; source-weight Dijkstra and separate map overlay. Browser verification pending; previous directory cycle had four map initialization failures, corrected invalid match expression. Historical territories remain pending.
+
+Historical snapshots candidate: 27 original polygons (five source years) and four original event points; explicit source-year temporal normalization, independent comparison and linked detail. No interpolated boundaries. Corrected prior release variable ordering build failure; browser validation pending.
+
+Geology candidate: 44 original valid provinces and 12 volcanic sites, reference layers, original colors and filters, PostGIS point/polygon associations, retained source files. Cell intersection reader and resource metrics pending. No historical geological reconstruction.
+
+Cell metric candidate: all 2480 original measured records, 1847 pinned geological links, four reference lenses, selectable cell reader and map overlay. Local source geometry cross-check passed; integration pending. Geosite stories and full parity review remain pending.
+
+Extended topics: five original historical stories and two geosite articles, separate collection and original reference anchors, directory reader link; seven additional versioned works. 57 source topics in total. Legacy illustrations, era selectors and complete parity pending.
+
+Visual/thematic candidate: restored all 11 original article SVG illustrations and 13 original category icon SVGs; six original thematic selectors shared by main article reader and map. Exact-year mode remains separate. Historical/modern directory and routes follow original thematic eligibility; editorial links require both endpoints and journeys require all stops to match selected theme. Extended markers gated by story/islamic and geosite/modern (original eligibility, not exact chronology). Eight original directory type glyphs restored in list/details; map type glyphs, full geographic borders/grid, texture, source-era precision, unified search and actual visual acceptance remain pending.
+
+Cartographic candidate: original 458 global and 127 regional border paths (126 nondegenerate regional lines, one omitted zero-length), coarse outside-region fallback, 15-degree graticule, reprojected original alpha texture, relief fallback outside regional hex extent, and eight MapLibre historical type sprites with collision placement and circle fallback. Modern border toggle disabled in dated and historical thematic modes. Actual browser/visual verification pending. Unified search/layer controls, label parity and full-screen remain pending.
+
+Integrated exploration candidate: single public release-consistent search for canonical names plus five reference views, with explicit separation from temporal matches, bounded reference list and type filter; centralized layer settings shared with specialist panels and map controls. Snapshot hits explicitly navigate to source year. No automatic entity merge. Search does not yet include route graph edges, cell metrics or full article body indexing. UI/performance acceptance pending.
+
+Responsive refinement: explicit toolbar/map/timeline layout rows, contained floating panels, scrolling navigation and legend stack, collapsible map controls, native fullscreen and explicit unsupported message, ResizeObserver, geography label avoidance of active anchors. Previous integrated exploration CI passed 81 Python tests and 15/17 browser tests; two failed ambiguous directory label locators corrected with exact matching. Snapshot search opens the selected record, not merely its year. New narrow/landscape viewport and fullscreen tests; visual acceptance pending.
+
+Release integrity candidate: prior responsive CI 46022867064 succeeded. Migration 0012 carries forward existing public payloads instead of re-projecting staged changes, prefers active snapshot then last historical snapshot for re-admission, rejects newly admitted superseded versions, and provides internal stored-manifest verification. Transactional regression with mutable staging, late evidence, draft successor, withdrawn member, duplicate release and re-admission. Existing releases unchanged; source/geometry revocation and cross-version canonical hashing remain separate work. CI pending.
+
+Access revocation candidate: prior release integrity run 46023832001 passed. Migration 0013 adds append-only curator source UUID and version-scoped exact geometry hash masks in shared public release view, whole-version access withholding without correction task, original manifest preservation and internal audit. Structured references/attestations only; embedded literals and derived copies require separate withholding decisions. SQL and HTTP regressions added; CI pending.
+
+Reproducible build candidate: exact npm lock from successful run 46023832001 artifact 15211581358 (163 dependencies with integrity, blob e67ef84682651beded277ba3838b811164eea0a6), npm ci; exact API transitive pins (17), geography pins (18), pip and PostGIS digest pin. CI verifies all 52 generated reference assets against the archived manifest before/after Vite build. Prior access regression split publication and read into separate statements; latest CI pending. No complete binary/runner/wheel hash reproducibility yet.
+
+Performance baseline: verified locked build/revocation run 46028730584 including repeat dist SHA-256 comparison. A13 exact 10000 synthetic claims in disposable isolated clone only (publisher rejection verified, private test fixture inserts read projection, not current; clone dropped), 100 warmed loopback map requests, filtered bbox/year/lens and independently checked 36 results. Real restored-release benchmark nine API workloads, browser readiness desktop/mobile, JSON timing artifacts. No optimization or target certification yet; CI pending.
+
+Performance measurement verified in run 46031340148: A13 p95 593.269 ms, 36 correct features per 100 timed requests, 10000 isolated claims; reference Arabic explore p95 1452.018 ms, dated explore 1457.044 ms. Optimization candidate: transaction-local JIT off, one materialized released-content scan for five contextual search collections. Same-host comparison of exact prior API checkout versus current, response SHA-256 equality and full regression suite; results pending.
+
+Performance optimization verified at exact head 0139877, run 46032754929: all 11 response digests unchanged, explore p95 1477.630→97.580ms (93.4% reduction), A13 588.672→220.946ms (62.47%). Security/accessibility candidate: reject reader logins with predefined pg_ role membership, no-store and baseline HTTP response headers, preview-only CSP, keyboard skip/focus restoration and contrast/reduced-motion changes. Five API security and two browser tests added; CI pending.
+
+Operational candidate: security/accessibility run 46035802235 passed. Compose local-only gateway, isolated reader and admin jobs, checksummed transactional migration ledger, explicit stage/proposal/initial publisher, readiness endpoint and disposable backup/restore CI job. No public deployment or A01 acceptance until smoke succeeds.
+
+Operational failure localized to missing runtime route_graph module, fixed packaging and added import/route checks. Audit 46038090184 reported critical MapLibre, high Vite, 7 Starlette, 42 Pillow and 1 geography certifi advisory entries. Isolated candidate upgrade workflow added; do not deploy publicly until remediation and regression verification. Acceptance evidence register added; no phase closure.

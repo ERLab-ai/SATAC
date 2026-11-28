@@ -1,0 +1,5 @@
+# Distribution file inventory — A07
+
+The verified physical manifest still governs the 52 geography files. A separate build gate checks all distribution file paths against the physical inventory, the tracked land and 32 artwork files, and the current four application files (index, CSS, JavaScript, worker). Tracked artwork and land bytes must equal their source; symlinks and unclassified files fail CI. The database job records a JSON inventory including exact-byte duplicate static paths; the operational job repeats the check on the downloaded artifact. A changed bundle layout requires explicit review of this gate.
+
+This is path classification, not proof that generated JavaScript contains no protected data. Exact-byte duplicate paths are reported for operator review, not automatically revoked. Derived or re-encoded aliases and previously distributed container images still require explicit provenance inventory and controlled removal. The gate does not apply actual restrictions to content or determine distribution rights.
