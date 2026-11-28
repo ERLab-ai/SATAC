@@ -1,0 +1,5 @@
+# Canonical identity — candidate
+
+Based on inception v1.2 and P0 domain contract: stable UUIDs, namespace-qualified external assertions, no automatic merging by text. Migration 0019 stores source-version-qualified assertions, accepts colliding external identifiers as separate assertions, and records an explicit same-kind candidate pair and append-only curator decisions. A same-entity decision requires a source version and locator; the rule is a minimum provenance requirement, not proof of historical identity. No merge or redirect is executed. Decision changes require the expected previous event ID. Existing legacy crosswalk, UUIDs, claims and release manifests remain unchanged. Nothing new is exposed publicly.
+
+Current scope is internal candidate/review workflow via restricted database functions; curator UI/authenticated service, source reconciliation, transitive consistency, reviewed merge/split and release-scoped public canonical resolution remain open. No actual identities have been merged or linked. Test fixtures are rolled back; CI verification pending.
