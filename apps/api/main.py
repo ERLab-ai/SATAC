@@ -326,6 +326,24 @@ def map_features(bbox: str=Query(...,max_length=120), release: UUID | None=None,
     return {"type":"FeatureCollection","release_id":str(rid),"features":features,"next_after":cursor}
 
 
+@app.get("/api/v1/entities/{entity_id}/canonical")
+def canonical_identity(entity_id: UUID, release: UUID):
+    """Resolve only an explicitly published, currently visible identity pair."""
+    with reader() as conn:
+        rid=resolve_release(conn,release)
+        row=conn.execute("""
+            SELECT payload::text AS raw FROM public_read.release_claims
+            WHERE release_id=%s AND payload->>'predicate'='CANONICAL_IDENTITY'
+              AND (payload->>'subject_id'=%s OR payload->>'object_id'=%s)
+        """,(rid,str(entity_id),str(entity_id))).fetchone()
+        if row is None:
+            if not conn.execute("SELECT 1 FROM public_read.entity_names WHERE release_id=%s AND entity_id=%s LIMIT 1",(rid,entity_id)).fetchone():
+                raise HTTPException(404,"entity_not_found")
+            return {"release_id":str(rid),"entity_id":str(entity_id),"canonical_id":str(entity_id),"link":None}
+        link=decode_payload(row["raw"])
+        return {"release_id":str(rid),"entity_id":str(entity_id),"canonical_id":link["object_id"],"link":link}
+
+
 @app.get("/api/v1/entities/{entity_id}")
 def entity_detail(entity_id: UUID, release: UUID | None=None):
     with reader() as conn:

@@ -170,11 +170,20 @@ def main():
     review.add_argument("--decision",required=True,choices=("verified","review_required","disputed","known_incorrect"))
     review.add_argument("--reason",required=True)
     review.add_argument("--reviewer",required=True)
+    link=sub.add_parser("stage-identity-link")
+    link.add_argument("--decision",required=True,type=UUID)
+    link.add_argument("--alias",required=True,type=UUID)
+    link.add_argument("--canonical",required=True,type=UUID)
     a=p.parse_args()
     with connection() as conn:
         if a.command=="migrate":result=migrate(conn)
         elif a.command=="stage":result=stage(conn)
         elif a.command=="publish-initial":result=publish_initial(conn,a)
+        elif a.command=="stage-identity-link":
+            with conn.transaction():
+                conn.execute("SET LOCAL ROLE satac_curator")
+                v=conn.execute("SELECT knowledge.stage_identity_link(%s,%s,%s)",(a.decision,a.alias,a.canonical)).fetchone()[0]
+                result={"operation":a.command,"version_id":str(v)}
         elif a.command in ("assert-external-identity","propose-identity","decide-identity","record-claim-review"):
             with conn.transaction():
                 conn.execute("SET LOCAL ROLE satac_curator")
